@@ -568,6 +568,77 @@ function deltaChip(add: number, del: number): HTMLElement {
   return chip;
 }
 
+// ---- menu button -------------------------------------------------------------
+// A native <select> cannot color half an option, and "+145 −3" is worth
+// coloring. So the bar uses a small popup menu instead: a button that opens a
+// list of rows we build ourselves, closing on pick, outside click or Escape.
+
+interface MenuItem {
+  id: string;
+  label: string;
+  /** right-hand detail, rendered by the caller (a delta chip, a kind) */
+  detail?: () => HTMLElement;
+  mark?: string;
+  current?: boolean;
+}
+
+let openMenu: HTMLElement | null = null;
+
+function closeMenu(): void {
+  openMenu?.remove();
+  openMenu = null;
+}
+
+document.addEventListener("click", (ev) => {
+  if (openMenu && !(ev.target as Element)?.closest(".menu, .menu-btn")) closeMenu();
+});
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") closeMenu();
+});
+
+function menuButton(
+  cls: string,
+  label: () => HTMLElement,
+  items: MenuItem[],
+  pick: (id: string) => void
+): HTMLElement {
+  const wrap = el("div", `menu-wrap ${cls}`);
+  const btn = el("button", "menu-btn");
+  btn.appendChild(label());
+  btn.appendChild(el("span", "menu-caret", "▾"));
+  btn.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    const mine = openMenu?.parentElement === wrap;
+    closeMenu();
+    if (mine) return;
+    const menu = el("div", "menu");
+    for (const it of items) {
+      const row = el("button", `menu-row${it.current ? " current" : ""}`);
+      row.appendChild(el("span", "menu-mark", it.mark ?? ""));
+      row.appendChild(el("span", "menu-label", it.label));
+      if (it.detail) row.appendChild(it.detail());
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeMenu();
+        pick(it.id);
+      });
+      menu.appendChild(row);
+    }
+    wrap.appendChild(menu);
+    openMenu = menu;
+    menu.querySelector(".menu-row.current")?.scrollIntoView({ block: "nearest" });
+  });
+  wrap.appendChild(btn);
+  return wrap;
+}
+
+/** "+9 −5" in green and red, or the object's kind when nothing changed */
+function deltaDetail(e: Entry): HTMLElement {
+  const d = deltaOf(e.files);
+  if (!d.add && !d.del) return el("span", "menu-kind", e.kind);
+  return deltaChip(d.add, d.del);
+}
+
 // ---- lens: by component -----------------------------------------------------------
 
 function renderRail(): HTMLElement {
@@ -698,7 +769,7 @@ function wireKeys(): void {
       case "j": stepEntry(1); break;
       case "k": stepEntry(-1); break;
       case "n": nextUnread(); break;
-      case "Escape": closeEntry(); break;
+      case "Escape": if (!openMenu) closeEntry(); break;
       case "Enter": case "o": {
         if (currentEntry && expanded.has(currentEntry)) closeEntry();
         else if (currentEntry) openEntry(currentEntry);
@@ -719,18 +790,24 @@ function renderObjectBar(): HTMLElement {
 
   const bar = el("div", "objbar");
 
-  const comps = el("select", "ob-select comp") as HTMLSelectElement;
-  for (const c of page.components) {
-    const o = el("option", undefined, `${c.name} · ${c.entryIds.length}`) as HTMLOptionElement;
-    o.value = c.id;
-    if (c.id === comp.id) o.selected = true;
-    comps.appendChild(o);
-  }
-  comps.addEventListener("change", () => {
-    currentEntry = "";
-    selectComponent(comps.value);
-  });
-  bar.appendChild(comps);
+  bar.appendChild(menuButton(
+    "comp",
+    () => {
+      const lab = el("span", "menu-lab");
+      lab.append(el("b", undefined, comp.name), el("span", "menu-sub", `${comp.entryIds.length}`));
+      return lab;
+    },
+    page.components.map((c) => ({
+      id: c.id,
+      label: c.name,
+      mark: c.id === comp.id ? "•" : "",
+      current: c.id === comp.id,
+      detail: () => el("span", "menu-kind", `${c.entryIds.length} objects`)
+    })),
+    (id) => { currentEntry = ""; selectComponent(id); }
+  ));
+
+  bar.appendChild(el("div", "ob-sep"));
 
   const nav = el("div", "ob-nav");
   const prev = el("button", "ob-step", "◂");
@@ -745,20 +822,31 @@ function renderObjectBar(): HTMLElement {
   nav.append(prev, count, next);
   bar.appendChild(nav);
 
-  const objs = el("select", "ob-select obj") as HTMLSelectElement;
-  for (const id of list) {
-    const e = entry(id)!;
-    const readMark = review?.read.includes(id) ? "✓ " : "";
-    const state = e.seed ? deltaLabel(e) : "unchanged";
-    const o = el("option", undefined, `${readMark}${e.name} · ${state}`) as HTMLOptionElement;
-    o.value = id;
-    if (id === currentEntry) o.selected = true;
-    objs.appendChild(o);
-  }
-  objs.addEventListener("change", () => openEntry(objs.value));
-  bar.appendChild(objs);
+  const here = entry(currentEntry);
+  bar.appendChild(menuButton(
+    "obj",
+    () => {
+      const lab = el("span", "menu-lab");
+      lab.appendChild(el("b", undefined, here?.name ?? "—"));
+      if (here) lab.appendChild(deltaDetail(here));
+      return lab;
+    },
+    list.map((id) => {
+      const e = entry(id)!;
+      return {
+        id,
+        label: e.name,
+        mark: review?.read.includes(id) ? "✓" : e.seed ? "●" : "",
+        current: id === currentEntry,
+        detail: () => deltaDetail(e)
+      };
+    }),
+    (id) => openEntry(id)
+  ));
 
   // the current object's identity and read state, kept out of the scroll
+  bar.appendChild(el("div", "ob-sep"));
+
   const cur = entry(currentEntry);
   if (cur) {
     const isRead = review?.read.includes(cur.id) ?? false;
@@ -775,14 +863,11 @@ function renderObjectBar(): HTMLElement {
     }
   }
 
-  bar.appendChild(el("span", "ob-keys", "j / k · n"));
+  const keys = el("span", "ob-keys");
+  const kbd = (k: string): HTMLElement => el("kbd", undefined, k);
+  keys.append(kbd("j"), kbd("k"), document.createTextNode(" walk "), kbd("n"), document.createTextNode(" next unread"));
+  bar.appendChild(keys);
   return bar;
-}
-
-/** "+9 −5" for the bar's option list, or the kind when nothing changed */
-function deltaLabel(e: Entry): string {
-  const d = deltaOf(e.files);
-  return d.add || d.del ? `+${d.add} −${d.del}` : e.kind;
 }
 
 function renderComponentDoc(): HTMLElement {

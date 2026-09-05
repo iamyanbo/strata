@@ -1,45 +1,57 @@
 /* Strata — dark theme by default; [data-theme="light"] on <html> restores
-   the paper palette. Everything derives from these variables. */
+   the paper palette. Everything derives from these variables.
+
+   The palette is ink on paper, not slate on blue: neutral, faintly warm
+   grays so the four strata colors and the +/- greens and reds are the only
+   saturated things on screen. Surfaces step paper -> surface -> elev, and
+   every raised thing is a 1px border plus a shadow, the way GitHub's file
+   boxes and menus read. */
 
 :root {
   color-scheme: dark;
 
-  --paper: #14161b;
-  --ink: #e8ebf0;
-  --muted: #9ba3ae;
-  --faint: #6d7480;
-  --hairline: #262b34;
-  --surface: #1c2028;
+  --paper: #131314;
+  --surface: #1a1a1c;
+  --elev: #212125;
+  --ink: #ecebe8;
+  --muted: #a19e99;
+  --faint: #726f6b;
+  --hairline: #2b2b2e;
+  --strong: #3d3d41;
 
   /* the four time strata, oldest -> newest */
-  --s1: #82aede;
-  --s2: #9d8ce0;
-  --s3: #c99a5b;
-  --s4: #d96455;
+  --s1: #7fb0e8;
+  --s2: #a78bea;
+  --s3: #d3a05c;
+  --s4: #e0685a;
 
-  --ok: #7fbf8f;
-  --gap: #d96455;
-  --warn: #c9973b;
-  --flash: #38311f;
+  --accent: #6aa5e0;
+  --ok: #4cb464;
+  --gap: #e8564c;
+  --warn: #d3a02c;
+  --flash: #33301d;
 
-  --add-bg: #1b2720;
-  --del-bg: #2b1f22;
-  --move-bg: #20222a;
+  --add-bg: color-mix(in srgb, var(--ok) 13%, var(--paper));
+  --del-bg: color-mix(in srgb, var(--gap) 12%, var(--paper));
+  --move-bg: color-mix(in srgb, var(--ink) 6%, var(--paper));
 
-  --edge: #343945;
-  --edge-ext: #2c313b;
+  --edge: #3d3d41;
+  --edge-ext: #2f2f33;
   /* edge state: co-changed / unchanged-caller / into-unchanged */
   --edge-co: #7fa8d8;
   --edge-risk: #e0864f;
-  --edge-out: #6f7a8c;
-  --link-fg: #85b3e0;
-  --link-bg: #1d2634;
-  --link-border: #2c3a4d;
-  --link-bg-hover: #253346;
+  --edge-out: #71716f;
+  --link-fg: #8fbdea;
+  --link-bg: color-mix(in srgb, var(--accent) 13%, var(--paper));
+  --link-border: color-mix(in srgb, var(--accent) 30%, var(--hairline));
+  --link-bg-hover: color-mix(in srgb, var(--accent) 22%, var(--paper));
 
   /* hover cards stay dark in both themes — quiet popovers */
-  --card: #191c22;
-  --card-fg: #eef1f5;
+  --card: #1c1c1f;
+  --card-fg: #f0efec;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.55);
 
   --mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
   --sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -48,36 +60,35 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --paper: #fdfdfc;
-  --ink: #1a1d21;
-  --muted: #6f7680;
-  --faint: #a4aab3;
-  --hairline: #e8e8e4;
-  --surface: #f6f6f3;
+  --paper: #fdfcfa;
+  --surface: #f4f2ee;
+  --elev: #ffffff;
+  --ink: #1c1b19;
+  --muted: #625f5a;
+  --faint: #98948d;
+  --hairline: #e4e1da;
+  --strong: #cbc7be;
 
-  --s1: #7ba3cc;
-  --s2: #8b7ec8;
-  --s3: #b08d57;
-  --s4: #c05b4d;
+  --s1: #5b8cc0;
+  --s2: #7a6bc0;
+  --s3: #a87f42;
+  --s4: #bb4f41;
 
-  --ok: #4a7c59;
-  --gap: #c05b4d;
-  --warn: #8a6320;
-  --flash: #faf3e2;
+  --accent: #2f6cb0;
+  --ok: #2f7d3e;
+  --gap: #c23c32;
+  --warn: #8f6317;
+  --flash: #f8f1de;
 
-  --add-bg: #eef5ee;
-  --del-bg: #faeef0;
-  --move-bg: #f4f4f1;
-
-  --edge: #cfcfc9;
-  --edge-ext: #dededa;
+  --edge: #c9c5bc;
+  --edge-ext: #ded9d0;
   --edge-co: #4f7fb5;
-  --edge-risk: #c26a2c;
-  --edge-out: #9aa0a8;
-  --link-fg: #3d6a9e;
-  --link-bg: #f2f6fa;
-  --link-border: #d7e2ee;
-  --link-bg-hover: #e8f0f8;
+  --edge-risk: #b8601f;
+  --edge-out: #a7a29a;
+  --link-fg: #2f6cb0;
+
+  --shadow-1: 0 1px 2px rgba(60, 50, 30, 0.07);
+  --shadow-2: 0 10px 30px rgba(60, 50, 30, 0.16);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -121,8 +132,7 @@ input.pr-url {
   outline: none;
 }
 input.pr-url:focus { border-color: var(--ink); }
-.theme-toggle { font: 500 10px var(--mono); color: var(--muted); background: none; border: 1px solid var(--hairline); border-radius: 6px; padding: 5px 9px; cursor: pointer; white-space: nowrap; }
-.theme-toggle:hover { color: var(--ink); border-color: var(--faint); }
+
 /* moon / sun theme switch: pill with both states, active one filled */
 .topbar .theme-switch { align-self: center; margin-left: 4px; flex: none; }
 .theme-switch { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 999px; padding: 2px; flex: none; }
@@ -197,16 +207,14 @@ input.pr-url.busy { opacity: 0.5; }
 .pr-ref b { font-weight: 600; color: var(--ink); }
 
 .banner {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 14px 28px 0;
+  padding-top: 14px;
   font: 400 11px/1.5 var(--mono);
   color: var(--muted);
 }
 .banner.warn { color: var(--warn); }
 
 /* the review checkpoint strip sits between the banner and the layout */
-.strip-slot { max-width: 1300px; margin: 0 auto; padding: 10px 28px 0; }
+.strip-slot { padding-top: 10px; }
 .review-strip {
   display: flex;
   align-items: center;
@@ -720,7 +728,7 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 
 .ln.add { background: var(--add-bg); }
 .ln.del { background: var(--del-bg); }
-.ln.del code { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
+.ln.del code { color: var(--muted); }
 .ln.move { background: var(--move-bg); }
 .ln.move code { color: var(--faint); font-style: italic; }
 .ln.ctx { color: var(--muted); }
@@ -1063,6 +1071,7 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
   inset: 0;
   z-index: 30;
   background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1072,7 +1081,8 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
   max-width: calc(100vw - 40px);
   max-height: 72vh;
   overflow-y: auto;
-  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  background: var(--elev);
   border: 1px solid var(--hairline);
   border-radius: 12px;
   padding: 18px 20px;
@@ -1203,40 +1213,66 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 /* ---- sticky object bar ---- */
 /* which component, which object, and the way to the next one — kept out of the
    scroll so a long diff never costs you your place */
+/* the bar, the strip and the banner share the layout's container so their
+   edges line up with the rail and the graph panel at every breakpoint */
+.banner, .strip-slot, .objbar-slot { max-width: 1300px; margin: 0 auto; padding-left: 28px; padding-right: 28px; }
+@media (max-width: 1120px) { .banner, .strip-slot, .objbar-slot { max-width: 1080px; } }
+@media (min-width: 1440px) { .banner, .strip-slot, .objbar-slot { max-width: 1420px; } }
 .objbar-slot { position: sticky; top: 0; z-index: 8; }
 .objbar {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  max-width: 1080px; margin: 14px auto 0; padding: 8px 28px;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  backdrop-filter: blur(8px);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 14px 0 0; padding: 7px 10px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--hairline); border-radius: 8px;
+  box-shadow: var(--shadow-1);
 }
-.ob-select {
-  font: 500 10.5px var(--mono); color: var(--ink);
-  background: var(--surface); border: 1px solid var(--hairline);
-  border-radius: 5px; padding: 4px 6px; max-width: 260px; cursor: pointer;
+.ob-sep { width: 1px; align-self: stretch; margin: 2px 3px; background: var(--hairline); }
+.ob-nav { display: flex; align-items: center; gap: 2px; }
+.ob-count {
+  font: 500 10px/1 var(--mono); color: var(--muted);
+  min-width: 52px; text-align: center;
+  font-variant-numeric: tabular-nums;
 }
-.ob-select.obj { flex: 1 1 190px; min-width: 0; }
-.ob-select:hover { border-color: var(--faint); }
-.ob-nav { display: flex; align-items: center; gap: 4px; }
-.ob-step {
-  font: 500 11px/1 var(--mono); color: var(--muted);
-  background: none; border: 1px solid var(--hairline);
-  border-radius: 5px; padding: 4px 8px; cursor: pointer;
-}
-.ob-step:hover:not(:disabled) { color: var(--ink); border-color: var(--faint); }
-.ob-step:disabled { opacity: 0.35; cursor: default; }
-.ob-count { font: 400 10px var(--mono); color: var(--faint); min-width: 46px; text-align: center; }
-.ob-tick, .ob-next {
-  font: 500 9.5px var(--mono); letter-spacing: 0.03em;
-  color: var(--muted); background: none;
-  border: 1px solid var(--hairline); border-radius: 5px;
-  padding: 4px 8px; cursor: pointer; white-space: nowrap;
-}
-.ob-tick:hover, .ob-next:hover { color: var(--ink); border-color: var(--faint); }
-.ob-tick.on { color: var(--ok); border-color: var(--ok); }
-.ob-next { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
 .ob-keys { margin-left: auto; font: 400 9px var(--mono); color: var(--faint); white-space: nowrap; }
+.ob-keys kbd {
+  font: 500 9px var(--mono); color: var(--muted);
+  background: var(--paper); border: 1px solid var(--hairline);
+  border-bottom-width: 2px; border-radius: 4px; padding: 1px 4px;
+}
+
+/* ---- menu button: a select we can color ---- */
+.menu-wrap { position: relative; }
+.menu-wrap.obj { flex: 0 1 auto; min-width: 0; }
+.menu-btn {
+  display: flex; align-items: center; gap: 8px; max-width: 320px;
+  font: 500 11px/1 var(--mono); color: var(--ink);
+  background: var(--elev); border: 1px solid var(--hairline);
+  border-radius: 6px; padding: 5px 8px; cursor: pointer;
+  box-shadow: var(--shadow-1);
+}
+.menu-btn:hover { border-color: var(--strong); }
+.menu-lab { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.menu-lab b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu-sub { font: 400 9.5px var(--mono); color: var(--faint); }
+.menu-caret { color: var(--faint); font-size: 9px; }
+.menu {
+  position: absolute; z-index: 40; top: calc(100% + 5px); left: 0;
+  min-width: 260px; max-height: 340px; overflow-y: auto;
+  background: var(--elev); border: 1px solid var(--hairline);
+  border-radius: 8px; padding: 4px; box-shadow: var(--shadow-2);
+}
+.menu-row {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: 400 11px/1.4 var(--mono); color: var(--muted);
+  border-radius: 5px; padding: 5px 7px; cursor: pointer;
+}
+.menu-row:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink); }
+.menu-row.current { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--ink); }
+.menu-mark { flex: none; width: 10px; font-size: 9px; color: var(--accent); }
+.menu-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu-kind { flex: none; font: 400 9px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: 0.05em; }
+
 /* the rails clear the bar rather than sliding under it */
 .objbar-slot ~ .layout .rail, .objbar-slot ~ .layout .side { top: 74px; }
 .entry { scroll-margin-top: 66px; }
@@ -1256,3 +1292,151 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .row-meta { flex: none; font: 400 9.5px/1 var(--mono); color: var(--faint); white-space: nowrap; }
 /* the open object is the page: lift it off the layers around it */
 .entry.open { background: color-mix(in srgb, var(--surface) 55%, transparent); border-radius: 8px; }
+
+/* ===== controls & surfaces =====================================================
+   One button, one chip and one card treatment, reused everywhere. Raised things
+   are elev + 1px hairline + a small shadow; pressed things move a half pixel;
+   focus is a ring, never a removed outline. */
+
+.strip-btn,
+.ob-step, .ob-tick, .ob-next,
+.foot-read, .theme-toggle, .gtip-open, .grisk,
+.story-btn.ghost, .fo-close, .ex-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 500 10.5px/1 var(--mono); letter-spacing: 0.01em;
+  color: var(--ink);
+  background: var(--elev);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.strip-btn:hover,
+.ob-step:hover:not(:disabled), .ob-tick:hover, .ob-next:hover,
+.foot-read:hover, .theme-toggle:hover, .gtip-open:hover, .grisk:hover,
+.story-btn.ghost:hover, .fo-close:hover, .ex-btn:hover {
+  border-color: var(--strong);
+  background: color-mix(in srgb, var(--ink) 5%, var(--elev));
+}
+.strip-btn:active, .ob-step:active, .foot-read:active, .story-btn:active { transform: translateY(0.5px); }
+.ob-step:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
+
+:where(button, select, input, a):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 1px;
+  border-radius: 5px;
+}
+
+/* quiet variants: no fill until you reach for them */
+.strip-btn.ghost, .story-btn.ghost { background: none; color: var(--muted); box-shadow: none; }
+.strip-btn.ghost:hover, .story-btn.ghost:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+
+/* the one filled button: replay drives the story */
+.story-btn {
+  font: 600 10px/1 var(--mono);
+  color: var(--paper); background: var(--ink);
+  border: 1px solid transparent; border-radius: 6px;
+  padding: 5px 10px; white-space: nowrap;
+  box-shadow: var(--shadow-1);
+}
+.story-btn:hover { background: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+
+.ob-tick.on { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--hairline)); }
+.ob-next { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--hairline)); }
+.ob-step { padding: 5px 8px; color: var(--muted); }
+.grisk { width: 100%; margin: 10px 0 0; text-align: left; line-height: 1.3; }
+.grisk.on { color: var(--ink); border-color: var(--edge-risk); background: color-mix(in srgb, var(--edge-risk) 12%, var(--elev)); }
+
+/* segmented controls: mode toggle, side tabs, theme switch */
+.mode-toggle, .side-tabs, .theme-switch {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-1);
+}
+.mode-toggle button.active, .side-tab.active {
+  background: var(--elev); color: var(--ink);
+  box-shadow: var(--shadow-1); border: 1px solid var(--hairline);
+}
+.mode-toggle button.active { font-weight: 600; }
+.ts-opt.active { background: var(--elev); color: var(--ink); box-shadow: var(--shadow-1); border: 1px solid var(--hairline); }
+
+/* ---- chips: one pill, tinted by meaning ---- */
+.kind, .conn-chip, .wire-chip, .untested-chip, .new-chip, .cmt-badge, .menu-kind {
+  flex: none;
+  font: 500 9px/1 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.kind { color: var(--muted); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.conn-chip { color: var(--muted); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.conn-chip.chg { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.conn-chip.un { color: var(--faint); background: none; border-color: var(--hairline); }
+.conn-chip.risk, .wire-chip { color: var(--edge-risk); background: color-mix(in srgb, var(--edge-risk) 15%, transparent); }
+.conn-chip.comp { color: var(--link-fg); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.untested-chip { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent); }
+.new-chip { color: var(--s2); background: color-mix(in srgb, var(--s2) 18%, transparent); }
+.cmt-badge { color: var(--ink); background: color-mix(in srgb, var(--s2) 22%, transparent); text-transform: none; letter-spacing: 0; }
+.cmt-badge:hover { background: color-mix(in srgb, var(--s2) 34%, transparent); }
+.menu-kind { border: none; padding: 3px 0; }
+
+/* +/- always reads green/red, in chips and in menus alike */
+.delta-chip { font: 600 10.5px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.delta-chip .plus { color: var(--ok); }
+.delta-chip .minus { color: var(--gap); }
+
+/* ---- the open object is a card, the rest are strata ---- */
+.entry.open {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  box-shadow: var(--shadow-1);
+  margin: 22px 0;
+  padding-bottom: 6px;
+}
+.entry.open::after { left: 1px; right: 1px; top: 0; border-radius: 10px 10px 0 0; }
+.entry.compact:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); border-radius: 6px; }
+
+/* ---- file boxes: header on a shelf, diff in the box ---- */
+.file {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--paper);
+  margin-bottom: 12px;
+}
+.file-head {
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+  align-items: center;
+}
+.file-head .path { font-weight: 600; color: var(--ink); }
+.diff { padding: 6px 0; }
+.ln .no { color: var(--faint); }
+.ln.add, .ln.del { box-shadow: inset 2px 0 0 currentColor; }
+.ln.add { color: color-mix(in srgb, var(--ok) 60%, var(--ink)); }
+.ln.del { color: color-mix(in srgb, var(--gap) 55%, var(--ink)); }
+.ln.add code, .ln.ctx code, .ln.add .no, .ln.del .no { color: var(--ink); }
+.ln.add .no, .ln.del .no { color: var(--faint); }
+.ln.del code { color: var(--muted); }
+.ln:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.ln.add:hover { background: color-mix(in srgb, var(--ok) 18%, var(--paper)); }
+.ln.del:hover { background: color-mix(in srgb, var(--gap) 17%, var(--paper)); }
+
+/* popovers and overlays sit on the elevated surface */
+.hcard { background: var(--card); border-color: var(--strong); box-shadow: var(--shadow-2); }
+.file-overlay { background: var(--elev); box-shadow: var(--shadow-2); }
+.graphbox { background: var(--surface); box-shadow: var(--shadow-1); }
+.filetree { background: var(--surface); box-shadow: var(--shadow-1); }
+.review-strip { background: var(--surface); box-shadow: var(--shadow-1); }
+.gtip { background: var(--card); border-color: var(--strong); box-shadow: var(--shadow-2); }
+.gtip-open { color: var(--card-fg); background: color-mix(in srgb, var(--card-fg) 12%, transparent); border-color: transparent; }
+.gtip-open:hover { background: color-mix(in srgb, var(--card-fg) 22%, transparent); border-color: transparent; }
+.peek { background: color-mix(in srgb, var(--ink) 3%, transparent); border-radius: 0 6px 6px 0; padding: 6px 9px; }
+.peek-line.at { background: color-mix(in srgb, var(--s1) 16%, transparent); border-radius: 3px; }
