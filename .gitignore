@@ -1,0 +1,19 @@
+node_modules/
+dist/
+
+# analysis working areas (fetched clones, worktree checkouts)
+repos/
+data/*.comments.json
+
+# keep the bundled sample, ignore everything else the pipeline emits
+data/*
+!data/sample.json
+
+# secrets
+github.token
+.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log

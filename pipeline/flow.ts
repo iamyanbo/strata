@@ -1,0 +1,258 @@
+// Stage 3: Flow — seeds from the diff, flood fill over def-use edges,
+// merge overlapping fills into components. Deterministic.
+
+import type { RawPR, RawFileDiff } from "./git.js";
+import * as fs from "node:fs";
+import type { Index } from "./index.js";
+
+export interface Component {
+  id: string;
+  name: string;
+  origin: string;
+  entryIds: string[];
+}
+
+export interface EntryData {
+  id: string;
+  kind: string;
+  name: string;
+  summary: string;
+  files: RawFileDiff[];
+  traces: { relation: string; component?: string; object?: string; negative?: boolean }[];
+  /** reference count at head — graph node size */
+  refs: number;
+  /** changed in this PR (seed) vs pulled in by the fill (neighbor) */
+  seed: boolean;
+}
+
+export interface FlowResult {
+  entries: Map<string, EntryData>;
+  components: Component[];
+  /** seed def id -> component id */
+  seedMap: Map<string, string>;
+  /** def−use edges among top-level defs (a references b) */
+  edges: { a: string; b: string; rel: string }[];
+}
+
+const MAX_HOPS = 3;
+
+/** seeds: top-level defs intersecting changed lines, whose name appears in the diff text */
+export function findSeeds(pr: RawPR, index: Index, fileNameMap: Map<string, string>): Set<string> {
+  const seeds = new Set<string>();
+  for (const f of pr.files) {
+    const headPath = fileNameMap.get(f.path);
+    if (!headPath) continue;
+    const changed = f.lines.filter((l) => l.kind !== "ctx");
+    if (!changed.length) continue;
+    const diffText = changed.map((l) => l.text).join("\n");
+    const spans = changed.map((l) => (l.new !== undefined ? l.new : -1)).filter((n) => n > 0);
+    const min = Math.min(...spans);
+    const max = Math.max(...spans);
+
+    for (const d of index.defs) {
+      if (d.file !== headPath || !d.topLevel) continue;
+      const line = offsetToLine(d.file, d.start, index);
+      const intersects = line >= min && line <= max;
+      const namedInDiff = diffText.includes(d.name);
+      if (intersects && namedInDiff) seeds.add(d.id);
+    }
+  }
+  return seeds;
+}
+
+const lineTables = new Map<string, number[]>(); // headPath -> line start offsets
+
+function offsetToLine(file: string, offset: number, index: Index): number {
+  let starts = lineTables.get(file);
+  if (!starts) {
+    const text = fs.readFileSync(`${index.root}/${file}`, "utf8");
+    starts = [0];
+    for (let i = 0; i < text.length; i++) if (text.charCodeAt(i) === 10) starts.push(i + 1);
+    lineTables.set(file, starts);
+  }
+  let lo = 0, hi = starts.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (starts[mid] <= offset) lo = mid; else hi = mid - 1;
+  }
+  return lo + 1;
+}
+
+/** adjacency: def -> defs that reference it (callers) and defs it references (callees) */
+export function buildAdjacency(index: Index): Map<string, Set<string>> {
+  const adj = new Map<string, Set<string>>();
+  const touch = (a: string, b: string) => {
+    if (!adj.has(a)) adj.set(a, new Set());
+    if (!adj.has(b)) adj.set(b, new Set());
+    adj.get(a)!.add(b);
+    adj.get(b)!.add(a);
+  };
+
+  // enclosing TOP-LEVEL def: refs inside locals route to the function that owns them
+  const spans: { file: string; start: number; end: number; defId: string }[] = [];
+  for (const d of index.defs) if (d.topLevel) spans.push({ file: d.file, start: d.start, end: d.end, defId: d.id });
+  spans.sort((a, b) => b.end - a.start - (b.end - b.start) || a.start - b.start);
+
+  const enclosing = (file: string, offset: number): string | null => {
+    for (const s of spans) {
+      if (s.file === file && s.start <= offset && offset <= s.end) return s.defId;
+    }
+    return null;
+  };
+
+  for (const d of index.defs) {
+    if (!d.topLevel) continue; // locals/properties must not leak into the graph
+    for (const u of d.uses) {
+      const caller = enclosing(u.file, u.start);
+      // edge: caller-def references d (def-use)
+      if (caller && caller !== d.id) touch(caller, d.id);
+    }
+  }
+  return adj;
+}
+
+/** BFS flood fills from seeds; fills sharing any node merge into components */
+export function floodFill(
+  seeds: Set<string>,
+  adj: Map<string, Set<string>>,
+  index: Index,
+  pr: RawPR
+): FlowResult {
+  const membership = new Map<string, number>(); // node -> fill index
+  const fills: Set<string>[] = [];
+  let fillIdx = 0;
+
+  for (const seed of seeds) {
+    if (membership.has(seed)) continue;
+    const seen = new Set<string>([seed]);
+    const queue: [string, number][] = [[seed, 0]];
+    while (queue.length) {
+      const [node, hops] = queue.shift()!;
+      if (hops >= MAX_HOPS) continue;
+      for (const next of adj.get(node) ?? []) {
+        if (!seen.has(next)) {
+          seen.add(next);
+          queue.push([next, hops + 1]);
+        }
+      }
+    }
+    for (const node of seen) if (!membership.has(node)) membership.set(node, fillIdx);
+    fills.push(seen);
+    fillIdx++;
+  }
+
+  // merge fills that share nodes (union-find over membership)
+  const groups = new Map<number, Set<string>>();
+  const groupOf = new Map<string, number>();
+  let nextGroup = 0;
+  for (const fill of fills) {
+    const existing = [...fill].map((n) => groupOf.get(n)).find((g) => g !== undefined);
+    if (existing !== undefined) {
+      const g = groups.get(existing)!;
+      for (const n of fill) { g.add(n); groupOf.set(n, existing); }
+    } else {
+      const g = new Set(fill);
+      groups.set(nextGroup, g);
+      for (const n of fill) groupOf.set(n, nextGroup);
+      nextGroup++;
+    }
+  }
+
+  // build components from groups that contain at least one seed
+  const seedByGroup = new Map<number, string[]>();
+  for (const seed of seeds) {
+    const g = groupOf.get(seed);
+    if (g === undefined) continue;
+    const arr = seedByGroup.get(g) ?? [];
+    arr.push(seed);
+    seedByGroup.set(g, arr);
+  }
+
+  const components: Component[] = [];
+  const entries = new Map<string, EntryData>();
+  const seedMap = new Map<string, string>();
+
+  for (const [g, nodes] of groups) {
+    const gseeds = seedByGroup.get(g) ?? [];
+    if (!gseeds.length) continue;
+
+    const seedDefs = gseeds.map((id) => index.byId.get(id)!).filter(Boolean);
+    const nameSeed = seedDefs.sort((a, b) => (b.uses.length - a.uses.length))[0];
+    const name = nameSeed ? nameSeed.name : `group-${g}`;
+
+    const cid = `flow-${g}`;
+    // display surface: top seeds by refs (capped) + top neighbors (capped at 16 total)
+    const byRefs0 = (x: string, y: string) =>
+      (index.byId.get(y)?.uses.length ?? 0) - (index.byId.get(x)?.uses.length ?? 0);
+    const sortedSeeds = [...gseeds].sort(byRefs0);
+    const display = new Set<string>(sortedSeeds.slice(0, 14));
+    const neighbors = [...adj.get(gseeds[0]) ?? []]
+      .concat(...gseeds.slice(1).map((s) => [...adj.get(s) ?? []]))
+      .filter((n) => index.byId.has(n) && index.byId.get(n)!.topLevel)
+      .sort(byRefs0);
+    for (const n of neighbors) {
+      if (display.size >= 16) break;
+      display.add(n);
+    }
+    // deterministic order: seeds first (by refs), then neighbors (by refs)
+    const byRefs = byRefs0;
+    const entryList = [...display].sort(byRefs);
+
+    for (const n of nodes) {
+      const d = index.byId.get(n)!;
+      if (!display.has(n)) continue;
+      if (!entries.has(n)) {
+        entries.set(n, {
+          id: n,
+          kind: d.kind,
+          name: d.name,
+          summary: `${d.kind} in ${d.file}`,
+          files: [],
+          traces: [],
+          refs: d.uses.length,
+          seed: gseeds.includes(n)
+        });
+      }
+    }
+
+    components.push({
+      id: cid,
+      name,
+      origin: `derived from changed symbols ${gseeds.map((s) => index.byId.get(s)?.name ?? s).join(", ")} \u00b7 def\u2212use edges \u00b7 3-hop reach`,
+      entryIds: entryList
+    });
+    for (const s of gseeds) seedMap.set(s, cid);
+  }
+
+  const allEdges = collectEdges();
+  return { entries, components, seedMap, edges: allEdges };
+
+  function collectEdges(): { a: string; b: string; rel: string }[] {
+    const out: { a: string; b: string; rel: string }[] = [];
+    const seen = new Set<string>();
+    // walk uses again: caller(top-level def enclosing the reference) -> referenced def
+    const spans: { file: string; start: number; end: number; defId: string }[] = [];
+    for (const d of index.defs) if (d.topLevel) spans.push({ file: d.file, start: d.start, end: d.end, defId: d.id });
+    spans.sort((a, b) => b.end - b.start - (a.end - a.start) || a.start - b.start);
+    const enclosing = (file: string, offset: number): string | null => {
+      for (const s of spans) {
+        if (s.file === file && s.start <= offset && offset <= s.end) return s.defId;
+      }
+      return null;
+    };
+    for (const d of index.defs) {
+      if (!d.topLevel) continue;
+      for (const u of d.uses) {
+        const caller = enclosing(u.file, u.start);
+        if (caller && caller !== d.id) {
+          const key = `${caller}->${d.id}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            out.push({ a: caller, b: d.id, rel: "def\u2212use" });
+          }
+        }
+      }
+    }
+    return out;
+  }
+}

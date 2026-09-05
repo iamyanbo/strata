@@ -1,0 +1,103 @@
+# strata
+
+A local code-review workspace for GitHub pull requests. Paste a PR URL and
+strata rebuilds the change as it actually happened: every written line
+stamped with the commit that produced it, related changes grouped into
+components by how the code references itself, and review threads that age
+with the code instead of against it.
+
+Everything on screen is computed — from git history and the TypeScript AST,
+by deterministic code. No LLM writes a word of what you see.
+
+## Quickstart
+
+```sh
+git clone <this repo>
+cd strata
+npm install
+npx tsc                # compile the viewer + pipeline to dist/
+node scripts/serve.mjs # → http://localhost:4517
+```
+
+The bundled sample PR loads on first run. To review your own, paste any
+merged GitHub PR URL into the top bar:
+
+```sh
+node scripts/analyze.mjs https://github.com/owner/repo/pull/123
+# (same thing as pasting the URL into the app)
+```
+
+The first analysis shallow-fetches the PR's repository into `repos/` — only
+the commits around the PR, not the full history. Everything stays local.
+
+## What you get
+
+**Time ribbons.** Every line the PR wrote carries a tick colored by the
+*sweep* that wrote it — a burst of commit activity separated by a calendar
+day or a 2-hour gap. Blue = the careful first draft; red = the pass bolted on
+an hour before opening. Hovering a tick gives the exact commit, author and
+timestamp. Content that appears during a merge commit (hand-resolved
+conflicts) gets its own hatched marker — it's the code nobody wrote
+deliberately.
+
+**Components, not files.** Changed symbols seed a flood fill over the
+def−use graph; what they reach becomes a component you read top to bottom.
+The dependency graph panel shows the local shape, and a replay walks the PR
+commit by commit.
+
+**Review checkpoints.** Mark reviewed once; on the next push only what
+changed since renders at full attention — everything you already read dims.
+Checkmarks per object track what you personally read. Force-pushes are
+detected and handled.
+
+**Threads that age with the code.** Comments survive force-pushes via line
+anchors, and when a commented line is rewritten *after* the comment, the
+thread flags "rewritten since" with an expandable before/after of what
+changed. Facts like "covered by X.test.ts" jump straight to the covering
+test's diff, and "untested" is stated plainly on the object header.
+
+**Export.** Push your threads back to GitHub as a single review (needs
+`GITHUB_TOKEN`); re-exports skip already-pushed threads.
+
+## How it works
+
+```
+scripts/analyze.mjs   shallow-fetch the PR's merge commit + window
+pipeline/git.ts       parse the PR shape: commits, per-commit diffs, whole-PR diff
+pipeline/index.ts     TypeScript AST over base and head trees; def−use resolution
+pipeline/flow.ts      flood fill from changed symbols → components
+pipeline/emit.ts      sweeps, per-line blame attribution, staleness pairs → data/<pr>.json
+src/                  the viewer: DOM rendering, no framework
+```
+
+Two lenses over the same data at all times: **By component** (what changed,
+grouped by how the code relates) and **By commit** (when it changed, with a
+contributions map of who wrote what where).
+
+## Honest limitations
+
+- The indexer reads **TypeScript/JavaScript** only; PRs touching other
+  languages still load, but their symbols aren't analyzed.
+- Analyzes **merged** PRs (it needs a merge/squash commit to define the window).
+- Sweep detection uses a 2-hour gap heuristic; blame attribution needs the
+  writing commit inside the shallow-fetch window (PR commits always are).
+- One local user: checkpoints and read marks live in your browser's
+  localStorage. This is a review *workbench*, not a hosted review system.
+
+## Secrets
+
+Export reads `GITHUB_TOKEN` (or a `github.token` file in the repo root).
+Analysis reads public API endpoints without a token (60 req/hr — set
+`GITHUB_TOKEN` to raise it). The token never leaves the local server process.
+
+## Development
+
+```sh
+npx tsc                    # build
+npx tsc --watch            # rebuild on change
+node scripts/smoke.mjs     # headless render check against data/sample.json
+```
+
+PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the ground rules,
+the main one being: every signal on screen must be computable and traceable
+to a commit. MIT licensed.
