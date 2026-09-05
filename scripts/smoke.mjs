@@ -57,6 +57,15 @@ try {
   console.log(`[connections] rows: ${conns}, call sites shown: ${sites} · ${sum ? sum.textContent : "NO SUMMARY"}`);
   if (!conns || !sites) { console.log("CONNECTIONS BROKEN"); process.exit(1); }
 
+  // a call site expands into a labeled peek at unchanged head source
+  const siteBtn = document.querySelector(".conn-site");
+  siteBtn.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const peek = document.querySelector(".peek.open");
+  const peekLines = peek ? peek.querySelectorAll(".peek-line").length : 0;
+  const atLine = peek ? peek.querySelectorAll(".peek-line.at").length : 0;
+  console.log(`[peek] lines: ${peekLines}, marked call line: ${atLine}, note: ${peek ? peek.querySelector(".peek-note").textContent.slice(-40) : "NONE"}`);
+  if (!peekLines || atLine !== 1) { console.log("CALL SITE PEEK BROKEN"); process.exit(1); }
+
   // hovering a connection row must light the matching wire in the graph
   document.querySelector(".conn").dispatchEvent(new dom.window.MouseEvent("mouseover", { bubbles: true }));
   document.querySelector(".conn").dispatchEvent(new dom.window.MouseEvent("mouseenter", { bubbles: true }));

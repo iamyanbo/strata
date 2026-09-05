@@ -134,6 +134,11 @@ export interface CallSite {
   file: string;
   line: number;
   text: string;
+  /** head lines around the reference — context for a caller the PR never
+      touched, never rendered as if it were part of the diff */
+  ctx?: string[];
+  /** 1-based line number of ctx[0] */
+  ctxStart?: number;
 }
 
 /** a directed def−use edge: `a` references `b`. */

@@ -4778,17 +4778,47 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 104,
-          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {"
+          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+          "ctx": [
+            "   * Process a schema to prepare it for JSON Schema generation.",
+            "   * This must be called before emit().",
+            "   */",
+            "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+            "    return processSchema(schema, this.ctx, _params);",
+            "  }",
+            ""
+          ],
+          "ctxStart": 101
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 112,
-          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {"
+          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {",
+          "ctx": [
+            "   * Emit the final JSON Schema after processing.",
+            "   * Must call process() first.",
+            "   */",
+            "  emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {",
+            "    // Apply emit params to the context",
+            "    if (_params) {",
+            "      if (_params.cycles) this.ctx.cycles = _params.cycles;"
+          ],
+          "ctxStart": 109
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 129,
-          "text": "return plainResult as JSONSchema.BaseSchema;"
+          "text": "return plainResult as JSONSchema.BaseSchema;",
+          "ctx": [
+            "",
+            "    // Strip ~standard property to match old implementation's return type",
+            "    const { \"~standard\": _, ...plainResult } = result as any;",
+            "    return plainResult as JSONSchema.BaseSchema;",
+            "  }",
+            "}",
+            ""
+          ],
+          "ctxStart": 126
         }
       ]
     },
@@ -4801,7 +4831,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 290,
-          "text": "const json = _json as JSONSchema.ArraySchema;"
+          "text": "const json = _json as JSONSchema.ArraySchema;",
+          "ctx": [
+            "// ==================== COMPOSITE TYPE PROCESSORS ====================",
+            "",
+            "export const arrayProcessor: Processor<schemas.$ZodArray> = (schema, ctx, _json, params) => {",
+            "  const json = _json as JSONSchema.ArraySchema;",
+            "  const def = schema._zod.def as schemas.$ZodArrayDef;",
+            "  const { minimum, maximum } = schema._zod.bag;",
+            "  if (typeof minimum === \"number\") json.minItems = minimum;"
+          ],
+          "ctxStart": 287
         }
       ]
     },
@@ -4814,7 +4854,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 320,
-          "text": "const json = _json as JSONSchema.ObjectSchema;"
+          "text": "const json = _json as JSONSchema.ObjectSchema;",
+          "ctx": [
+            "}",
+            "",
+            "export const objectProcessor: Processor<schemas.$ZodObject> = (schema, ctx, _json, params) => {",
+            "  const json = _json as JSONSchema.ObjectSchema;",
+            "  const def = schema._zod.def as schemas.$ZodObjectDef;",
+            "  const shape = def.shape;",
+            ""
+          ],
+          "ctxStart": 317
         }
       ]
     },
@@ -4827,7 +4877,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema.ts",
           "line": 120,
-          "text": "export type BaseSchema = JSONSchema;"
+          "text": "export type BaseSchema = JSONSchema;",
+          "ctx": [
+            "};",
+            "",
+            "// for backwards compatibility",
+            "export type BaseSchema = JSONSchema;",
+            "",
+            "export interface ObjectSchema extends JSONSchema {",
+            "  type: \"object\";"
+          ],
+          "ctxStart": 117
         }
       ]
     },
@@ -4840,12 +4900,32 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 95,
-          "text": "schema: JSONSchema.BaseSchema;"
+          "text": "schema: JSONSchema.BaseSchema;",
+          "ctx": [
+            "",
+            "export interface Seen {",
+            "  /** JSON Schema result for this Zod schema */",
+            "  schema: JSONSchema.BaseSchema;",
+            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
+            "  def?: JSONSchema.BaseSchema;",
+            "  defId?: string | undefined;"
+          ],
+          "ctxStart": 92
         },
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 97,
-          "text": "def?: JSONSchema.BaseSchema;"
+          "text": "def?: JSONSchema.BaseSchema;",
+          "ctx": [
+            "  /** JSON Schema result for this Zod schema */",
+            "  schema: JSONSchema.BaseSchema;",
+            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
+            "  def?: JSONSchema.BaseSchema;",
+            "  defId?: string | undefined;",
+            "  /** Number of times this schema was encountered during traversal */",
+            "  count: number;"
+          ],
+          "ctxStart": 94
         }
       ]
     },
@@ -4858,17 +4938,47 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 119,
-          "text": "jsonSchema: JSONSchema.BaseSchema;"
+          "text": "jsonSchema: JSONSchema.BaseSchema;",
+          "ctx": [
+            "  override: (ctx: {",
+            "    // must be schemas.$ZodType to prevent recursive type resolution error",
+            "    zodSchema: schemas.$ZodType;",
+            "    jsonSchema: JSONSchema.BaseSchema;",
+            "    path: (string | number)[];",
+            "  }) => void;",
+            "  io: \"input\" | \"output\";"
+          ],
+          "ctxStart": 116
         },
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 144,
-          "text": "intersections: JSONSchema.BaseSchema[][];"
+          "text": "intersections: JSONSchema.BaseSchema[][];",
+          "ctx": [
+            "  cycles: \"ref\" | \"throw\";",
+            "  reused: \"ref\" | \"inline\";",
+            "  /** The `allOf` array of each intersection encountered during traversal, innermost first. `finalize` folds every emitted object holding one; see `foldIntersection`. */",
+            "  intersections: JSONSchema.BaseSchema[][];",
+            "  /** Rewrites a processor deferred to `finalize`, where the flatten has resolved every ref and the union branches are in place. */",
+            "  deferred: (() => void)[];",
+            "  external?:"
+          ],
+          "ctxStart": 141
         },
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 151,
-          "text": "defs: Record<string, JSONSchema.BaseSchema>;"
+          "text": "defs: Record<string, JSONSchema.BaseSchema>;",
+          "ctx": [
+            "    | {",
+            "        registry: $ZodRegistry<{ id?: string | undefined }>;",
+            "        uri?: ((id: string) => string) | undefined;",
+            "        defs: Record<string, JSONSchema.BaseSchema>;",
+            "      }",
+            "    | undefined;",
+            "}"
+          ],
+          "ctxStart": 148
         }
       ]
     },
@@ -4881,7 +4991,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 217,
-          "text": "): JSONSchema.BaseSchema {"
+          "text": "): JSONSchema.BaseSchema {",
+          "ctx": [
+            "  schema: T,",
+            "  ctx: ToJSONSchemaContext,",
+            "  _params: ProcessParams = { path: [], schemaPath: [] }",
+            "): JSONSchema.BaseSchema {",
+            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
+            "",
+            "  // check for schema in seens"
+          ],
+          "ctxStart": 214
         }
       ]
     },
@@ -4894,7 +5014,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 851,
-          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {"
+          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
+          "ctx": [
+            "type StandardJSONSchemaMethodParams = Parameters<StandardJSONSchemaV1[\"~standard\"][\"jsonSchema\"][\"input\"]>[0];",
+            "export const createStandardJSONSchemaMethod =",
+            "  <T extends schemas.$ZodType>(schema: T, io: \"input\" | \"output\", processors: Record<string, Processor> = {}) =>",
+            "  (params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
+            "    const { libraryOptions, target } = params ?? {};",
+            "    const ctx = initializeContext({ ...(libraryOptions ?? {}), target, io, processors });",
+            "    processSchema(schema, ctx);"
+          ],
+          "ctxStart": 848
         }
       ]
     },
@@ -4907,17 +5037,47 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 104,
-          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {"
+          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+          "ctx": [
+            "   * Process a schema to prepare it for JSON Schema generation.",
+            "   * This must be called before emit().",
+            "   */",
+            "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+            "    return processSchema(schema, this.ctx, _params);",
+            "  }",
+            ""
+          ],
+          "ctxStart": 101
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 112,
-          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {"
+          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {",
+          "ctx": [
+            "   * Emit the final JSON Schema after processing.",
+            "   * Must call process() first.",
+            "   */",
+            "  emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {",
+            "    // Apply emit params to the context",
+            "    if (_params) {",
+            "      if (_params.cycles) this.ctx.cycles = _params.cycles;"
+          ],
+          "ctxStart": 109
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 129,
-          "text": "return plainResult as JSONSchema.BaseSchema;"
+          "text": "return plainResult as JSONSchema.BaseSchema;",
+          "ctx": [
+            "",
+            "    // Strip ~standard property to match old implementation's return type",
+            "    const { \"~standard\": _, ...plainResult } = result as any;",
+            "    return plainResult as JSONSchema.BaseSchema;",
+            "  }",
+            "}",
+            ""
+          ],
+          "ctxStart": 126
         }
       ]
     },
@@ -4930,12 +5090,32 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 95,
-          "text": "schema: JSONSchema.BaseSchema;"
+          "text": "schema: JSONSchema.BaseSchema;",
+          "ctx": [
+            "",
+            "export interface Seen {",
+            "  /** JSON Schema result for this Zod schema */",
+            "  schema: JSONSchema.BaseSchema;",
+            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
+            "  def?: JSONSchema.BaseSchema;",
+            "  defId?: string | undefined;"
+          ],
+          "ctxStart": 92
         },
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 97,
-          "text": "def?: JSONSchema.BaseSchema;"
+          "text": "def?: JSONSchema.BaseSchema;",
+          "ctx": [
+            "  /** JSON Schema result for this Zod schema */",
+            "  schema: JSONSchema.BaseSchema;",
+            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
+            "  def?: JSONSchema.BaseSchema;",
+            "  defId?: string | undefined;",
+            "  /** Number of times this schema was encountered during traversal */",
+            "  count: number;"
+          ],
+          "ctxStart": 94
         }
       ]
     },
@@ -4948,17 +5128,47 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 119,
-          "text": "jsonSchema: JSONSchema.BaseSchema;"
+          "text": "jsonSchema: JSONSchema.BaseSchema;",
+          "ctx": [
+            "  override: (ctx: {",
+            "    // must be schemas.$ZodType to prevent recursive type resolution error",
+            "    zodSchema: schemas.$ZodType;",
+            "    jsonSchema: JSONSchema.BaseSchema;",
+            "    path: (string | number)[];",
+            "  }) => void;",
+            "  io: \"input\" | \"output\";"
+          ],
+          "ctxStart": 116
         },
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 144,
-          "text": "intersections: JSONSchema.BaseSchema[][];"
+          "text": "intersections: JSONSchema.BaseSchema[][];",
+          "ctx": [
+            "  cycles: \"ref\" | \"throw\";",
+            "  reused: \"ref\" | \"inline\";",
+            "  /** The `allOf` array of each intersection encountered during traversal, innermost first. `finalize` folds every emitted object holding one; see `foldIntersection`. */",
+            "  intersections: JSONSchema.BaseSchema[][];",
+            "  /** Rewrites a processor deferred to `finalize`, where the flatten has resolved every ref and the union branches are in place. */",
+            "  deferred: (() => void)[];",
+            "  external?:"
+          ],
+          "ctxStart": 141
         },
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 151,
-          "text": "defs: Record<string, JSONSchema.BaseSchema>;"
+          "text": "defs: Record<string, JSONSchema.BaseSchema>;",
+          "ctx": [
+            "    | {",
+            "        registry: $ZodRegistry<{ id?: string | undefined }>;",
+            "        uri?: ((id: string) => string) | undefined;",
+            "        defs: Record<string, JSONSchema.BaseSchema>;",
+            "      }",
+            "    | undefined;",
+            "}"
+          ],
+          "ctxStart": 148
         }
       ]
     },
@@ -4971,7 +5181,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 217,
-          "text": "): JSONSchema.BaseSchema {"
+          "text": "): JSONSchema.BaseSchema {",
+          "ctx": [
+            "  schema: T,",
+            "  ctx: ToJSONSchemaContext,",
+            "  _params: ProcessParams = { path: [], schemaPath: [] }",
+            "): JSONSchema.BaseSchema {",
+            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
+            "",
+            "  // check for schema in seens"
+          ],
+          "ctxStart": 214
         }
       ]
     },
@@ -4984,7 +5204,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 851,
-          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {"
+          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
+          "ctx": [
+            "type StandardJSONSchemaMethodParams = Parameters<StandardJSONSchemaV1[\"~standard\"][\"jsonSchema\"][\"input\"]>[0];",
+            "export const createStandardJSONSchemaMethod =",
+            "  <T extends schemas.$ZodType>(schema: T, io: \"input\" | \"output\", processors: Record<string, Processor> = {}) =>",
+            "  (params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
+            "    const { libraryOptions, target } = params ?? {};",
+            "    const ctx = initializeContext({ ...(libraryOptions ?? {}), target, io, processors });",
+            "    processSchema(schema, ctx);"
+          ],
+          "ctxStart": 848
         }
       ]
     },
@@ -4997,7 +5227,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 218,
-          "text": "const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];"
+          "text": "const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
+          "ctx": [
+            "  ctx: ToJSONSchemaContext,",
+            "  _params: ProcessParams = { path: [], schemaPath: [] }",
+            "): JSONSchema.BaseSchema {",
+            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
+            "",
+            "  // check for schema in seens",
+            "  const seen = ctx.seen.get(schema);"
+          ],
+          "ctxStart": 215
         }
       ]
     },
@@ -5010,7 +5250,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 771,
-          "text": "const def = (_schema as schemas.$ZodTypes)._zod.def;"
+          "text": "const def = (_schema as schemas.$ZodTypes)._zod.def;",
+          "ctx": [
+            "  if (ctx.seen.has(_schema)) return false;",
+            "  ctx.seen.add(_schema);",
+            "",
+            "  const def = (_schema as schemas.$ZodTypes)._zod.def;",
+            "",
+            "  if (def.type === \"transform\") return true;",
+            ""
+          ],
+          "ctxStart": 768
         }
       ]
     },
@@ -5023,7 +5273,17 @@
         {
           "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
           "line": 14,
-          "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");"
+          "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
+          "ctx": [
+            "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
+            "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
+            "",
+            "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
+            "",
+            "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name,",
+            "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;"
+          ],
+          "ctxStart": 11
         }
       ]
     },
@@ -5036,7 +5296,17 @@
         {
           "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
           "line": 11,
-          "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");"
+          "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
+          "ctx": [
+            "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
+            "",
+            "const here = path.dirname(fileURLToPath(import.meta.url));",
+            "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
+            "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
+            "",
+            "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");"
+          ],
+          "ctxStart": 8
         }
       ]
     },
@@ -5049,7 +5319,17 @@
         {
           "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
           "line": 12,
-          "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");"
+          "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
+          "ctx": [
+            "",
+            "const here = path.dirname(fileURLToPath(import.meta.url));",
+            "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
+            "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
+            "",
+            "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
+            ""
+          ],
+          "ctxStart": 9
         }
       ]
     },
@@ -5062,7 +5342,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 275,
-          "text": "if (meta) assignProps(result.schema, meta);"
+          "text": "if (meta) assignProps(result.schema, meta);",
+          "ctx": [
+            "",
+            "  // metadata",
+            "  const meta = ctx.metadataRegistry.get(schema);",
+            "  if (meta) assignProps(result.schema, meta);",
+            "",
+            "  if (ctx.io === \"input\" && isTransforming(schema)) {",
+            "    // examples/defaults only apply to output type of pipe"
+          ],
+          "ctxStart": 272
         }
       ]
     },
@@ -5075,7 +5365,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 104,
-          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {"
+          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+          "ctx": [
+            "   * Process a schema to prepare it for JSON Schema generation.",
+            "   * This must be called before emit().",
+            "   */",
+            "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+            "    return processSchema(schema, this.ctx, _params);",
+            "  }",
+            ""
+          ],
+          "ctxStart": 101
         }
       ]
     },
@@ -5088,7 +5388,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 216,
-          "text": "_params: ProcessParams = { path: [], schemaPath: [] }"
+          "text": "_params: ProcessParams = { path: [], schemaPath: [] }",
+          "ctx": [
+            "export function processSchema<T extends schemas.$ZodType>(",
+            "  schema: T,",
+            "  ctx: ToJSONSchemaContext,",
+            "  _params: ProcessParams = { path: [], schemaPath: [] }",
+            "): JSONSchema.BaseSchema {",
+            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
+            ""
+          ],
+          "ctxStart": 213
         }
       ]
     },
@@ -5101,7 +5411,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 80,
-          "text": "get seen(): Map<schemas.$ZodType, Seen> {"
+          "text": "get seen(): Map<schemas.$ZodType, Seen> {",
+          "ctx": [
+            "    this.ctx.counter = value;",
+            "  }",
+            "  /** @deprecated Access via ctx instead */",
+            "  get seen(): Map<schemas.$ZodType, Seen> {",
+            "    return this.ctx.seen;",
+            "  }",
+            ""
+          ],
+          "ctxStart": 77
         }
       ]
     },
@@ -5114,7 +5434,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 124,
-          "text": "seen: Map<schemas.$ZodType, Seen>;"
+          "text": "seen: Map<schemas.$ZodType, Seen>;",
+          "ctx": [
+            "  }) => void;",
+            "  io: \"input\" | \"output\";",
+            "  counter: number;",
+            "  seen: Map<schemas.$ZodType, Seen>;",
+            "  /** Registry conversions share one `seen` map across every emitted schema. These hold the",
+            "   * `external` the whole-map passes below last ran for, so the passes are not repeated once per",
+            "   * schema — and still re-run if the map grows or `external` is swapped. `sharedEmitDoneFor`"
+          ],
+          "ctxStart": 121
         }
       ]
     },
@@ -5127,7 +5457,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 236,
-          "text": "const result: Seen = { schema: {}, count: 1, cycle: undefined, path: _params.path };"
+          "text": "const result: Seen = { schema: {}, count: 1, cycle: undefined, path: _params.path };",
+          "ctx": [
+            "  }",
+            "",
+            "  // initialize",
+            "  const result: Seen = { schema: {}, count: 1, cycle: undefined, path: _params.path };",
+            "  ctx.seen.set(schema, result);",
+            "  ctx.sharedDefsExtractedFor = undefined;",
+            "  ctx.sharedEmitDoneFor = undefined;"
+          ],
+          "ctxStart": 233
         }
       ]
     },
@@ -5140,17 +5480,47 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 49,
-          "text": "private ctx: ToJSONSchemaContext;"
+          "text": "private ctx: ToJSONSchemaContext;",
+          "ctx": [
+            " * ```",
+            " */",
+            "export class JSONSchemaGenerator {",
+            "  private ctx: ToJSONSchemaContext;",
+            "",
+            "  /** @deprecated Access via ctx instead */",
+            "  get metadataRegistry(): $ZodRegistry<Record<string, any>> {"
+          ],
+          "ctxStart": 46
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 61,
-          "text": "get unrepresentable(): ToJSONSchemaContext[\"unrepresentable\"] {"
+          "text": "get unrepresentable(): ToJSONSchemaContext[\"unrepresentable\"] {",
+          "ctx": [
+            "  }",
+            "  // annotated so the .d.cts emits an indexed access rather than an inline `import()` of an ESM path",
+            "  /** @deprecated Access via ctx instead */",
+            "  get unrepresentable(): ToJSONSchemaContext[\"unrepresentable\"] {",
+            "    return this.ctx.unrepresentable;",
+            "  }",
+            "  /** @deprecated Access via ctx instead */"
+          ],
+          "ctxStart": 58
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 86,
-          "text": "let normalizedTarget: ToJSONSchemaContext[\"target\"] = params?.target ?? \"draft-2020-12\";"
+          "text": "let normalizedTarget: ToJSONSchemaContext[\"target\"] = params?.target ?? \"draft-2020-12\";",
+          "ctx": [
+            "",
+            "  constructor(params?: JSONSchemaGeneratorConstructorParams) {",
+            "    // Normalize target for internal context",
+            "    let normalizedTarget: ToJSONSchemaContext[\"target\"] = params?.target ?? \"draft-2020-12\";",
+            "    if (normalizedTarget === \"draft-4\") normalizedTarget = \"draft-04\";",
+            "    if (normalizedTarget === \"draft-7\") normalizedTarget = \"draft-07\";",
+            ""
+          ],
+          "ctxStart": 83
         }
       ]
     },
@@ -5163,7 +5533,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 215,
-          "text": "ctx: ToJSONSchemaContext,"
+          "text": "ctx: ToJSONSchemaContext,",
+          "ctx": [
+            "// never rename this back to `process`: bundler polyfills inject a top-level `const process` that a lexical declaration of the same name collides with (#6397)",
+            "export function processSchema<T extends schemas.$ZodType>(",
+            "  schema: T,",
+            "  ctx: ToJSONSchemaContext,",
+            "  _params: ProcessParams = { path: [], schemaPath: [] }",
+            "): JSONSchema.BaseSchema {",
+            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];"
+          ],
+          "ctxStart": 212
         }
       ]
     },
@@ -5176,7 +5556,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-generator.ts",
           "line": 105,
-          "text": "return processSchema(schema, this.ctx, _params);"
+          "text": "return processSchema(schema, this.ctx, _params);",
+          "ctx": [
+            "   * This must be called before emit().",
+            "   */",
+            "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+            "    return processSchema(schema, this.ctx, _params);",
+            "  }",
+            "",
+            "  /**"
+          ],
+          "ctxStart": 102
         }
       ]
     },
@@ -5189,7 +5579,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 297,
-          "text": "json.items = processSchema(def.element, ctx as any, {"
+          "text": "json.items = processSchema(def.element, ctx as any, {",
+          "ctx": [
+            "  if (typeof maximum === \"number\") json.maxItems = maximum;",
+            "",
+            "  json.type = \"array\";",
+            "  json.items = processSchema(def.element, ctx as any, {",
+            "    ...params,",
+            "    path: [...params.path, \"items\"],",
+            "  });"
+          ],
+          "ctxStart": 294
         }
       ]
     },
@@ -5202,12 +5602,32 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 341,
-          "text": "processSchema(shape[key]!, ctx as any, {"
+          "text": "processSchema(shape[key]!, ctx as any, {",
+          "ctx": [
+            "    assignProp(",
+            "      json.properties,",
+            "      key,",
+            "      processSchema(shape[key]!, ctx as any, {",
+            "        ...params,",
+            "        path: [...params.path, \"properties\", key],",
+            "      })"
+          ],
+          "ctxStart": 338
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 373,
-          "text": "json.additionalProperties = processSchema(def.catchall, ctx as any, {"
+          "text": "json.additionalProperties = processSchema(def.catchall, ctx as any, {",
+          "ctx": [
+            "    // regular",
+            "    if (ctx.io === \"output\") json.additionalProperties = false;",
+            "  } else if (def.catchall) {",
+            "    json.additionalProperties = processSchema(def.catchall, ctx as any, {",
+            "      ...params,",
+            "      path: [...params.path, \"additionalProperties\"],",
+            "    });"
+          ],
+          "ctxStart": 370
         }
       ]
     },
@@ -5220,7 +5640,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 433,
-          "text": "processSchema(x, ctx as any, {"
+          "text": "processSchema(x, ctx as any, {",
+          "ctx": [
+            "  // Exclusive unions (inclusive === false) use oneOf (exactly one match) instead of anyOf (one or more matches). This includes both z.xor() and discriminated unions",
+            "  const isExclusive = def.inclusive === false;",
+            "  const options = def.options.map((x, i) =>",
+            "    processSchema(x, ctx as any, {",
+            "      ...params,",
+            "      path: [...params.path, isExclusive ? \"oneOf\" : \"anyOf\", i],",
+            "    })"
+          ],
+          "ctxStart": 430
         }
       ]
     },
@@ -5233,12 +5663,32 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 447,
-          "text": "const a = processSchema(def.left, ctx as any, {"
+          "text": "const a = processSchema(def.left, ctx as any, {",
+          "ctx": [
+            "",
+            "export const intersectionProcessor: Processor<schemas.$ZodIntersection> = (schema, ctx, json, params) => {",
+            "  const def = schema._zod.def as schemas.$ZodIntersectionDef;",
+            "  const a = processSchema(def.left, ctx as any, {",
+            "    ...params,",
+            "    path: [...params.path, \"allOf\", 0],",
+            "  });"
+          ],
+          "ctxStart": 444
         },
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 451,
-          "text": "const b = processSchema(def.right, ctx as any, {"
+          "text": "const b = processSchema(def.right, ctx as any, {",
+          "ctx": [
+            "    ...params,",
+            "    path: [...params.path, \"allOf\", 0],",
+            "  });",
+            "  const b = processSchema(def.right, ctx as any, {",
+            "    ...params,",
+            "    path: [...params.path, \"allOf\", 1],",
+            "  });"
+          ],
+          "ctxStart": 448
         }
       ]
     },
@@ -5251,7 +5701,17 @@
         {
           "file": "packages/zod/src/v4/core/json-schema-processors.ts",
           "line": 773,
-          "text": "processSchema(def.innerType, ctx as any, params);"
+          "text": "processSchema(def.innerType, ctx as any, params);",
+          "ctx": [
+            "",
+            "export const optionalProcessor: Processor<schemas.$ZodOptional> = (schema, ctx, _json, params) => {",
+            "  const def = schema._zod.def as schemas.$ZodOptionalDef;",
+            "  processSchema(def.innerType, ctx as any, params);",
+            "  const seen = ctx.seen.get(schema)!;",
+            "  seen.ref = def.innerType;",
+            "};"
+          ],
+          "ctxStart": 770
         }
       ]
     },
@@ -5264,7 +5724,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 854,
-          "text": "processSchema(schema, ctx);"
+          "text": "processSchema(schema, ctx);",
+          "ctx": [
+            "  (params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
+            "    const { libraryOptions, target } = params ?? {};",
+            "    const ctx = initializeContext({ ...(libraryOptions ?? {}), target, io, processors });",
+            "    processSchema(schema, ctx);",
+            "    extractDefs(ctx, schema);",
+            "    return finalize(ctx, schema);",
+            "  };"
+          ],
+          "ctxStart": 851
         }
       ]
     },
@@ -5277,7 +5747,17 @@
         {
           "file": "packages/zod/src/v4/core/to-json-schema.ts",
           "line": 277,
-          "text": "if (ctx.io === \"input\" && isTransforming(schema)) {"
+          "text": "if (ctx.io === \"input\" && isTransforming(schema)) {",
+          "ctx": [
+            "  const meta = ctx.metadataRegistry.get(schema);",
+            "  if (meta) assignProps(result.schema, meta);",
+            "",
+            "  if (ctx.io === \"input\" && isTransforming(schema)) {",
+            "    // examples/defaults only apply to output type of pipe",
+            "    delete result.schema.examples;",
+            "    delete result.schema.default;"
+          ],
+          "ctxStart": 274
         }
       ]
     }

@@ -133,6 +133,14 @@ test("bundled dataset: every edge is directed and carries its call sites", () =>
     for (const s of e.sites) {
       assert.match(s.file, /\.tsx?$/);
       assert.ok(s.line > 0 && s.text.length > 0, "site points at real source");
+      // context lets an unchanged caller be read in place, so the reference
+      // line must actually be inside the window we shipped
+      assert.ok(Array.isArray(s.ctx) && s.ctx.length > 0, "site carries context");
+      assert.ok(s.ctxStart <= s.line && s.line < s.ctxStart + s.ctx.length,
+        `call line ${s.line} inside ctx window ${s.ctxStart}..${s.ctxStart + s.ctx.length - 1}`);
+      // site text is capped shorter than the context line, so compare prefixes
+      assert.ok(s.ctx[s.line - s.ctxStart].trim().startsWith(s.text.trim().slice(0, 60)),
+        "context line matches the site text");
     }
   }
   // direction is meaningful: a caller referencing itself both ways would be a bug

@@ -356,7 +356,11 @@ input.pr-url.busy { opacity: 0.5; }
 /* while dragging graph/pan, stop native text selection of the page underneath */
 body.dragging, body.dragging * { user-select: none !important; -webkit-user-select: none !important; }
 
-.gp-label { font: 400 8.5px var(--mono); fill: var(--muted); text-anchor: middle; }
+/* a halo of the page background lets a label cross an edge and stay readable */
+.gp-label {
+  font: 400 8.5px var(--mono); fill: var(--muted); text-anchor: middle;
+  paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round;
+}
 
 .glegend { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 6px 0; }
 .glegend-item { display: flex; align-items: center; gap: 6px; font: 400 10px/1 var(--mono); color: var(--faint); }
@@ -1172,3 +1176,26 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
   color: var(--edge-risk); border: 1px solid var(--edge-risk);
   border-radius: 4px; padding: 3px 5px; cursor: default; white-space: nowrap;
 }
+
+/* call-site peek: unchanged code, readable in place, never dressed as a diff */
+.conn-site {
+  display: flex; align-items: baseline; gap: 7px; width: 100%;
+  margin-top: 4px; padding: 2px 4px 2px 0; text-align: left;
+  font: 400 10px/1.5 var(--mono); color: var(--muted);
+  background: none; border: none; border-radius: 4px; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.conn-site:hover { background: var(--surface); color: var(--ink); }
+.conn-site.open { color: var(--ink); }
+.conn-chev { flex: none; color: var(--faint); transition: transform 0.12s ease; }
+.conn-site.open .conn-chev { transform: rotate(90deg); }
+.conn-at { flex: none; color: var(--faint); }
+.peek { display: none; margin: 3px 0 6px 14px; border-left: 1px solid var(--hairline); padding-left: 9px; }
+.peek.open { display: block; }
+.peek-note { font: 400 9px/1.4 var(--mono); color: var(--faint); margin-bottom: 4px; overflow-wrap: anywhere; }
+.peek-line { display: flex; gap: 10px; font: 400 10px/1.55 var(--mono); color: var(--muted); white-space: pre-wrap; }
+.peek-line.at { color: var(--ink); background: var(--move-bg); }
+.peek-no { flex: none; width: 34px; text-align: right; color: var(--faint); }
+.conn-group { display: flex; align-items: baseline; gap: 9px; }
+.conn-group-note { font: 400 9px/1 var(--mono); letter-spacing: 0; text-transform: none; color: var(--faint); font-style: italic; }
+.no-diff-hint { display: block; margin-top: 3px; font-size: 9.5px; color: var(--faint); }

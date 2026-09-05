@@ -26,7 +26,16 @@ export interface EntryData {
 }
 
 /** one reference of b inside a: the source line that justifies the edge */
-export interface CallSite { file: string; line: number; text: string }
+export interface CallSite {
+  file: string;
+  line: number;
+  text: string;
+  /** a few head lines around the reference, so an unchanged caller can be read
+      in place without pretending it is part of the diff */
+  ctx?: string[];
+  /** 1-based line number of ctx[0] */
+  ctxStart?: number;
+}
 
 /** a references b, with up to SITE_CAP of the actual reference sites */
 export interface Edge { a: string; b: string; rel: string; refs?: number; sites?: CallSite[] }
@@ -41,6 +50,7 @@ export interface FlowResult {
 }
 
 const MAX_HOPS = 3;
+const CTX_SPAN = 3; // head lines kept either side of a reference
 const SITE_CAP = 3; // reference sites kept per edge — enough to explain it, not a dump
 
 /** seeds: top-level defs intersecting changed lines, whose name appears in the diff text */
@@ -99,6 +109,18 @@ function sourceLine(file: string, line: number, index: Index): string {
     fileTexts.set(file, lines);
   }
   return (lines[line - 1] ?? "").trim().slice(0, 160);
+}
+
+/** the head source around a reference: enough to see what the call is doing */
+function sourceWindow(file: string, line: number, index: Index): { ctx: string[]; ctxStart: number } {
+  sourceLine(file, line, index); // fills the cache
+  const lines = fileTexts.get(file) ?? [];
+  const start = Math.max(1, line - CTX_SPAN);
+  const end = Math.min(lines.length, line + CTX_SPAN);
+  return {
+    ctx: lines.slice(start - 1, end).map((l) => l.replace(/\s+$/, "").slice(0, 200)),
+    ctxStart: start
+  };
 }
 
 /** adjacency: def -> defs that reference it (callers) and defs it references (callees) */
@@ -282,7 +304,10 @@ export function floodFill(
           if (!edge.sites!.some((st) => st.file === u.file && st.line === line)) {
             edge.refs = (edge.refs ?? 0) + 1;
             if (edge.sites!.length < SITE_CAP) {
-              edge.sites!.push({ file: u.file, line, text: sourceLine(u.file, line, index) });
+              edge.sites!.push({
+                file: u.file, line, text: sourceLine(u.file, line, index),
+                ...sourceWindow(u.file, line, index)
+              });
             }
           }
         }

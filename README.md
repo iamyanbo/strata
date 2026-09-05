@@ -59,6 +59,13 @@ processSchema(...)`) and a jump to the other object — so the reason the graph
 has that shape is readable in the document, not just inferable from the picture.
 Hovering a row lights the matching wire in the graph, and vice versa.
 
+Most callers of a changed function were not themselves changed, so they have no
+diff to show — and the document only ever shows what the PR changed. Instead,
+every call site opens in place: a few lines of head source with the call line
+marked, labeled *not changed by this PR*. The reason an unchanged object is in
+the document at all is stated on its card, with a pointer to the call sites that
+pulled it in.
+
 **Review checkpoints.** Mark reviewed once; on the next push only what
 changed since renders at full attention — everything you already read dims.
 Checkmarks per object track what you personally read. Force-pushes are

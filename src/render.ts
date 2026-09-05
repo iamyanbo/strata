@@ -669,13 +669,38 @@ function connectionRow(e: GraphEdge, selfId: string): HTMLElement {
   if (oc && oc.id !== componentOf(selfId)?.id) head.appendChild(el("span", "conn-chip comp", oc.name));
   row.appendChild(head);
 
+  // Call sites expand in place. The document only ever shows what the PR
+  // changed, so an unchanged caller is never given a diff — it gets a plainly
+  // labeled read-only peek at the head source instead, which is what a reviewer
+  // needs to judge whether the change still fits the call.
   for (const s of e.sites ?? []) {
-    const site = el("div", "conn-site");
+    const site = el("button", "conn-site");
+    const chev = el("span", "conn-chev", "›");
     site.append(
+      chev,
       el("span", "conn-at", `${s.file.split("/").pop()}:${s.line}`),
-      el("code", undefined, s.text.length > 88 ? s.text.slice(0, 87) + "…" : s.text)
+      el("code", undefined, s.text.length > 84 ? s.text.slice(0, 83) + "…" : s.text)
     );
     row.appendChild(site);
+    if (!s.ctx?.length) continue;
+    const peek = el("div", "peek");
+    site.title = "read this call in place";
+    site.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const open = peek.classList.toggle("open");
+      site.classList.toggle("open", open);
+      if (!open || peek.childElementCount) return;
+      const changedSide = nodeSeed(otherId);
+      peek.appendChild(el("div", "peek-note",
+        `${s.file}${changedSide ? "" : " · not changed by this PR — shown for context"}`));
+      s.ctx!.forEach((text, i) => {
+        const n = (s.ctxStart ?? s.line) + i;
+        const ln = el("div", `peek-line${n === s.line ? " at" : ""}`);
+        ln.append(el("span", "peek-no", String(n)), el("code", undefined, text));
+        peek.appendChild(ln);
+      });
+    });
+    row.appendChild(peek);
   }
   const shown = e.sites?.length ?? 0;
   if (e.refs && e.refs > shown) {
@@ -704,7 +729,14 @@ function renderConnections(id: string): HTMLElement | null {
 
   const group = (label: string, list: GraphEdge[]): void => {
     if (!list.length) return;
-    sec.appendChild(el("div", "conn-group", label));
+    const h = el("div", "conn-group");
+    h.appendChild(el("span", undefined, label));
+    // callers the PR never touched have no diff to show, so say so once here
+    // rather than leaving the reviewer to wonder where their code went
+    if (label === "called by" && list.some((x) => !nodeSeed(x.a))) {
+      h.appendChild(el("span", "conn-group-note", "unchanged callers have no diff — open a call site to read it"));
+    }
+    sec.appendChild(h);
     // riskiest first: unchanged callers of changed code lead the list
     const ordered = [...list].sort((x, y) => {
       const w = (e: GraphEdge): number => (edgeKind(e) === "risk" ? 0 : edgeKind(e) === "co" ? 1 : 2);
@@ -827,7 +859,15 @@ function renderEntry(e: Entry): HTMLElement {
     chg.appendChild(el("h4", "sec-h", "Changes"));
     for (const f of e.files) chg.appendChild(renderFile(f, e.comments));
     if (!e.files.length) {
-      chg.appendChild(el("p", "no-diff", "no diff — referenced by changed objects"));
+      // an object the PR never touched: no diff by definition. Say why it is
+      // in the document at all and point at the wires that dragged it in.
+      const why = el("p", "no-diff");
+      const callers = edgesOf(e.id).in.filter((x) => nodeSeed(x.a)).length;
+      why.textContent = callers
+        ? `not changed by this PR — it is here because ${callers} changed object${callers === 1 ? "" : "s"} reference${callers === 1 ? "s" : ""} it`
+        : "not changed by this PR — pulled in by the fill from changed code";
+      why.appendChild(el("span", "no-diff-hint", "see Connections below for the call sites"));
+      chg.appendChild(why);
     }
     const written = commitsOf(e.id);
     if (written.length) {
@@ -1251,63 +1291,127 @@ function layeredPositions(
   edges: { a: string; b: string }[],
   rank: Map<string, number>,
   VB: number
-): { pos: Map<string, { x: number; y: number }>; above: Set<string> } {
+): { pos: Map<string, { x: number; y: number }>; above: Set<string>; lane: number } {
+  const SP = 84;        // horizontal step between neighbours in a lane
+  const PER = 4;        // nodes per lane — beyond this, labels have nowhere to go
+  const MARGIN = 52;    // keep nodes and their labels off the canvas edge
+  const SWEEPS = 6;     // barycenter ordering passes (down, up, down, ...)
+  const RELAX = 40;     // x relaxation iterations
+
+  const inSet = new Set(ids);
+  const es = edges.filter((e) => inSet.has(e.a) && inSet.has(e.b) && e.a !== e.b);
+  const nbrs = new Map<string, string[]>(ids.map((id) => [id, []]));
+  for (const e of es) {
+    nbrs.get(e.a)!.push(e.b);
+    nbrs.get(e.b)!.push(e.a);
+  }
+
+  // wholly unconnected objects say nothing about flow — park them on their own
+  // bottom lane instead of letting them stretch the first rank
+  const linked = ids.filter((id) => nbrs.get(id)!.length > 0);
+  const loose = ids.filter((id) => nbrs.get(id)!.length === 0);
+
   const rows = new Map<number, string[]>();
-  for (const id of ids) {
+  for (const id of linked) {
     const r = rank.get(id) ?? 0;
     if (!rows.has(r)) rows.set(r, []);
     rows.get(r)!.push(id);
   }
-  const preds = new Map<string, string[]>();
-  for (const e of edges) {
-    if (!rank.has(e.a) || !rank.has(e.b)) continue;
-    if (!preds.has(e.b)) preds.set(e.b, []);
-    preds.get(e.b)!.push(e.a);
-  }
   const order = [...rows.keys()].sort((a, b) => a - b);
-  const W = 322;      // horizontal spread
-  const PER = 4;      // nodes per visual row — more than this and labels collide
-  const LANE = 48;    // vertical distance between visual rows
 
-  // a rank wider than PER wraps onto extra rows, so the whole rank still reads
-  // as one layer without turning into an unreadable smear of labels
+  // split a wide rank into balanced lanes: 5 nodes read better as 3+2 than 4+1
   const lanes: string[][] = [];
-  const pos = new Map<string, { x: number; y: number }>();
-  order.forEach((r) => {
-    const row = rows.get(r)!;
-    const bary = new Map<string, number>();
-    for (const id of row) {
-      const xs = (preds.get(id) ?? [])
-        .map((p) => pos.get(p)?.x)
-        .filter((x): x is number => x !== undefined);
-      bary.set(id, xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : VB / 2);
+  const laneOf = new Map<string, number>();
+  const addLane = (members: string[]): void => {
+    for (const id of members) laneOf.set(id, lanes.length);
+    lanes.push(members);
+  };
+  for (const r of order) {
+    const row = rows.get(r)!.slice().sort((a, b) => a.localeCompare(b));
+    const parts = Math.ceil(row.length / PER);
+    const per = Math.ceil(row.length / parts);
+    for (let i = 0; i < row.length; i += per) addLane(row.slice(i, i + per));
+  }
+  if (loose.length) {
+    const per = Math.ceil(loose.length / Math.ceil(loose.length / PER));
+    for (let i = 0; i < loose.length; i += per) addLane(loose.slice(i, i + per));
+  }
+
+  // slot = position within the lane; x is derived from it so ordering and
+  // spacing stay separable (order first, then relax the coordinates)
+  const slot = new Map<string, number>();
+  const centerLane = (lane: string[]): void => {
+    lane.forEach((id, i) => slot.set(id, i - (lane.length - 1) / 2));
+  };
+  for (const lane of lanes) centerLane(lane);
+
+  // crossing reduction: repeatedly reorder each lane by the mean slot of its
+  // neighbours in the adjacent lane, alternating direction
+  for (let s = 0; s < SWEEPS; s++) {
+    const down = s % 2 === 0;
+    const seq = down ? lanes.map((_, i) => i) : lanes.map((_, i) => lanes.length - 1 - i);
+    for (const li of seq) {
+      const from = down ? li - 1 : li + 1;
+      if (from < 0 || from >= lanes.length) continue;
+      const key = new Map<string, number>();
+      for (const id of lanes[li]) {
+        const ns = nbrs.get(id)!.filter((n) => laneOf.get(n) === from).map((n) => slot.get(n)!);
+        key.set(id, ns.length ? ns.reduce((a, b) => a + b, 0) / ns.length : slot.get(id)!);
+      }
+      lanes[li].sort((a, b) => key.get(a)! - key.get(b)! || a.localeCompare(b));
+      centerLane(lanes[li]);
     }
-    row.sort((a, b) => bary.get(a)! - bary.get(b)! || a.localeCompare(b));
-    // x is final here — the next rank's barycenters read it; y comes in pass two
-    for (let i = 0; i < row.length; i += PER) {
-      const lane = row.slice(i, i + PER);
-      lanes.push(lane);
-      lane.forEach((id, j) => {
-        const n = lane.length;
-        pos.set(id, { x: n === 1 ? VB / 2 : VB / 2 - W / 2 + (j / (n - 1)) * W, y: 0 });
-      });
+  }
+
+  // relax x toward the mean of each node's neighbours, then push apart anything
+  // that got too close — straightens long chains without letting nodes collide
+  const x = new Map<string, number>();
+  for (const [id, s] of slot) x.set(id, VB / 2 + s * SP);
+  for (let it = 0; it < RELAX; it++) {
+    for (const id of ids) {
+      const ns = nbrs.get(id)!;
+      if (!ns.length) continue;
+      const mean = ns.reduce((a, n) => a + x.get(n)!, 0) / ns.length;
+      x.set(id, x.get(id)! + (mean - x.get(id)!) * 0.35);
     }
-  });
-  // second pass: turn lane indices into real y, centered on the canvas
-  const total = lanes.length;
-  const top = VB / 2 - ((total - 1) * LANE) / 2;
+    for (const lane of lanes) {
+      lane.sort((a, b) => x.get(a)! - x.get(b)!);
+      for (let i = 1; i < lane.length; i++) {
+        const need = x.get(lane[i - 1])! + SP;
+        if (x.get(lane[i])! < need) x.set(lane[i], need);
+      }
+      // re-center the lane so relaxation never drifts the drawing sideways
+      const lo = x.get(lane[0])!, hi = x.get(lane[lane.length - 1])!;
+      const shift = VB / 2 - (lo + hi) / 2;
+      for (const id of lane) x.set(id, x.get(id)! + shift);
+    }
+  }
+
+  // fit horizontally: the lanes are centered, so one scale keeps them centered
+  const xs = [...x.values()];
+  const half = Math.max(...xs.map((v) => Math.abs(v - VB / 2)), 1);
+  const scale = Math.min(1, (VB / 2 - MARGIN) / half);
+
+  const LANE = lanes.length > 1
+    ? Math.min(54, (VB - 2 * MARGIN) / (lanes.length - 1))
+    : 0;
+  const top = VB / 2 - ((lanes.length - 1) * LANE) / 2;
+
   // neighbours in a lane alternate: dropped a little, and labelled above rather
   // than below — two long names side by side can then never overlap
+  const pos = new Map<string, { x: number; y: number }>();
   const above = new Set<string>();
   lanes.forEach((lane, li) => {
     lane.forEach((id, j) => {
       const stagger = lane.length > 2 && j % 2 === 1;
       if (stagger) above.add(id);
-      const p = pos.get(id)!;
-      pos.set(id, { x: p.x, y: top + li * LANE + (stagger ? 13 : 0) });
+      pos.set(id, {
+        x: VB / 2 + (x.get(id)! - VB / 2) * scale,
+        y: top + li * LANE + (stagger ? 13 : 0)
+      });
     });
   });
-  return { pos, above };
+  return { pos, above, lane: LANE || 54 };
 }
 
 /** one arrowhead per edge state; context-stroke keeps each in its line's color */
@@ -1395,7 +1499,7 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   // callees below — so the drawing reads as a flow, not an arbitrary ring.
   // Drag moves any node from there; the ranks are a starting point, not a cage.
   const rank = layerRanks(ids, edges);
-  const { pos, above: labelAbove } = layeredPositions(ids, edges, rank, VB);
+  const { pos, above: labelAbove, lane: laneGap } = layeredPositions(ids, edges, rank, VB);
 
   const deg = new Map<string, number>();
   for (const e of edges) {
@@ -1404,7 +1508,10 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   }
   const center = [...ids].sort((x, y) => (deg.get(y) ?? 0) - (deg.get(x) ?? 0))[0] ?? ids[0];
 
-  const radius = (id: string): number => 5 + Math.log2(1 + nodeRefs(id)) * 2.8;
+  // size still reads as "how much depends on this", but never so large that a
+  // deep graph's rows collide — the cap follows the row spacing
+  const rCap = Math.max(9, Math.min(20, laneGap * 0.4));
+  const radius = (id: string): number => Math.min(rCap, 5 + Math.log2(1 + nodeRefs(id)) * 2.8);
 
   const nodeEls = new Map<string, { circle: SVGCircleElement; label: SVGTextElement; r: number; g: SVGGElement }>();
   const edgeEls: {
@@ -1794,6 +1901,27 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
       n.label.setAttribute("y", String(labelAbove.has(id) ? p.y - n.r - 6 : p.y + n.r + 11));
     }
     positionTip();
+  }
+
+  // first render fills the panel: fit the view to what was actually drawn
+  // (nodes, their labels, and any cross-component stubs) instead of trusting
+  // the layout to happen to use the whole canvas
+  {
+    const pad = 26;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const cover = (px: number, py: number, r: number): void => {
+      x0 = Math.min(x0, px - r); x1 = Math.max(x1, px + r);
+      y0 = Math.min(y0, py - r); y1 = Math.max(y1, py + r);
+    };
+    for (const [id, p] of pos) cover(p.x, p.y, radius(id) + 12);
+    for (const e of edgeEls) if (e.stub) cover(e.stub.x, e.stub.y, 16);
+    if (Number.isFinite(x0)) {
+      const w = Math.max(x1 - x0, 1), h = Math.max(y1 - y0, 1);
+      const k = Math.max(0.6, Math.min(1.9, (VB - 2 * pad) / Math.max(w, h)));
+      target.k = view.k = k;
+      target.x = view.x = VB / 2 - ((x0 + x1) / 2) * k;
+      target.y = view.y = VB / 2 - ((y0 + y1) / 2) * k;
+    }
   }
 
   applyView();
