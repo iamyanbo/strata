@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { parseUnifiedDiff } from "../dist/pipeline/git.js";
 import { sweepBands, isStaleWriter, SWEEP_GAP_HOURS } from "../dist/pipeline/sweeps.js";
 import { parsePrUrl } from "../scripts/analyze.mjs";
+import { readFileSync } from "node:fs";
 
 // ---- parseUnifiedDiff --------------------------------------------------------
 
@@ -115,4 +116,26 @@ test("parsePrUrl: full url, short form, trailing junk", () => {
 
 test("sweep gap knob defaults to 2 hours", () => {
   assert.equal(SWEEP_GAP_HOURS, 2);
+});
+
+// ---- graph edges -------------------------------------------------------------
+// Edges are directed (a references b) and carry the reference sites that
+// justify them — the graph panel and the Connections block both read these.
+
+test("bundled dataset: every edge is directed and carries its call sites", () => {
+  const page = JSON.parse(readFileSync(new URL("../data/sample.json", import.meta.url), "utf8"));
+  assert.ok(page.edges.length > 0, "sample has edges");
+  for (const e of page.edges) {
+    assert.ok(page.entries[e.a] && page.entries[e.b], `both endpoints exist: ${e.a} -> ${e.b}`);
+    assert.notEqual(e.a, e.b, "no self edges");
+    assert.ok(Array.isArray(e.sites) && e.sites.length > 0, `edge has call sites: ${e.a} -> ${e.b}`);
+    assert.ok(e.refs >= e.sites.length, "refs counts at least the sites kept");
+    for (const s of e.sites) {
+      assert.match(s.file, /\.tsx?$/);
+      assert.ok(s.line > 0 && s.text.length > 0, "site points at real source");
+    }
+  }
+  // direction is meaningful: a caller referencing itself both ways would be a bug
+  const keys = new Set(page.edges.map((e) => `${e.a}->${e.b}`));
+  assert.equal(keys.size, page.edges.length, "no duplicate directed edges");
 });

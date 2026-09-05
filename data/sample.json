@@ -4772,172 +4772,514 @@
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 3,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 104,
+          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 112,
+          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 129,
+          "text": "return plainResult as JSONSchema.BaseSchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 290,
+          "text": "const json = _json as JSONSchema.ArraySchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 320,
+          "text": "const json = _json as JSONSchema.ObjectSchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema.ts",
+          "line": 120,
+          "text": "export type BaseSchema = JSONSchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 2,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 95,
+          "text": "schema: JSONSchema.BaseSchema;"
+        },
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 97,
+          "text": "def?: JSONSchema.BaseSchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 3,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 119,
+          "text": "jsonSchema: JSONSchema.BaseSchema;"
+        },
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 144,
+          "text": "intersections: JSONSchema.BaseSchema[][];"
+        },
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 151,
+          "text": "defs: Record<string, JSONSchema.BaseSchema>;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 217,
+          "text": "): JSONSchema.BaseSchema {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 851,
+          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 3,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 104,
+          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 112,
+          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 129,
+          "text": "return plainResult as JSONSchema.BaseSchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
       "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 2,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 95,
+          "text": "schema: JSONSchema.BaseSchema;"
+        },
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 97,
+          "text": "def?: JSONSchema.BaseSchema;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
       "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 3,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 119,
+          "text": "jsonSchema: JSONSchema.BaseSchema;"
+        },
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 144,
+          "text": "intersections: JSONSchema.BaseSchema[][];"
+        },
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 151,
+          "text": "defs: Record<string, JSONSchema.BaseSchema>;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 217,
+          "text": "): JSONSchema.BaseSchema {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
       "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 851,
+          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 218,
+          "text": "const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757",
       "b": "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 771,
+          "text": "const def = (_schema as schemas.$ZodTypes)._zod.def;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#polyfills#const#11570",
       "b": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#INJECTED#const#11566",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "line": 14,
+          "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#CLASSIC#const#11568",
       "b": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "line": 11,
+          "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#MINI#const#11569",
       "b": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "line": 12,
+          "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#assignProps#function#11609",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 275,
+          "text": "if (meta) assignProps(result.schema, meta);"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 104,
+          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 216,
+          "text": "_params: ProcessParams = { path: [], schemaPath: [] }"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 80,
+          "text": "get seen(): Map<schemas.$ZodType, Seen> {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 124,
+          "text": "seen: Map<schemas.$ZodType, Seen>;"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 236,
+          "text": "const result: Seen = { schema: {}, count: 1, cycle: undefined, path: _params.path };"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 3,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 49,
+          "text": "private ctx: ToJSONSchemaContext;"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 61,
+          "text": "get unrepresentable(): ToJSONSchemaContext[\"unrepresentable\"] {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 86,
+          "text": "let normalizedTarget: ToJSONSchemaContext[\"target\"] = params?.target ?? \"draft-2020-12\";"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 215,
+          "text": "ctx: ToJSONSchemaContext,"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "line": 105,
+          "text": "return processSchema(schema, this.ctx, _params);"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 297,
+          "text": "json.items = processSchema(def.element, ctx as any, {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 2,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 341,
+          "text": "processSchema(shape[key]!, ctx as any, {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 373,
+          "text": "json.additionalProperties = processSchema(def.catchall, ctx as any, {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 433,
+          "text": "processSchema(x, ctx as any, {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 2,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 447,
+          "text": "const a = processSchema(def.left, ctx as any, {"
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 451,
+          "text": "const b = processSchema(def.right, ctx as any, {"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 773,
+          "text": "processSchema(def.innerType, ctx as any, params);"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 854,
+          "text": "processSchema(schema, ctx);"
+        }
+      ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757",
-      "rel": "def−use"
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/to-json-schema.ts",
+          "line": 277,
+          "text": "if (ctx.io === \"input\" && isTransforming(schema)) {"
+        }
+      ]
     }
   ],
   "extraFiles": {

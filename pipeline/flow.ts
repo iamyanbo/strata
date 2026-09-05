@@ -25,16 +25,23 @@ export interface EntryData {
   seed: boolean;
 }
 
+/** one reference of b inside a: the source line that justifies the edge */
+export interface CallSite { file: string; line: number; text: string }
+
+/** a references b, with up to SITE_CAP of the actual reference sites */
+export interface Edge { a: string; b: string; rel: string; refs?: number; sites?: CallSite[] }
+
 export interface FlowResult {
   entries: Map<string, EntryData>;
   components: Component[];
   /** seed def id -> component id */
   seedMap: Map<string, string>;
   /** def−use edges among top-level defs (a references b) */
-  edges: { a: string; b: string; rel: string }[];
+  edges: Edge[];
 }
 
 const MAX_HOPS = 3;
+const SITE_CAP = 3; // reference sites kept per edge — enough to explain it, not a dump
 
 /** seeds: top-level defs intersecting changed lines, whose name appears in the diff text */
 export function findSeeds(pr: RawPR, index: Index, fileNameMap: Map<string, string>): Set<string> {
@@ -76,6 +83,22 @@ function offsetToLine(file: string, offset: number, index: Index): number {
     if (starts[mid] <= offset) lo = mid; else hi = mid - 1;
   }
   return lo + 1;
+}
+
+const fileTexts = new Map<string, string[]>(); // headPath -> source lines
+
+/** the trimmed source text of one line, for showing a call site verbatim */
+function sourceLine(file: string, line: number, index: Index): string {
+  let lines = fileTexts.get(file);
+  if (!lines) {
+    try {
+      lines = fs.readFileSync(`${index.root}/${file}`, "utf8").split(/\r?\n/);
+    } catch {
+      lines = [];
+    }
+    fileTexts.set(file, lines);
+  }
+  return (lines[line - 1] ?? "").trim().slice(0, 160);
 }
 
 /** adjacency: def -> defs that reference it (callers) and defs it references (callees) */
@@ -227,9 +250,10 @@ export function floodFill(
   const allEdges = collectEdges();
   return { entries, components, seedMap, edges: allEdges };
 
-  function collectEdges(): { a: string; b: string; rel: string }[] {
-    const out: { a: string; b: string; rel: string }[] = [];
-    const seen = new Set<string>();
+  function collectEdges(): Edge[] {
+    const out: Edge[] = [];
+    const byKey = new Map<string, Edge>();
+
     // walk uses again: caller(top-level def enclosing the reference) -> referenced def
     const spans: { file: string; start: number; end: number; defId: string }[] = [];
     for (const d of index.defs) if (d.topLevel) spans.push({ file: d.file, start: d.start, end: d.end, defId: d.id });
@@ -246,9 +270,20 @@ export function floodFill(
         const caller = enclosing(u.file, u.start);
         if (caller && caller !== d.id) {
           const key = `${caller}->${d.id}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            out.push({ a: caller, b: d.id, rel: "def\u2212use" });
+          let edge = byKey.get(key);
+          if (!edge) {
+            edge = { a: caller, b: d.id, rel: "def\u2212use", refs: 0, sites: [] };
+            byKey.set(key, edge);
+            out.push(edge);
+          }
+          // the reference sites ARE the answer to "why is this edge here" — keep
+          // a few verbatim (deduped per line) and count the rest
+          const line = offsetToLine(u.file, u.start, index);
+          if (!edge.sites!.some((st) => st.file === u.file && st.line === line)) {
+            edge.refs = (edge.refs ?? 0) + 1;
+            if (edge.sites!.length < SITE_CAP) {
+              edge.sites!.push({ file: u.file, line, text: sourceLine(u.file, line, index) });
+            }
           }
         }
       }

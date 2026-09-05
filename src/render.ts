@@ -1,4 +1,4 @@
-import type { Commit, ComponentDoc, DiffLine, Entry, FileDiff, PageData } from "./types.js";
+import type { Commit, ComponentDoc, DiffLine, Entry, FileDiff, GraphEdge, PageData } from "./types.js";
 import type { Comment as ReviewComment } from "./types.js";
 
 // ---- rendering -------------------------------------------------------------
@@ -637,6 +637,86 @@ function renderComponentDoc(): HTMLElement {
   return main;
 }
 
+// ---- connections -------------------------------------------------------------
+// The graph shows the shape; this shows the reason. Every edge touching this
+// object, split by direction, each row carrying the call site that put it
+// there. Hovering a row lights the same wire in the graph panel.
+
+function connectionRow(e: GraphEdge, selfId: string): HTMLElement {
+  const otherId = e.a === selfId ? e.b : e.a;
+  const outgoing = e.a === selfId;
+  const other = entry(otherId)!;
+  const kind = edgeKind(e);
+  const row = el("div", `conn k-${kind}`);
+
+  const head = el("div", "conn-head");
+  head.append(el("span", "conn-dir", outgoing ? "→" : "←"));
+  const nameBtn = el("button", "conn-name");
+  nameBtn.textContent = other.name;
+  nameBtn.title = `open ${other.name}`;
+  nameBtn.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    const c = componentOf(otherId);
+    if (c) selectComponent(c.id, otherId);
+  });
+  head.appendChild(nameBtn);
+  head.appendChild(el("span", "conn-where", nodeFile(otherId).split("/").pop() ?? ""));
+  // the state chip is the point: an unchanged caller of changed code is where
+  // this PR can break something without touching it
+  if (!outgoing && kind === "risk") head.appendChild(el("span", "conn-chip risk", "unchanged caller"));
+  else head.appendChild(el("span", `conn-chip ${nodeSeed(otherId) ? "chg" : "un"}`, nodeSeed(otherId) ? "changed here" : "unchanged"));
+  const oc = componentOf(otherId);
+  if (oc && oc.id !== componentOf(selfId)?.id) head.appendChild(el("span", "conn-chip comp", oc.name));
+  row.appendChild(head);
+
+  for (const s of e.sites ?? []) {
+    const site = el("div", "conn-site");
+    site.append(
+      el("span", "conn-at", `${s.file.split("/").pop()}:${s.line}`),
+      el("code", undefined, s.text.length > 88 ? s.text.slice(0, 87) + "…" : s.text)
+    );
+    row.appendChild(site);
+  }
+  const shown = e.sites?.length ?? 0;
+  if (e.refs && e.refs > shown) {
+    row.appendChild(el("div", "conn-more", `+${e.refs - shown} more reference site${e.refs - shown === 1 ? "" : "s"}`));
+  }
+
+  row.addEventListener("mouseenter", () => graphFocus?.([e.a, e.b], { a: e.a, b: e.b }));
+  row.addEventListener("mouseleave", () => graphClear?.());
+  return row;
+}
+
+function renderConnections(id: string): HTMLElement | null {
+  const { out, in: incoming } = edgesOf(id);
+  if (!out.length && !incoming.length) return null;
+
+  const sec = el("section", "sec");
+  sec.appendChild(el("h4", "sec-h", "Connections"));
+
+  const untouched = incoming.filter((e) => !nodeSeed(e.a)).length;
+  const sum = el("p", "conn-sum");
+  sum.textContent =
+    `${incoming.length} caller${incoming.length === 1 ? "" : "s"} · ${out.length} call${out.length === 1 ? "" : "s"} out` +
+    (untouched && nodeSeed(id) ? ` · ${untouched} caller${untouched === 1 ? " is" : "s are"} untouched by this PR` : "");
+  if (untouched && nodeSeed(id)) sum.classList.add("warn");
+  sec.appendChild(sum);
+
+  const group = (label: string, list: GraphEdge[]): void => {
+    if (!list.length) return;
+    sec.appendChild(el("div", "conn-group", label));
+    // riskiest first: unchanged callers of changed code lead the list
+    const ordered = [...list].sort((x, y) => {
+      const w = (e: GraphEdge): number => (edgeKind(e) === "risk" ? 0 : edgeKind(e) === "co" ? 1 : 2);
+      return w(x) - w(y);
+    });
+    for (const e of ordered) sec.appendChild(connectionRow(e, id));
+  };
+  group("called by", incoming);
+  group("calls", out);
+  return sec;
+}
+
 function renderEntry(e: Entry): HTMLElement {
   const art = el("article", `entry${e.seed ? "" : " fill"}`);
   art.id = `entry-${e.id}`;
@@ -681,6 +761,22 @@ function renderEntry(e: Entry): HTMLElement {
     const cb = el("span", "cmt-badge", `💬 ${e.comments.length}`);
     cb.title = "review threads";
     nameRow.append(cb);
+  }
+  // scan-level signal: callers this PR never touched, on an object it changed
+  const wired = edgesOf(e.id);
+  const untouchedCallers = wired.in.filter((x) => !nodeSeed(x.a)).length;
+  if (e.seed && untouchedCallers) {
+    const wc = el("span", "wire-chip", `${untouchedCallers} unchanged caller${untouchedCallers === 1 ? "" : "s"}`);
+    wc.addEventListener("mouseenter", () => showHoverCard(wc, (card) => {
+      card.appendChild(el("div", "hc-msg", "these callers were not modified by this PR but depend on code it changed"));
+      for (const x of wired.in.filter((y) => !nodeSeed(y.a)).slice(0, 5)) {
+        card.appendChild(el("div", "hc-who", entry(x.a)?.name ?? x.a));
+      }
+    }));
+    wc.addEventListener("mouseleave", hideHoverCard);
+    wc.addEventListener("mouseenter", () => graphFocus?.([e.id, ...wired.in.filter((y) => !nodeSeed(y.a)).map((y) => y.a)]));
+    wc.addEventListener("mouseleave", () => graphClear?.());
+    nameRow.append(wc);
   }
   if (review) {
     let newLines = 0;
@@ -743,6 +839,9 @@ function renderEntry(e: Entry): HTMLElement {
       chg.appendChild(line);
     }
     body.appendChild(chg);
+    // -- connections -----------------------------------------------------------
+    const conns = renderConnections(e.id);
+    if (conns) body.appendChild(conns);
     // -- traces ----------------------------------------------------------------
     if (e.traces.length) {
       const tr = el("section", "sec");
@@ -1077,6 +1176,202 @@ function nodeFile(id: string): string {
   return e.files[0]?.path ?? e.summary;
 }
 
+// ---- edge semantics ---------------------------------------------------------
+// An edge is directed: `a` references `b` (a calls b). What makes it worth
+// looking at is where the PR's changes sit on it — an unchanged caller reaching
+// into a changed callee is the shape most breakage takes, so it gets its own
+// color, its own legend row and a one-click filter.
+
+type EdgeKind = "co" | "risk" | "out" | "quiet";
+
+const EDGE_NOTE: Record<EdgeKind, string> = {
+  co: "both ends changed — this edge is part of the change",
+  risk: "caller is UNCHANGED and depends on changed code",
+  out: "changed code reaching into unchanged code",
+  quiet: "neither end changed — context pulled in by the fill"
+};
+
+const EDGE_LABEL: Record<EdgeKind, string> = {
+  co: "co-changed",
+  risk: "unchanged caller",
+  out: "into unchanged",
+  quiet: "context"
+};
+
+function edgeKind(e: { a: string; b: string }): EdgeKind {
+  const ca = nodeSeed(e.a);
+  const cb = nodeSeed(e.b);
+  if (ca && cb) return "co";
+  if (!ca && cb) return "risk";
+  if (ca && !cb) return "out";
+  return "quiet";
+}
+
+/** every edge touching this entry, in both directions, across components */
+function edgesOf(id: string): { out: GraphEdge[]; in: GraphEdge[] } {
+  const all = page.edges ?? [];
+  return {
+    out: all.filter((e) => e.a === id && entry(e.b)),
+    in: all.filter((e) => e.b === id && entry(e.a))
+  };
+}
+
+/** which component owns an entry — Connections rows jump across components */
+function componentOf(id: string): ComponentDoc | undefined {
+  return page.components.find((c) => c.entryIds.includes(id));
+}
+
+// ---- layered layout ---------------------------------------------------------
+// Rank by longest path over the directed edges: callers on top, callees below.
+// The pass cap breaks cycles rather than looping forever (a cycle just collapses
+// onto adjacent ranks, and its back-edge still draws with an arrowhead).
+
+function layerRanks(ids: string[], edges: { a: string; b: string }[]): Map<string, number> {
+  const inSet = new Set(ids);
+  const rank = new Map<string, number>(ids.map((id) => [id, 0]));
+  const es = edges.filter((e) => inSet.has(e.a) && inSet.has(e.b) && e.a !== e.b);
+  for (let pass = 0; pass < ids.length; pass++) {
+    let moved = false;
+    for (const e of es) {
+      const want = rank.get(e.a)! + 1;
+      if (rank.get(e.b)! < want) {
+        rank.set(e.b, want);
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return rank;
+}
+
+/** place each rank on its own row; within a row, order by the mean x of the
+    callers above (barycenter) so the arrows cross as little as possible */
+function layeredPositions(
+  ids: string[],
+  edges: { a: string; b: string }[],
+  rank: Map<string, number>,
+  VB: number
+): { pos: Map<string, { x: number; y: number }>; above: Set<string> } {
+  const rows = new Map<number, string[]>();
+  for (const id of ids) {
+    const r = rank.get(id) ?? 0;
+    if (!rows.has(r)) rows.set(r, []);
+    rows.get(r)!.push(id);
+  }
+  const preds = new Map<string, string[]>();
+  for (const e of edges) {
+    if (!rank.has(e.a) || !rank.has(e.b)) continue;
+    if (!preds.has(e.b)) preds.set(e.b, []);
+    preds.get(e.b)!.push(e.a);
+  }
+  const order = [...rows.keys()].sort((a, b) => a - b);
+  const W = 322;      // horizontal spread
+  const PER = 4;      // nodes per visual row — more than this and labels collide
+  const LANE = 48;    // vertical distance between visual rows
+
+  // a rank wider than PER wraps onto extra rows, so the whole rank still reads
+  // as one layer without turning into an unreadable smear of labels
+  const lanes: string[][] = [];
+  const pos = new Map<string, { x: number; y: number }>();
+  order.forEach((r) => {
+    const row = rows.get(r)!;
+    const bary = new Map<string, number>();
+    for (const id of row) {
+      const xs = (preds.get(id) ?? [])
+        .map((p) => pos.get(p)?.x)
+        .filter((x): x is number => x !== undefined);
+      bary.set(id, xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : VB / 2);
+    }
+    row.sort((a, b) => bary.get(a)! - bary.get(b)! || a.localeCompare(b));
+    // x is final here — the next rank's barycenters read it; y comes in pass two
+    for (let i = 0; i < row.length; i += PER) {
+      const lane = row.slice(i, i + PER);
+      lanes.push(lane);
+      lane.forEach((id, j) => {
+        const n = lane.length;
+        pos.set(id, { x: n === 1 ? VB / 2 : VB / 2 - W / 2 + (j / (n - 1)) * W, y: 0 });
+      });
+    }
+  });
+  // second pass: turn lane indices into real y, centered on the canvas
+  const total = lanes.length;
+  const top = VB / 2 - ((total - 1) * LANE) / 2;
+  // neighbours in a lane alternate: dropped a little, and labelled above rather
+  // than below — two long names side by side can then never overlap
+  const above = new Set<string>();
+  lanes.forEach((lane, li) => {
+    lane.forEach((id, j) => {
+      const stagger = lane.length > 2 && j % 2 === 1;
+      if (stagger) above.add(id);
+      const p = pos.get(id)!;
+      pos.set(id, { x: p.x, y: top + li * LANE + (stagger ? 13 : 0) });
+    });
+  });
+  return { pos, above };
+}
+
+/** one arrowhead per edge state; context-stroke keeps each in its line's color */
+function arrowDefs(): SVGElement {
+  const defs = svgEl("defs");
+  for (const k of ["co", "risk", "out", "quiet"] as EdgeKind[]) {
+    const m = svgEl("marker");
+    m.setAttribute("id", `gp-arrow-${k}`);
+    m.setAttribute("viewBox", "0 0 10 10");
+    m.setAttribute("refX", "9");
+    m.setAttribute("refY", "5");
+    m.setAttribute("markerWidth", "5");
+    m.setAttribute("markerHeight", "5");
+    m.setAttribute("orient", "auto-start-reverse");
+    const p = svgEl("path", `gp-arrow k-${k}`);
+    p.setAttribute("d", "M 0 1 L 9 5 L 0 9 z");
+    p.setAttribute("fill", "context-stroke");
+    m.appendChild(p);
+    defs.appendChild(m);
+  }
+  return defs;
+}
+
+/** the edge hover card: who calls whom, what state the edge is in, and the
+    actual source lines that put it there — the "why" behind the drawing */
+function showEdgeTip(anchor: SVGElement, e: GraphEdge, k: EdgeKind): void {
+  showHoverCard(anchor as unknown as HTMLElement, (card) => {
+    const head = el("div", "hc-edge");
+    head.append(
+      el("code", undefined, entry(e.a)?.name ?? e.a),
+      el("span", "hc-arrow", " → "),
+      el("code", undefined, entry(e.b)?.name ?? e.b)
+    );
+    card.appendChild(head);
+    card.appendChild(el("div", `hc-kind k-${k}`, EDGE_NOTE[k]));
+    for (const s of e.sites ?? []) {
+      const row = el("div", "hc-site");
+      row.append(
+        el("span", "hc-site-at", `${s.file.split("/").pop()}:${s.line}`),
+        el("code", undefined, s.text.length > 64 ? s.text.slice(0, 63) + "…" : s.text)
+      );
+      card.appendChild(row);
+    }
+    const shown = e.sites?.length ?? 0;
+    if (e.refs && e.refs > shown) {
+      card.appendChild(el("div", "hc-msg", `+${e.refs - shown} more reference site${e.refs - shown === 1 ? "" : "s"}`));
+    }
+  });
+}
+
+// ---- cross-panel highlight ---------------------------------------------------
+// The graph is the index, the cards are the explanation. Hovering either side
+// lights the other: these two hooks are re-pointed at whichever graph is on
+// screen, and go null when the panel shows something else.
+
+let graphFocus: ((ids: string[], edge?: { a: string; b: string }) => void) | null = null;
+let graphClear: (() => void) | null = null;
+
+/** light the document cards for these entries (empty array clears) */
+function markDocCards(ids: string[]): void {
+  for (const n of Array.from(document.querySelectorAll(".entry.wired"))) n.classList.remove("wired");
+  for (const id of ids) document.getElementById(`entry-${id}`)?.classList.add("wired");
+}
+
 function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   const VB = 460; // world/viewBox size (square) — bigger canvas, zoom/pan inside it
   const box = el("div", "graphbox");
@@ -1087,7 +1382,21 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   const ids = comp.entryIds.filter((id) => entry(id));
   const edges = internalEdges(comp);
 
-  // starting layout: highest-degree node centered, rest on a ring; drag from there
+  // everything lives in a world group; zoom/pan move the group, never the nodes
+  const world = svgEl<SVGGElement>("g", "gp-world");
+  const view = { k: 1, x: 0, y: 0 };
+  const target = { k: 1, x: 0, y: 0 };
+  const applyView = (): void => {
+    world.setAttribute("transform", `translate(${view.x} ${view.y}) scale(${view.k})`);
+  };
+  svg.appendChild(arrowDefs());
+
+  // starting layout: ranked top-to-bottom by call direction — callers above,
+  // callees below — so the drawing reads as a flow, not an arbitrary ring.
+  // Drag moves any node from there; the ranks are a starting point, not a cage.
+  const rank = layerRanks(ids, edges);
+  const { pos, above: labelAbove } = layeredPositions(ids, edges, rank, VB);
+
   const deg = new Map<string, number>();
   for (const e of edges) {
     deg.set(e.a, (deg.get(e.a) ?? 0) + 1);
@@ -1095,26 +1404,56 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   }
   const center = [...ids].sort((x, y) => (deg.get(y) ?? 0) - (deg.get(x) ?? 0))[0] ?? ids[0];
 
-  const pos = new Map<string, { x: number; y: number }>();
-  pos.set(center, { x: VB / 2, y: VB / 2 });
-  const ring = ids.filter((id) => id !== center);
-  const R = 150;
-  ring.forEach((id, i) => {
-    const a = (i / Math.max(ring.length, 1)) * Math.PI * 2 - Math.PI / 2;
-    pos.set(id, { x: VB / 2 + R * Math.cos(a), y: VB / 2 + R * Math.sin(a) });
-  });
+  const radius = (id: string): number => 5 + Math.log2(1 + nodeRefs(id)) * 2.8;
 
-  // cross-component edges: which other components do our entries reference?
-  // deduped per target component, count-labeled, clickable to jump across
-  const cross = new Map<string, Set<string>>();
-  const noteCross = (from: string, target: string): void => {
-    if (!target || target === comp.id) return;
-    if (!cross.has(target)) cross.set(target, new Set());
-    cross.get(target)!.add(from);
+  const nodeEls = new Map<string, { circle: SVGCircleElement; label: SVGTextElement; r: number; g: SVGGElement }>();
+  const edgeEls: {
+    els: SVGLineElement[];
+    a: string;
+    b: string;
+    kind: EdgeKind;
+    stub?: { x: number; y: number };
+    into?: boolean; // stub edge pointing INTO this component
+  }[] = [];
+
+  // internal edges: a fat transparent line takes the hover (1px is unhittable),
+  // the visible line carries the state color and the arrowhead
+  for (const e of edges) {
+    const kind = edgeKind(e);
+    const hit = svgEl<SVGLineElement>("line", "gp-edge-hit");
+    const line = svgEl<SVGLineElement>("line", `gp-edge k-${kind}`);
+    line.setAttribute("marker-end", `url(#gp-arrow-${kind})`);
+    const t = svgEl("title");
+    t.textContent = `${entry(e.a)?.name ?? e.a} → ${entry(e.b)?.name ?? e.b} · ${EDGE_LABEL[kind]}`;
+    line.appendChild(t);
+    hit.addEventListener("mouseenter", () => {
+      showEdgeTip(hit, e, kind);
+      focus([e.a, e.b], e);
+      markDocCards([e.a, e.b]);
+    });
+    hit.addEventListener("mouseleave", () => {
+      hideHoverCard();
+      clearFocus();
+      markDocCards([]);
+    });
+    world.appendChild(line);
+    world.appendChild(hit);
+    edgeEls.push({ els: [line, hit], a: e.a, b: e.b, kind });
+  }
+
+  // cross-component edges: which other components do our entries reference, and
+  // which reference us? Deduped per target component, direction kept, count
+  // labeled, clickable to jump across.
+  const cross = new Map<string, Map<string, boolean>>(); // component -> (our entry -> points into us)
+  const noteCross = (from: string, targetComp: string, into: boolean): void => {
+    if (!targetComp || targetComp === comp.id) return;
+    if (!cross.has(targetComp)) cross.set(targetComp, new Map());
+    const m = cross.get(targetComp)!;
+    if (!m.has(from) || !into) m.set(from, into);
   };
   for (const id of ids) {
     for (const t of entry(id)!.traces) {
-      if (t.component) noteCross(id, t.component);
+      if (t.component) noteCross(id, t.component, false);
     }
   }
   for (const e of page.edges ?? []) {
@@ -1122,20 +1461,28 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     if (aIn === bIn) continue;
     const outside = aIn ? e.b : e.a;
     const tc = page.components.find((c) => c.entryIds.includes(outside));
-    if (tc) noteCross(aIn ? e.a : e.b, tc.id);
+    // aIn means one of ours calls out; otherwise the outside world calls in
+    if (tc) noteCross(aIn ? e.a : e.b, tc.id, !aIn);
   }
   const crossList = [...cross.entries()];
-  const RS = 212;
+  const RS = 205;
   crossList.forEach(([cid, froms], i) => {
-    const a = crossList.length === 1 ? -Math.PI / 2 : (i / crossList.length) * Math.PI * 2 - Math.PI / 2 + Math.PI / crossList.length;
-    const sx = VB / 2 + RS * Math.cos(a);
-    const sy = VB / 2 + RS * Math.sin(a);
-    for (const from of froms) {
+    // stubs sit out to the left and right: the vertical lanes belong to the ranks
+    const side = i % 2 === 0 ? 1 : -1;
+    const fan = ((Math.floor(i / 2) % 3) - 1) * 0.44;
+    const ang = (side > 0 ? 0 : Math.PI) + fan;
+    const sx = VB / 2 + RS * Math.cos(ang);
+    const sy = VB / 2 + RS * Math.sin(ang);
+    for (const [from, into] of froms) {
       const line = svgEl<SVGLineElement>("line", "gp-edge ext");
-      const t = svgEl("title"); t.textContent = component(cid)?.name ?? cid;
+      line.setAttribute(into ? "marker-start" : "marker-end", "url(#gp-arrow-quiet)");
+      const t = svgEl("title");
+      t.textContent = into
+        ? `${component(cid)?.name ?? cid} → ${entry(from)?.name ?? from} (called from another component)`
+        : `${entry(from)?.name ?? from} → ${component(cid)?.name ?? cid}`;
       line.appendChild(t);
       world.appendChild(line);
-      edgeEls.push({ el: line, a: from, b: from, stub: { x: sx, y: sy } });
+      edgeEls.push({ els: [line], a: from, b: from, kind: "quiet", stub: { x: sx, y: sy }, into });
     }
     const dot = svgEl<SVGCircleElement>("circle", "gp-stub");
     dot.setAttribute("cx", String(sx)); dot.setAttribute("cy", String(sy)); dot.setAttribute("r", "5");
@@ -1143,7 +1490,7 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     dot.appendChild(dt);
     world.appendChild(dot);
     const label = svgEl<SVGTextElement>("text", "gp-stub-label clickable");
-    label.textContent = `${component(cid)?.name ?? cid} \u00d7${froms.size}`;
+    label.textContent = `${component(cid)?.name ?? cid} ×${froms.size}`;
     label.setAttribute("x", String(sx));
     label.setAttribute("y", String(sy - 10));
     label.setAttribute("text-anchor", "middle");
@@ -1153,32 +1500,30 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     world.appendChild(label);
   });
 
-  const radius = (id: string): number => 5 + Math.log2(1 + nodeRefs(id)) * 2.8;
-
-  // everything lives in a world group; zoom/pan move the group, never the nodes
-  const world = svgEl<SVGGElement>("g", "gp-world");
-  const view = { k: 1, x: 0, y: 0 };
-  const target = { k: 1, x: 0, y: 0 };
-  const applyView = (): void => {
-    world.setAttribute("transform", `translate(${view.x} ${view.y}) scale(${view.k})`);
-  };
-
-  const edgeEls: { el: SVGLineElement; a: string; b: string; stub?: { x: number; y: number } }[] = [];
-
-  for (const e of edges) {
-    const line = svgEl<SVGLineElement>("line", "gp-edge");
-    const t = svgEl("title"); t.textContent = e.rel;
-    line.appendChild(t);
-    world.appendChild(line);
-    edgeEls.push({ el: line, a: e.a, b: e.b });
+  // hovering a Connections row in a card, or an edge here, lights the same wires
+  function focus(hi: string[], edge?: { a: string; b: string }): void {
+    box.classList.add("focusing");
+    for (const [id, n] of nodeEls) n.g.classList.toggle("hi", hi.includes(id));
+    for (const e of edgeEls) {
+      const on = edge
+        ? e.a === edge.a && e.b === edge.b && !e.stub
+        : !e.stub && hi.includes(e.a) && hi.includes(e.b);
+      for (const l of e.els) l.classList.toggle("hi", on);
+    }
   }
+  function clearFocus(): void {
+    box.classList.remove("focusing");
+    for (const [, n] of nodeEls) n.g.classList.remove("hi");
+    for (const e of edgeEls) for (const l of e.els) l.classList.remove("hi");
+  }
+  graphFocus = focus;
+  graphClear = clearFocus;
+
 
   // click card (replaces hover)
   const tip = el("div", "gtip");
   tip.style.display = "none";
   let selected: string | null = null;
-
-  const nodeEls = new Map<string, { circle: SVGCircleElement; label: SVGTextElement; r: number; g: SVGGElement }>();
 
   for (const id of ids) {
     const e = entry(id)!;
@@ -1201,6 +1546,10 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     g.addEventListener("click", () => {
       if (!suppressClick) showTip(id);
     });
+    // hovering a node lights its wires here and its card in the document
+    const near = [id, ...edges.filter((x) => x.a === id || x.b === id).map((x) => (x.a === id ? x.b : x.a))];
+    g.addEventListener("mouseenter", () => { focus(near); markDocCards([id]); });
+    g.addEventListener("mouseleave", () => { clearFocus(); markDocCards([]); });
 
     // node drag (zoom-aware deltas); small movement still counts as click
     g.addEventListener("pointerdown", (ev) => {
@@ -1273,7 +1622,7 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
       }
       for (const e of edgeEls) {
         const on = !e.stub && shown.has(e.a) && shown.has(e.b);
-        e.el.classList.toggle("story-off", !on);
+        for (const l of e.els) l.classList.toggle("story-off", !on);
       }
       fill.style.width = `${(at / story.length) * 100}%`;
       stepLabel.textContent =
@@ -1420,19 +1769,29 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   function redraw(): void {
     for (const e of edgeEls) {
       const a = pos.get(e.a)!;
-      e.el.setAttribute("x1", String(a.x));
-      e.el.setAttribute("y1", String(a.y));
-      const bx = e.stub ? e.stub.x : pos.get(e.b)!.x;
-      const by = e.stub ? e.stub.y : pos.get(e.b)!.y;
-      e.el.setAttribute("x2", String(bx));
-      e.el.setAttribute("y2", String(by));
+      const tx = e.stub ? e.stub.x : pos.get(e.b)!.x;
+      const ty = e.stub ? e.stub.y : pos.get(e.b)!.y;
+      // pull both ends back to the node rim: an arrowhead buried under the
+      // target circle reads as no arrowhead at all
+      const dx = tx - a.x, dy = ty - a.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const back = (e.stub ? 6 : radius(e.b) + 6) / len;
+      const front = (e.stub && e.into ? 6 : radius(e.a) + 2) / len;
+      const x1 = a.x + dx * front, y1 = a.y + dy * front;
+      const x2 = tx - dx * back, y2 = ty - dy * back;
+      for (const l of e.els) {
+        l.setAttribute("x1", String(x1));
+        l.setAttribute("y1", String(y1));
+        l.setAttribute("x2", String(x2));
+        l.setAttribute("y2", String(y2));
+      }
     }
     for (const [id, n] of nodeEls) {
       const p = pos.get(id)!;
       n.circle.setAttribute("cx", String(p.x));
       n.circle.setAttribute("cy", String(p.y));
       n.label.setAttribute("x", String(p.x));
-      n.label.setAttribute("y", String(p.y + n.r + 11));
+      n.label.setAttribute("y", String(labelAbove.has(id) ? p.y - n.r - 6 : p.y + n.r + 11));
     }
     positionTip();
   }
@@ -1443,10 +1802,29 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
   box.appendChild(svg);
   box.appendChild(tip);
 
+  // the risk line: unchanged callers depending on changed code is the single
+  // most review-worthy shape here, so it gets a count and a one-click filter
+  const risky = edges.filter((e) => edgeKind(e) === "risk");
+  if (risky.length) {
+    const rl = el("button", "grisk");
+    rl.append(
+      el("i", "gl k-risk"),
+      el("span", undefined, `${risky.length} unchanged caller${risky.length === 1 ? "" : "s"} depend${risky.length === 1 ? "s" : ""} on changed code`)
+    );
+    rl.title = "show only these edges";
+    rl.addEventListener("click", () => {
+      const on = box.classList.toggle("risk-only");
+      rl.classList.toggle("on", on);
+    });
+    box.appendChild(rl);
+  }
+
   const legend = el("div", "glegend");
   const legendItems: { cls: string; label: string }[] = [
-    { cls: "", label: "def\u2212use edge" },
-    { cls: "ext", label: "external ref" },
+    { cls: "k-co", label: "co-changed" },
+    { cls: "k-risk", label: "unchanged caller" },
+    { cls: "k-out", label: "into unchanged" },
+    { cls: "ext", label: "other component" },
     { cls: "sw", label: "changed · color = commit band" },
     { cls: "sw hollow", label: "referenced · unchanged" }
   ];
@@ -1456,6 +1834,7 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     item.appendChild(document.createTextNode(it.label));
     legend.appendChild(item);
   }
+  legend.appendChild(el("span", "glegend-note", "arrows point caller → callee"));
   box.appendChild(legend);
   return box;
 }
@@ -1529,6 +1908,9 @@ function renderCommitHistory(): HTMLElement {
 let sideTab: "graph" | "files" = "graph";
 
 function renderGraphPanel(): HTMLElement {
+  // stale hooks would point at a graph that is no longer in the document
+  graphFocus = null;
+  graphClear = null;
   const side = el("aside", "side");
   if (mode === "commits") {
     side.appendChild(el("h3", "rail-h", "History"));
@@ -1742,7 +2124,6 @@ function renderTopbar(): HTMLElement {
       bar.appendChild(exp);
     }
   }
-  bar.appendChild(makeThemeToggle());
   if (!onHome) {
     const ref = el("span", "pr-ref");
     ref.append(
@@ -1751,6 +2132,8 @@ function renderTopbar(): HTMLElement {
     );
     bar.appendChild(ref);
   }
+  // the switch always sits last, hard right — same anchor as the home page
+  bar.appendChild(makeThemeToggle());
   return bar;
 }
 

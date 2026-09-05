@@ -129,6 +129,24 @@ export interface PRInfo {
 
 export type Mode = "commits" | "components";
 
+/** one place where `a` references `b`: the line that justifies the edge */
+export interface CallSite {
+  file: string;
+  line: number;
+  text: string;
+}
+
+/** a directed def−use edge: `a` references `b`. */
+export interface GraphEdge {
+  a: string;
+  b: string;
+  rel: string;
+  /** total distinct reference sites (may exceed `sites.length`) */
+  refs?: number;
+  /** a few reference sites, verbatim */
+  sites?: CallSite[];
+}
+
 export interface PageData {
   pr: PRInfo;
   /** full sha of the PR head — commit_id for review exports */
@@ -141,8 +159,8 @@ export interface PageData {
   commits: Commit[];
   /** all entry objects, keyed by id */
   entries: Record<string, Entry>;
-  /** def−use edges between entries (a references b) */
-  edges?: { a: string; b: string; rel: string }[];
+  /** def−use edges between entries (a references b, i.e. a calls b) */
+  edges?: GraphEdge[];
   /** diffs of referenced files that are not entries (e.g. covering tests) */
   extraFiles?: Record<string, FileDiff>;
   /** every file the PR changed, with per-line time attribution */

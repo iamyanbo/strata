@@ -46,6 +46,19 @@ def−use graph; what they reach becomes a component you read top to bottom.
 The dependency graph panel shows the local shape, and a replay walks the PR
 commit by commit.
 
+**A graph that says why.** Edges are directed — arrows point caller → callee —
+and colored by where the PR's changes sit on them: both ends changed, changed
+code reaching into stable code, or an **unchanged caller depending on changed
+code**, which is the shape most breakage takes. That last one is counted under
+the graph and filterable in one click. Hovering an edge shows the actual source
+lines that put it there.
+
+**Connections on every object.** Each card lists its callers and its calls,
+riskiest first, each with the call site verbatim (`file.ts:297 json.items =
+processSchema(...)`) and a jump to the other object — so the reason the graph
+has that shape is readable in the document, not just inferable from the picture.
+Hovering a row lights the matching wire in the graph, and vice versa.
+
 **Review checkpoints.** Mark reviewed once; on the next push only what
 changed since renders at full attention — everything you already read dims.
 Checkmarks per object track what you personally read. Force-pushes are

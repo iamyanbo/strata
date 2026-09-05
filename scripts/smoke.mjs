@@ -41,6 +41,30 @@ try {
     process.exit(1);
   }
 
+  // -- directed edges: arrowheads, state classes, hoverable hit lines ---------
+  const arrows = document.querySelectorAll(".gp-edge[marker-end], .gp-edge[marker-start]").length;
+  const kinds = ["co", "risk", "out", "quiet"].map((k) => `${k}:${document.querySelectorAll(`.gp-edge.k-${k}`).length}`);
+  const hits = document.querySelectorAll(".gp-edge-hit").length;
+  const markers = document.querySelectorAll("marker").length;
+  console.log(`[edges] arrowheads: ${arrows}, markers: ${markers}, hit lines: ${hits}, states ${kinds.join(" ")}`);
+  if (!arrows || markers !== 4 || !hits) { console.log("DIRECTED EDGES BROKEN"); process.exit(1); }
+
+  // -- connections: expand a card, expect rows with real call sites ----------
+  document.querySelector(".entry .entry-head").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const conns = document.querySelectorAll(".conn").length;
+  const sites = document.querySelectorAll(".conn-site").length;
+  const sum = document.querySelector(".conn-sum");
+  console.log(`[connections] rows: ${conns}, call sites shown: ${sites} · ${sum ? sum.textContent : "NO SUMMARY"}`);
+  if (!conns || !sites) { console.log("CONNECTIONS BROKEN"); process.exit(1); }
+
+  // hovering a connection row must light the matching wire in the graph
+  document.querySelector(".conn").dispatchEvent(new dom.window.MouseEvent("mouseover", { bubbles: true }));
+  document.querySelector(".conn").dispatchEvent(new dom.window.MouseEvent("mouseenter", { bubbles: true }));
+  const lit = document.querySelectorAll(".graphbox.focusing .gp-edge.hi").length;
+  console.log(`[link] connection hover lights ${lit} edge(s) in the graph`);
+  if (!lit) { console.log("CROSS-PANEL HIGHLIGHT BROKEN"); process.exit(1); }
+  document.querySelector(".conn").dispatchEvent(new dom.window.MouseEvent("mouseleave", { bubbles: true }));
+
   // -- commits lens -----------------------------------------------------------
   document.querySelector('[data-mode="commits"]').dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
   const matrix = document.querySelectorAll(".matrix td.s1, .matrix td.s2, .matrix td.s3, .matrix td.s4").length;
