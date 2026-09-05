@@ -535,6 +535,27 @@ function timeKey(bands: Map<number, { from: string; to: string }>): HTMLElement 
   return key;
 }
 
+/** added/deleted line counts for a set of file diffs */
+function deltaOf(files: FileDiff[]): { add: number; del: number } {
+  let add = 0;
+  let del = 0;
+  for (const f of files) {
+    for (const l of f.lines) {
+      if (l.kind === "add") add++;
+      else if (l.kind === "del") del++;
+    }
+  }
+  return { add, del };
+}
+
+/** +/− chip in the review's own colors */
+function deltaChip(add: number, del: number): HTMLElement {
+  const chip = el("span", "delta-chip");
+  if (add) chip.appendChild(el("b", "plus", `+${add}`));
+  if (del) chip.appendChild(el("b", "minus", `\u2212${del}`));
+  return chip;
+}
+
 // ---- lens: by component -----------------------------------------------------------
 
 function renderRail(): HTMLElement {
@@ -584,11 +605,25 @@ function renderComponentDoc(): HTMLElement {
   const main = el("main", "doc");
   main.id = "doc";
 
+  // component totals: +/− over the unique files its objects changed
+  const compFiles = new Map<string, FileDiff>();
+  for (const id of comp.entryIds) {
+    for (const f of entry(id)?.files ?? []) {
+      if (!compFiles.has(f.path)) compFiles.set(f.path, f);
+    }
+  }
+  const d = deltaOf([...compFiles.values()]);
+
   const head = el("header", "doc-head");
-  head.append(
-    el("h1", undefined, comp.name),
-    el("p", "doc-meta", comp.stats)
-  );
+  const meta = el("p", "doc-meta");
+  meta.appendChild(el("span", undefined, comp.stats));
+  if (d.add || d.del) {
+    meta.append(
+      el("span", undefined, " \u00b7 "),
+      deltaChip(d.add, d.del)
+    );
+  }
+  head.append(el("h1", undefined, comp.name), meta);
   const origin = el("p", "origin", comp.origin);
   head.appendChild(origin);
   main.appendChild(head);
@@ -640,6 +675,8 @@ function renderEntry(e: Entry): HTMLElement {
     el("i", "row-leader"),
     el("span", "kind", e.kind)
   );
+  const entryDelta = deltaOf(e.files);
+  if (entryDelta.add || entryDelta.del) nameRow.append(deltaChip(entryDelta.add, entryDelta.del));
   if (e.comments?.length) {
     const cb = el("span", "cmt-badge", `💬 ${e.comments.length}`);
     cb.title = "review threads";
@@ -1609,34 +1646,25 @@ function openExportCard(): void {
 
 // ---- page --------------------------------------------------------------------------
 
-function renderTopbar(): HTMLElement {
-  const bar = el("header", "topbar");
-  const wm = el("a", "wordmark", "strata");
-  wm.href = "/";
-  wm.title = "home";
-  bar.appendChild(wm);
-  bar.appendChild(el("span", "spacer"));
-  const addr = el("input", "pr-url") as HTMLInputElement;
-  addr.type = "text";
-  addr.placeholder = "paste github PR url";
-  const progress = el("span", "analyze-progress");
-  bar.appendChild(progress);
-  addr.addEventListener("keydown", (ev) => {
-    if (ev.key === "Enter" && addr.value.trim()) {
-      addr.classList.add("busy");
-      addr.disabled = true;
+/** shared analyze flow: enter in the box starts the job, the progress line
+    shows the live pipeline stage, done → navigate to the new review */
+function wireAnalyze(input: HTMLInputElement, progress: HTMLElement): void {
+  input.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" && input.value.trim()) {
+      input.classList.add("busy");
+      input.disabled = true;
       progress.classList.add("on");
       progress.textContent = "starting analysis";
       const fail = (msg: string): void => {
         progress.classList.remove("on");
-        addr.disabled = false;
-        addr.classList.remove("busy");
+        input.disabled = false;
+        input.classList.remove("busy");
         window.alert(msg);
       };
       fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: addr.value.trim() })
+        body: JSON.stringify({ url: input.value.trim() })
       })
         .then((r) => r.json())
         .then((out) => {
@@ -1660,16 +1688,9 @@ function renderTopbar(): HTMLElement {
         .catch(() => fail("analysis could not be started"));
     }
   });
-  bar.appendChild(addr);
-  if (!onHome) {
-    const threads = collectThreads();
-    if (dataName && threads.length) {
-      const exp = el("button", "theme-toggle", `export · ${threads.length}`);
-      exp.title = "push review threads to github as one review";
-      exp.addEventListener("click", () => openExportCard());
-      bar.appendChild(exp);
-    }
-  }
+}
+
+function makeThemeToggle(): HTMLElement {
   const themeBtn = el("button", "theme-toggle");
   const themeLabel = (): string => (document.documentElement.dataset.theme === "light" ? "dark" : "light");
   themeBtn.textContent = themeLabel();
@@ -1681,7 +1702,33 @@ function renderTopbar(): HTMLElement {
     themeBtn.textContent = themeLabel();
     themeBtn.title = `switch to the ${themeLabel()} theme`;
   });
-  bar.appendChild(themeBtn);
+  return themeBtn;
+}
+
+function renderTopbar(): HTMLElement {
+  const bar = el("header", "topbar");
+  const wm = el("a", "wordmark", "strata");
+  wm.href = "/";
+  wm.title = "home";
+  bar.appendChild(wm);
+  bar.appendChild(el("span", "spacer"));
+  const addr = el("input", "pr-url") as HTMLInputElement;
+  addr.type = "text";
+  addr.placeholder = "paste github PR url";
+  const progress = el("span", "analyze-progress");
+  bar.appendChild(progress);
+  wireAnalyze(addr, progress);
+  bar.appendChild(addr);
+  if (!onHome) {
+    const threads = collectThreads();
+    if (dataName && threads.length) {
+      const exp = el("button", "theme-toggle", `export · ${threads.length}`);
+      exp.title = "push review threads to github as one review";
+      exp.addEventListener("click", () => openExportCard());
+      bar.appendChild(exp);
+    }
+  }
+  bar.appendChild(makeThemeToggle());
   if (!onHome) {
     const ref = el("span", "pr-ref");
     ref.append(
@@ -1718,6 +1765,7 @@ export interface HomeRecent {
   title: string;
   commits: number;
   mtime: number;
+  bands?: number[];
 }
 
 export function renderHome(recents: HomeRecent[]): void {
@@ -1725,16 +1773,30 @@ export function renderHome(recents: HomeRecent[]): void {
   dataName = "";
 
   document.body.textContent = "";
-  document.body.appendChild(renderTopbar());
 
   const main = el("main", "home");
-  main.appendChild(el("h1", "home-h", "Recent"));
+  const hero = el("div", "hero");
+  hero.appendChild(el("div", "hero-mark", "strata"));
+  const input = el("input", "hero-input") as HTMLInputElement;
+  input.type = "text";
+  input.placeholder = "paste github PR url";
+  const progress = el("div", "analyze-progress");
+  wireAnalyze(input, progress);
+  hero.append(input, progress);
+  const theme = makeThemeToggle();
+  theme.classList.add("hero-theme");
+  hero.appendChild(theme);
+  main.appendChild(hero);
+
+  const rec = el("div", "home-recents");
+  rec.appendChild(el("div", "home-h", "Recent"));
   const list = el("div", "home-list");
   if (!recents.length) {
     list.appendChild(el("p", "no-diff", "nothing analyzed yet — paste a github PR url above"));
   }
   for (const r of recents) {
     const row = el("button", "home-row");
+    for (const b of r.bands ?? []) row.appendChild(el("i", `ft-band s${b}`));
     const d = new Date(r.mtime);
     row.appendChild(el("span", "home-repo", `${r.repo} ${r.number}`));
     const t = el("span", "home-title", r.title || r.name);
@@ -1744,7 +1806,8 @@ export function renderHome(recents: HomeRecent[]): void {
     row.addEventListener("click", () => { location.href = `/?pr=${r.name}`; });
     list.appendChild(row);
   }
-  main.appendChild(list);
+  rec.appendChild(list);
+  main.appendChild(rec);
   document.body.appendChild(main);
 }
 

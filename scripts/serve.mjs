@@ -144,6 +144,7 @@ const server = http.createServer(async (req, res) => {
             number: d.pr?.number ?? "",
             title: d.pr?.title ?? "",
             commits: (d.commits ?? []).length,
+            bands: [...new Set((d.commits ?? []).map((c) => c.stratum))].sort((a, b) => a - b),
             mtime: st.mtimeMs
           });
         } catch { /* skip unreadable datasets */ }

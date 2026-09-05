@@ -119,31 +119,63 @@ input.pr-url.busy { opacity: 0.5; }
 .analyze-progress.on { display: block; }
 .topbar .spacer { flex: 1; }
 
-/* ---- home page ---- */
+/* ---- home page: centered hero + recents ---- */
 
-.home { max-width: 1080px; margin: 0 auto; padding: 44px 28px 90px; }
+.home { max-width: 880px; margin: 0 auto; padding: 0 28px 90px; }
+.hero { display: flex; flex-direction: column; align-items: center; padding: 96px 0 56px; position: relative; }
+.hero-mark { font: 600 40px/1 var(--mono); letter-spacing: 0.04em; margin-bottom: 28px; }
+.hero-input {
+  width: min(640px, 100%);
+  font: 400 13px var(--mono);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 14px 18px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hero-input::placeholder { color: var(--faint); }
+.hero-input:focus {
+  border-color: color-mix(in srgb, var(--s2) 55%, var(--hairline));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--s2) 16%, transparent);
+}
+.hero-input.busy { opacity: 0.6; }
+.hero .analyze-progress { display: none; margin-top: 12px; font: 400 10.5px var(--mono); color: var(--muted); text-align: center; }
+.hero .analyze-progress.on { display: block; }
+.hero-theme { position: absolute; top: 0; right: 0; }
+
+.home-recents { padding-top: 8px; }
 .home-h {
   font: 500 10.5px/1 var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--faint);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .home-list { display: flex; flex-direction: column; gap: 4px; }
 .home-row {
   display: flex;
   align-items: baseline;
-  gap: 16px;
+  gap: 14px;
   width: 100%;
   padding: 13px 14px;
   border-radius: 8px;
   text-align: left;
 }
 .home-row:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.home-row .ft-band { align-self: center; }
 .home-repo { font: 600 13px var(--mono); color: var(--ink); flex: none; }
 .home-title { flex: 1; min-width: 0; font: 400 12.5px/1.4 var(--sans); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .home-row:hover .home-title { color: var(--ink); }
 .home-meta { font: 400 10px var(--mono); color: var(--faint); flex: none; }
+
+/* +/− totals */
+.delta-chip { display: inline-flex; gap: 7px; font: 600 10.5px/1 var(--mono); }
+.delta-chip .plus { color: var(--ok); }
+.delta-chip .minus { color: var(--gap); }
+.doc-meta .delta-chip { margin-left: 2px; }
 
 .pr-ref { margin-left: auto; font: 400 12px/1 var(--mono); color: var(--muted); }
 .pr-ref b { font-weight: 600; color: var(--ink); }
