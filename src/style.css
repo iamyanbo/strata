@@ -114,6 +114,13 @@ input.pr-url {
 input.pr-url:focus { border-color: var(--ink); }
 .theme-toggle { font: 500 10px var(--mono); color: var(--muted); background: none; border: 1px solid var(--hairline); border-radius: 6px; padding: 5px 9px; cursor: pointer; white-space: nowrap; }
 .theme-toggle:hover { color: var(--ink); border-color: var(--faint); }
+/* moon / sun theme switch: pill with both states, active one filled */
+.theme-switch { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 999px; padding: 2px; flex: none; }
+.ts-opt { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 20px; border-radius: 999px; color: var(--faint); transition: background 0.12s ease, color 0.12s ease; }
+.ts-opt:hover { color: var(--muted); }
+.ts-opt.active { background: var(--ink); color: var(--paper); }
+.ts-ic { display: inline-flex; }
+.ts-ic svg { width: 12px; height: 12px; display: block; }
 input.pr-url.busy { opacity: 0.5; }
 .analyze-progress { display: none; font: 400 10px var(--mono); color: var(--muted); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .analyze-progress.on { display: block; }
