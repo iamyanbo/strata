@@ -640,7 +640,7 @@ function renderEntry(e: Entry): HTMLElement {
   );
   if (e.comments?.length) {
     const cb = el("span", "cmt-badge", `💬 ${e.comments.length}`);
-    cb.title = "review threads — expand a card in the diff";
+    cb.title = "review threads";
     nameRow.append(cb);
   }
   if (review) {
@@ -718,7 +718,7 @@ function renderEntry(e: Entry): HTMLElement {
     const readNow = review?.read.includes(e.id) ?? false;
     const rb = el("button", `foot-read${readNow ? " read" : ""}`,
       readNow ? "\u2713 marked as read — unmark" : "\u2713 mark as read");
-    rb.title = "attest that you have read this object";
+    rb.title = "mark this object as read";
     rb.addEventListener("click", (ev) => {
       ev.stopPropagation();
       toggleRead(e.id);
@@ -1342,7 +1342,6 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     legend.appendChild(item);
   }
   box.appendChild(legend);
-  box.appendChild(el("div", "ghint", "scroll = zoom \u00b7 drag background = pan \u00b7 drag node = move \u00b7 click node = details"));
   return box;
 }
 
@@ -1523,15 +1522,24 @@ function openExportCard(): void {
 function renderTopbar(): HTMLElement {
   const bar = el("header", "topbar");
   bar.appendChild(el("span", "wordmark", "strata"));
-  bar.appendChild(el("span", "wordmark-sub", "pull request review"));
   bar.appendChild(el("span", "spacer"));
   const addr = el("input", "pr-url") as HTMLInputElement;
   addr.type = "text";
-  addr.placeholder = "paste a github PR url and press enter";
+  addr.placeholder = "paste github PR url";
+  const progress = el("span", "analyze-progress");
+  bar.appendChild(progress);
   addr.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter" && addr.value.trim()) {
       addr.classList.add("busy");
       addr.disabled = true;
+      progress.classList.add("on");
+      progress.textContent = "starting analysis";
+      const fail = (msg: string): void => {
+        progress.classList.remove("on");
+        addr.disabled = false;
+        addr.classList.remove("busy");
+        window.alert(msg);
+      };
       fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1539,18 +1547,24 @@ function renderTopbar(): HTMLElement {
       })
         .then((r) => r.json())
         .then((out) => {
-          if (out.error) {
-            alert(out.error);
-            addr.disabled = false;
-            addr.classList.remove("busy");
-          } else {
-            location.href = `/?pr=${out.pr}`;
-          }
+          if (out.error) return fail(out.error);
+          const poll = (): void => {
+            fetch("/api/progress")
+              .then((r) => r.json())
+              .then((p) => {
+                if (p.stage) progress.textContent = p.stage;
+                if (p.done) {
+                  if (p.error) return fail(p.error);
+                  location.href = `/?pr=${p.result.pr}`;
+                  return;
+                }
+                window.setTimeout(poll, 1200);
+              })
+              .catch(() => window.setTimeout(poll, 2000));
+          };
+          poll();
         })
-        .catch(() => {
-          addr.disabled = false;
-          addr.classList.remove("busy");
-        });
+        .catch(() => fail("analysis could not be started"));
     }
   });
   bar.appendChild(addr);

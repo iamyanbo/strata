@@ -6,6 +6,7 @@ import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import type { PageData, Entry, ComponentDoc, Commit, PRInfo, EntryKind, Comment, RawComment, Stratum } from "../src/types.js";
 import type { RawPR, RawCommit, RawFileDiff } from "./git.js";
+import { sweepBands, isStaleWriter } from "./sweeps.js";
 import type { Index, Def } from "./index.js";
 import type { FlowResult } from "./flow.js";
 
@@ -130,38 +131,7 @@ export function emit(
   const real = pr.commits.filter((c) => !isMerge(c));
   // content first introduced BY a merge commit = hand-resolved conflict lines
   const mergeShas = new Set(pr.commits.filter((c) => c.parents.split(" ").filter(Boolean).length >= 2).map((c) => c.sha));
-  const bandOfSha = new Map<string, Stratum>();
-  const chronological = [...real].reverse(); // oldest first
-  if (chronological.length && chronological[0].ts) {
-    const HOUR = 3600 * 1000;
-    const sweeps: { shas: string[]; from: string; to: string }[] = [];
-    let prev: number | null = null;
-    let prevDay = "";
-    for (const c of chronological) {
-      const t = new Date(c.ts!.replace(" ", "T")).getTime();
-      const day = c.ts!.slice(0, 10);
-      if (prev === null || day !== prevDay || t - prev > 2 * HOUR) {
-        sweeps.push({ shas: [], from: c.ts!, to: c.ts! });
-      }
-      const s = sweeps[sweeps.length - 1];
-      s.shas.push(c.sha);
-      s.to = c.ts!;
-      prev = t;
-      prevDay = day;
-    }
-    const n = sweeps.length;
-    for (let i = 0; i < n; i++) {
-      const band = (n <= 4 ? i + 1 : Math.min(4, Math.floor((i / n) * 4) + 1)) as Stratum;
-      for (const sha of sweeps[i].shas) bandOfSha.set(sha, band);
-    }
-  } else {
-    const m = Math.max(real.length, 1);
-    real.forEach((c, i) => {
-      // git log order is newest-first, so band 1 (oldest) maps to the LAST index
-      const band = Math.min(3, Math.floor(((m - 1 - i) / m) * 4));
-      bandOfSha.set(c.sha, (band + 1) as Stratum);
-    });
-  }
+  const bandOfSha = sweepBands(real);
 
   // --- per-line time attribution: blame the head tree so every added line of
   // the whole-PR diff carries the band (and sha) of the commit that wrote it.
@@ -277,7 +247,7 @@ export function emit(
       const fd = pr.files.find((f) => f.path === node.path);
       const row = fd?.lines.find((l) => l.kind !== "del" && l.new === node.line);
       const writer = row?.by ? byShort.get(row.by) : undefined;
-      if (!writer || writer.at <= createdAt) continue;
+      if (!writer || !isStaleWriter(writer.at, node.created)) continue;
       const headAtComment = [...pr.commits]
         .filter((cc) => Number(cc.at) <= createdAt)
         .sort((a, b) => Number(b.at) - Number(a.at))[0];

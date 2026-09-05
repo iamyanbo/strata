@@ -10,7 +10,8 @@
     "watch": "tsc --watch",
     "serve": "node scripts/serve.mjs",
     "analyze": "node scripts/analyze.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "test": "node --test"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

@@ -31,7 +31,7 @@ async function boot(): Promise<void> {
     const p = (await r.json()) as PageData;
     console.log(`[strata] real data: ${p.pr.repo} ${p.pr.number} · head ${p.banner}`);
     const banner = PR === SAMPLE_PR
-      ? `sample PR — paste a github PR url above to review your own · ${p.banner}`
+      ? `sample dataset · ${p.banner}`
       : p.banner;
     render(p, PR, banner);
   } catch (err) {

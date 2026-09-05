@@ -100,7 +100,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-bottom: 1px solid var(--hairline);
 }
 .wordmark { font: 600 14px/1 var(--sans); letter-spacing: -0.01em; }
-.wordmark-sub { font: 400 11px/1 var(--mono); color: var(--faint); }
 input.pr-url {
   flex: 0 1 300px;
   min-width: 140px;
@@ -116,6 +115,8 @@ input.pr-url:focus { border-color: var(--ink); }
 .theme-toggle { font: 500 10px var(--mono); color: var(--muted); background: none; border: 1px solid var(--hairline); border-radius: 6px; padding: 5px 9px; cursor: pointer; white-space: nowrap; }
 .theme-toggle:hover { color: var(--ink); border-color: var(--faint); }
 input.pr-url.busy { opacity: 0.5; }
+.analyze-progress { display: none; font: 400 10px var(--mono); color: var(--muted); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.analyze-progress.on { display: block; }
 .topbar .spacer { flex: 1; }
 
 .pr-ref { margin-left: auto; font: 400 12px/1 var(--mono); color: var(--muted); }
@@ -185,13 +186,6 @@ input.pr-url.busy { opacity: 0.5; }
   cursor: pointer;
 }
 .gtip-open:hover { background: #313845; }
-
-.ghint {
-  margin-top: 8px;
-  font: 400 9px/1.4 var(--mono);
-  color: var(--faint);
-  text-align: center;
-}
 
 .gp-edge { stroke: var(--edge); stroke-width: 1.1; }
 .gp-edge.ext { stroke: var(--edge-ext); stroke-dasharray: 3 3; }

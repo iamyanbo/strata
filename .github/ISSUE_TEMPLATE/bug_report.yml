@@ -1,0 +1,45 @@
+name: Bug report
+description: A PR misrenders, the pipeline fails, or a signal is wrong
+labels: [bug]
+body:
+  - type: input
+    id: pr
+    attributes:
+      label: PR url
+      description: The GitHub PR you analyzed (or tried to)
+      placeholder: https://github.com/owner/repo/pull/123
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw vs what you expected. For pipeline failures, paste the error output.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - pipeline (analyze / run.js)
+        - viewer rendering
+        - time ribbons / sweeps
+        - staleness
+        - export
+        - other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS and node version (node -v)
+      placeholder: Windows 11, node 22.12
+    validations:
+      required: true
+  - type: textarea
+    id: dataset
+    attributes:
+      label: Dataset (optional)
+      description: If the viewer misrenders, attach the generated data/<pr>.json (public PR data only)

@@ -16,4 +16,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc
+      - run: npm test
       - run: node scripts/smoke.mjs

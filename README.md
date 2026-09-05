@@ -95,8 +95,13 @@ Analysis reads public API endpoints without a token (60 req/hr — set
 ```sh
 npx tsc                    # build
 npx tsc --watch            # rebuild on change
+npm test                   # unit tests (diff parser, sweeps, staleness rule)
 node scripts/smoke.mjs     # headless render check against data/sample.json
 ```
+
+Knobs: `STRATA_SWEEP_GAP_HOURS` (default 2) controls when a burst of commits
+becomes a new sweep; `STRATA_FETCH_DEPTH` overrides the shallow-fetch depth
+when a PR window needs more ancestors.
 
 PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the ground rules,
 the main one being: every signal on screen must be computable and traceable

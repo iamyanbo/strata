@@ -1,0 +1,26 @@
+name: Feature request
+description: An addition that keeps every signal computed and traceable
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Reviewer problem
+      description: What makes reviewing this kind of PR hard today, concretely
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed signal or behavior
+      description: |
+        What should be shown, and the exact rule it follows — this project only
+        accepts signals that are deterministic and traceable to a commit.
+    validations:
+      required: true
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Workarounds you use today
+      validations:
+        required: false

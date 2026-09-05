@@ -1,11 +1,12 @@
-// Local strata server: static files + POST /api/analyze (point-at-a-PR).
+// Local strata server: static files + POST /api/analyze (point-at-a-PR) with
+// GET /api/progress for live stage updates + POST /api/export (review push).
 //   node scripts/serve.mjs   → http://localhost:4517
 
 import http from "node:http";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { analyzePR } from "./analyze.mjs";
+import { analyzePR, parsePrUrl } from "./analyze.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT || 4517);
@@ -19,33 +20,56 @@ const mime = {
   ".map": "application/json"
 };
 
-let analyzing = false;
+let job = null; // the current analysis: { stage, lines, done, error, result }
+
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url ?? "/", "http://local");
 
+  // start an analysis job; progress is polled via /api/progress
   if (req.method === "POST" && u.pathname === "/api/analyze") {
-    if (analyzing) {
-      res.writeHead(409, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "another PR is currently being analyzed — try again in a moment" }));
-      return;
-    }
-    analyzing = true;
     let body = "";
     for await (const chunk of req) body += chunk;
+    let url = "";
+    try { url = String(JSON.parse(body).url || ""); } catch { /* handled below */ }
     try {
-      const { url } = JSON.parse(body);
-      const out = await analyzePR(String(url || ""));
+      if (job && !job.done) throw new Error("another PR is currently being analyzed — try again in a moment");
+      parsePrUrl(url); // fail fast on a malformed url before starting the job
+      job = { stage: "starting", lines: [], done: false, error: null, result: null };
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(out));
+      res.end(JSON.stringify({ ok: true }));
+      analyzePR(url, (stage) => {
+        job.stage = stage;
+        job.lines.push(stage);
+        if (job.lines.length > 200) job.lines.shift();
+      })
+        .then((out) => { job.result = out; job.done = true; })
+        .catch((e) => { job.error = String(e?.message ?? e); job.done = true; });
     } catch (e) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: String(e?.message ?? e) }));
-    } finally {
-      analyzing = false;
     }
     return;
   }
 
+  if (req.method === "GET" && u.pathname === "/api/progress") {
+    if (!job) {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ running: false, done: true }));
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      running: !job.done,
+      done: job.done,
+      stage: job.stage,
+      lines: job.lines.slice(-6),
+      error: job.error,
+      result: job.result
+    }));
+    return;
+  }
+
+  // push review threads back to GitHub as one review
   if (req.method === "POST" && u.pathname === "/api/export") {
     let body = "";
     for await (const chunk of req) body += chunk;
@@ -112,10 +136,10 @@ const server = http.createServer(async (req, res) => {
       );
       stats.sort((a, b) => b.m - a.m);
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ pr: stats[0]?.f.replace(/\.json$/, "") ?? "pr-6541" }));
+      res.end(JSON.stringify({ pr: stats[0]?.f.replace(/\.json$/, "") ?? "sample" }));
     } catch {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ pr: "pr-6541" }));
+      res.end(JSON.stringify({ pr: "sample" }));
     }
     return;
   }
@@ -133,5 +157,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.requestTimeout = 0; // first analyze can clone a whole repo
+server.requestTimeout = 0; // analyses are long; progress streams via /api/progress
 server.listen(PORT, () => console.log(`[strata] serving ${ROOT} on http://localhost:${PORT}`));
