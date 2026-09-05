@@ -1419,10 +1419,11 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .file-head .path { font-weight: 600; color: var(--ink); }
 .diff { padding: 6px 0; }
 .ln .no { color: var(--faint); }
-.ln.add, .ln.del { box-shadow: inset 2px 0 0 currentColor; }
-.ln.add { color: color-mix(in srgb, var(--ok) 60%, var(--ink)); }
-.ln.del { color: color-mix(in srgb, var(--gap) 55%, var(--ink)); }
-.ln.add code, .ln.ctx code, .ln.add .no, .ln.del .no { color: var(--ink); }
+/* the ribbon in the gutter is the ONLY marker at the left of a line: its color
+   is the time band that wrote it, and it answers who and which commit on hover.
+   Add versus delete is said by the row tint and the sign column, so nothing
+   else draws a stripe there. */
+.ln.add code, .ln.ctx code { color: var(--ink); }
 .ln.add .no, .ln.del .no { color: var(--faint); }
 .ln.del code { color: var(--muted); }
 .ln:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
