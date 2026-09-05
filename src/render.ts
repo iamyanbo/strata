@@ -1789,6 +1789,9 @@ export function renderHome(recents: HomeRecent[]): void {
   document.body.textContent = "";
 
   const main = el("main", "home");
+  const corner = el("div", "home-topright");
+  corner.appendChild(makeThemeToggle());
+  main.appendChild(corner);
   const hero = el("div", "hero");
   hero.appendChild(el("div", "hero-mark", "strata"));
   const input = el("input", "hero-input") as HTMLInputElement;
@@ -1797,9 +1800,6 @@ export function renderHome(recents: HomeRecent[]): void {
   const progress = el("div", "analyze-progress");
   wireAnalyze(input, progress);
   hero.append(input, progress);
-  const theme = makeThemeToggle();
-  theme.classList.add("hero-theme");
-  hero.appendChild(theme);
   main.appendChild(hero);
 
   const rec = el("div", "home-recents");
