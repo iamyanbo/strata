@@ -41,6 +41,29 @@ try {
     process.exit(1);
   }
 
+  // -- object bar + compact rows: one screen per component, not sixteen ------
+  const bar = document.querySelector(".objbar");
+  const compact = document.querySelectorAll(".entry.compact").length;
+  const open0 = document.querySelectorAll(".entry.open").length;
+  const count0 = document.querySelector(".ob-count")?.textContent;
+  console.log(`[objbar] present: ${!!bar}, compact rows: ${compact}, open cards: ${open0}, counter: ${count0}`);
+  if (!bar || !compact || open0 !== 1) { console.log("OBJECT BAR BROKEN"); process.exit(1); }
+
+  // next steps the counter and keeps exactly one object open (accordion)
+  document.querySelectorAll(".ob-step")[1].dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const count1 = document.querySelector(".ob-count")?.textContent;
+  const open1 = document.querySelectorAll(".entry.open").length;
+  console.log(`[objbar] after next: counter ${count0} -> ${count1}, open cards: ${open1}`);
+  if (count1 === count0 || open1 !== 1) { console.log("OBJECT NAV BROKEN"); process.exit(1); }
+
+  // j / k drive the same walk from the keyboard
+  document.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "j", bubbles: true }));
+  const count2 = document.querySelector(".ob-count")?.textContent;
+  document.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "k", bubbles: true }));
+  const count3 = document.querySelector(".ob-count")?.textContent;
+  console.log(`[keys] j -> ${count2}, k -> ${count3}`);
+  if (count2 === count1 || count3 !== count1) { console.log("KEYBOARD NAV BROKEN"); process.exit(1); }
+
   // -- directed edges: arrowheads, state classes, hoverable hit lines ---------
   const arrows = document.querySelectorAll(".gp-edge[marker-end], .gp-edge[marker-start]").length;
   const kinds = ["co", "risk", "out", "quiet"].map((k) => `${k}:${document.querySelectorAll(`.gp-edge.k-${k}`).length}`);

@@ -181,7 +181,11 @@ function setMode(m: "commits" | "components"): void {
 function selectComponent(id: string, targetEntry?: string): void {
   mode = "components";
   currentComponent = id;
-  if (targetEntry) expanded.add(targetEntry);
+  if (targetEntry) {
+    expanded.clear();
+    expanded.add(targetEntry);
+    currentEntry = targetEntry;
+  }
   refresh();
   if (targetEntry) {
     const node = document.getElementById(`entry-${targetEntry}`);
@@ -200,6 +204,13 @@ function selectCommit(id: string): void {
   document.getElementById("doc")?.scrollIntoView({ block: "start" });
 }
 
+function fillObjBar(): void {
+  const slot = document.querySelector(".objbar-slot");
+  if (!slot) return;
+  slot.innerHTML = "";
+  if (mode === "components" && page.components.length) slot.appendChild(renderObjectBar());
+}
+
 function fillStrip(): void {
   const slot = document.querySelector(".strip-slot");
   if (!slot) return;
@@ -210,6 +221,7 @@ function fillStrip(): void {
 
 function refresh(): void {
   fillStrip();
+  fillObjBar();
   const layout = document.querySelector(".layout");
   if (!layout) return;
   layout.innerHTML = "";
@@ -600,8 +612,182 @@ function renderRail(): HTMLElement {
   return rail;
 }
 
+// ---- object navigation -------------------------------------------------------
+// A component is read one object at a time: expanding pins that object under
+// the sticky bar, and the bar drives which object that is. Unchanged context
+// objects stay in the list as one-line rows — they have no diff, so they cost
+// a row, not a screen.
+
+let currentEntry = "";
+
+function objectsOf(comp: ComponentDoc): string[] {
+  return comp.entryIds.filter((id) => entry(id));
+}
+
+/** which component we have already opened an object for — landing on a
+    component opens its first changed object, but only once, so collapsing
+    with Escape (or by clicking) stays collapsed */
+let openedFor = "";
+
+function ensureCurrent(comp: ComponentDoc): void {
+  const list = objectsOf(comp);
+  if (!list.length) { currentEntry = ""; return; }
+  const openHere = list.find((id) => expanded.has(id));
+  if (openHere) { currentEntry = openHere; openedFor = comp.id; return; }
+  if (!list.includes(currentEntry)) currentEntry = list.find((id) => entry(id)!.seed) ?? list[0];
+  if (openedFor !== comp.id) {
+    openedFor = comp.id;
+    expanded.clear();
+    expanded.add(currentEntry);
+  }
+}
+
+/** open one object, closing whatever was open, and pin it under the bar */
+function openEntry(id: string, scroll = true): void {
+  expanded.clear();
+  expanded.add(id);
+  currentEntry = id;
+  refresh();
+  if (scroll) scrollToEntry(id);
+}
+
+function scrollToEntry(id: string): void {
+  const node = document.getElementById(`entry-${id}`);
+  // scroll-margin-top on .entry keeps the card clear of the sticky bar
+  node?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeEntry(): void {
+  expanded.clear();
+  refresh();
+}
+
+/** step through every object in the component, in document order */
+function stepEntry(delta: number): void {
+  const comp = component(currentComponent) ?? page.components[0];
+  const list = objectsOf(comp);
+  if (!list.length) return;
+  const at = list.indexOf(currentEntry);
+  const next = list[Math.min(list.length - 1, Math.max(0, (at < 0 ? 0 : at) + delta))];
+  if (next) openEntry(next);
+}
+
+/** the next changed object you have not ticked off, wrapping around */
+function nextUnread(): void {
+  const comp = component(currentComponent) ?? page.components[0];
+  const list = objectsOf(comp).filter((id) => entry(id)!.seed);
+  const read = new Set(review?.read ?? []);
+  const at = list.indexOf(currentEntry);
+  const rotated = [...list.slice(at + 1), ...list.slice(0, at + 1)];
+  const next = rotated.find((id) => !read.has(id));
+  if (next) openEntry(next);
+}
+
+let keysWired = false;
+
+/** j/k walk the component, n jumps to the next unread object, Esc collapses */
+function wireKeys(): void {
+  if (keysWired) return;
+  keysWired = true;
+  document.addEventListener("keydown", (ev) => {
+    if (onHome || mode !== "components") return;
+    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    const t = ev.target as HTMLElement | null;
+    if (t && (/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName) || t.isContentEditable)) return;
+    switch (ev.key) {
+      case "j": stepEntry(1); break;
+      case "k": stepEntry(-1); break;
+      case "n": nextUnread(); break;
+      case "Escape": closeEntry(); break;
+      case "Enter": case "o": {
+        if (currentEntry && expanded.has(currentEntry)) closeEntry();
+        else if (currentEntry) openEntry(currentEntry);
+        break;
+      }
+      default: return;
+    }
+    ev.preventDefault();
+  });
+}
+
+/** the sticky bar: which component, which object, and the way to the next one */
+function renderObjectBar(): HTMLElement {
+  const comp = component(currentComponent) ?? page.components[0];
+  ensureCurrent(comp);
+  const list = objectsOf(comp);
+  const at = Math.max(0, list.indexOf(currentEntry));
+
+  const bar = el("div", "objbar");
+
+  const comps = el("select", "ob-select comp") as HTMLSelectElement;
+  for (const c of page.components) {
+    const o = el("option", undefined, `${c.name} · ${c.entryIds.length}`) as HTMLOptionElement;
+    o.value = c.id;
+    if (c.id === comp.id) o.selected = true;
+    comps.appendChild(o);
+  }
+  comps.addEventListener("change", () => {
+    currentEntry = "";
+    selectComponent(comps.value);
+  });
+  bar.appendChild(comps);
+
+  const nav = el("div", "ob-nav");
+  const prev = el("button", "ob-step", "◂");
+  prev.title = "previous object (k)";
+  prev.disabled = at <= 0;
+  prev.addEventListener("click", () => stepEntry(-1));
+  const count = el("span", "ob-count", `${at + 1} / ${list.length}`);
+  const next = el("button", "ob-step", "▸");
+  next.title = "next object (j)";
+  next.disabled = at >= list.length - 1;
+  next.addEventListener("click", () => stepEntry(1));
+  nav.append(prev, count, next);
+  bar.appendChild(nav);
+
+  const objs = el("select", "ob-select obj") as HTMLSelectElement;
+  for (const id of list) {
+    const e = entry(id)!;
+    const readMark = review?.read.includes(id) ? "✓ " : "";
+    const state = e.seed ? deltaLabel(e) : "unchanged";
+    const o = el("option", undefined, `${readMark}${e.name} · ${state}`) as HTMLOptionElement;
+    o.value = id;
+    if (id === currentEntry) o.selected = true;
+    objs.appendChild(o);
+  }
+  objs.addEventListener("change", () => openEntry(objs.value));
+  bar.appendChild(objs);
+
+  // the current object's identity and read state, kept out of the scroll
+  const cur = entry(currentEntry);
+  if (cur) {
+    const isRead = review?.read.includes(cur.id) ?? false;
+    const tick = el("button", `ob-tick${isRead ? " on" : ""}`, isRead ? "✓ read" : "mark read");
+    tick.title = "mark this object as read";
+    tick.addEventListener("click", () => { toggleRead(cur.id); refresh(); });
+    bar.appendChild(tick);
+    const unread = objectsOf(comp).filter((id) => entry(id)!.seed && !(review?.read ?? []).includes(id)).length;
+    if (unread) {
+      const nb = el("button", "ob-next", `next unread · ${unread}`);
+      nb.title = "jump to the next changed object you have not read (n)";
+      nb.addEventListener("click", () => nextUnread());
+      bar.appendChild(nb);
+    }
+  }
+
+  bar.appendChild(el("span", "ob-keys", "j / k · n"));
+  return bar;
+}
+
+/** "+9 −5" for the bar's option list, or the kind when nothing changed */
+function deltaLabel(e: Entry): string {
+  const d = deltaOf(e.files);
+  return d.add || d.del ? `+${d.add} −${d.del}` : e.kind;
+}
+
 function renderComponentDoc(): HTMLElement {
   const comp = component(currentComponent) ?? page.components[0];
+  ensureCurrent(comp);
   const main = el("main", "doc");
   main.id = "doc";
 
@@ -750,7 +936,11 @@ function renderConnections(id: string): HTMLElement | null {
 }
 
 function renderEntry(e: Entry): HTMLElement {
-  const art = el("article", `entry${e.seed ? "" : " fill"}`);
+  // an object the PR did not change has no diff to show, so collapsed it is a
+  // one-line row rather than a full card — a component of 16 objects with one
+  // change should cost one screen, not sixteen
+  const compact = !e.seed && !expanded.has(e.id);
+  const art = el("article", `entry${e.seed ? "" : " fill"}${compact ? " compact" : ""}${expanded.has(e.id) ? " open" : ""}`);
   art.id = `entry-${e.id}`;
 
   // the commit that introduced this object drives the card's band identity.
@@ -761,6 +951,7 @@ function renderEntry(e: Entry): HTMLElement {
   // folder tab: the introducing commit's sha, stamped on the deposit line —
   // or a torn "unchanged" stub for fill-only context objects
   const tab = el("span", "entry-tab");
+  if (compact) tab.classList.add("hidden");
   if (intro) {
     tab.title = `${intro.message}\n${intro.day} ${intro.time} · ${intro.author}`;
     tab.append(el("i", `intro-dot s${intro.stratum}`), el("span", undefined, intro.sha));
@@ -823,7 +1014,15 @@ function renderEntry(e: Entry): HTMLElement {
       nameRow.append(nc);
     }
   }
-  title.append(nameRow, el("p", "summary", e.summary));
+  title.append(nameRow);
+  if (compact) {
+    const callers = edgesOf(e.id).in.length;
+    nameRow.insertBefore(el("span", "row-chev", "›"), nameRow.firstChild);
+    nameRow.append(el("span", "row-meta",
+      `${nodeFile(e.id).split("/").pop() ?? ""}${callers ? ` · ${callers} caller${callers === 1 ? "" : "s"}` : ""}`));
+  } else {
+    title.append(el("p", "summary", e.summary));
+  }
   const gaps = e.traces.filter((t) => t.negative).length;
   const badge = el("span", "trace-badge",
     `${e.traces.length} fact${e.traces.length === 1 ? "" : "s"}${gaps ? ` \u00b7 ${gaps} gap${gaps > 1 ? "s" : ""}` : ""}`
@@ -908,9 +1107,14 @@ function renderEntry(e: Entry): HTMLElement {
   }
 
   head.addEventListener("click", () => {
-    if (expanded.has(e.id)) expanded.delete(e.id);
-    else expanded.add(e.id);
-    refresh();
+    // accordion: opening one object closes the last, so the page always shows
+    // a single diff and the sticky bar always names what you are reading
+    if (expanded.has(e.id)) {
+      expanded.delete(e.id);
+      refresh();
+    } else {
+      openEntry(e.id, false);
+    }
   });
 
   return art;
@@ -2349,6 +2553,7 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
   const bannerText = bannerOverride ?? p.banner;
   document.body.appendChild(el("div", `banner${bannerText.startsWith("\u26a0") ? " warn" : ""}`, bannerText));
   document.body.appendChild(el("div", "strip-slot"));
+  document.body.appendChild(el("div", "objbar-slot"));
 
   const layout = el("div", "layout");
   layout.appendChild(renderRail());
@@ -2356,4 +2561,6 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
   layout.appendChild(renderGraphPanel());
   document.body.appendChild(layout);
   fillStrip();
+  fillObjBar();
+  wireKeys();
 }

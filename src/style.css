@@ -1199,3 +1199,60 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .conn-group { display: flex; align-items: baseline; gap: 9px; }
 .conn-group-note { font: 400 9px/1 var(--mono); letter-spacing: 0; text-transform: none; color: var(--faint); font-style: italic; }
 .no-diff-hint { display: block; margin-top: 3px; font-size: 9.5px; color: var(--faint); }
+
+/* ---- sticky object bar ---- */
+/* which component, which object, and the way to the next one — kept out of the
+   scroll so a long diff never costs you your place */
+.objbar-slot { position: sticky; top: 0; z-index: 8; }
+.objbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  max-width: 1080px; margin: 14px auto 0; padding: 8px 28px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--hairline); border-radius: 8px;
+}
+.ob-select {
+  font: 500 10.5px var(--mono); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 5px; padding: 4px 6px; max-width: 260px; cursor: pointer;
+}
+.ob-select.obj { flex: 1 1 190px; min-width: 0; }
+.ob-select:hover { border-color: var(--faint); }
+.ob-nav { display: flex; align-items: center; gap: 4px; }
+.ob-step {
+  font: 500 11px/1 var(--mono); color: var(--muted);
+  background: none; border: 1px solid var(--hairline);
+  border-radius: 5px; padding: 4px 8px; cursor: pointer;
+}
+.ob-step:hover:not(:disabled) { color: var(--ink); border-color: var(--faint); }
+.ob-step:disabled { opacity: 0.35; cursor: default; }
+.ob-count { font: 400 10px var(--mono); color: var(--faint); min-width: 46px; text-align: center; }
+.ob-tick, .ob-next {
+  font: 500 9.5px var(--mono); letter-spacing: 0.03em;
+  color: var(--muted); background: none;
+  border: 1px solid var(--hairline); border-radius: 5px;
+  padding: 4px 8px; cursor: pointer; white-space: nowrap;
+}
+.ob-tick:hover, .ob-next:hover { color: var(--ink); border-color: var(--faint); }
+.ob-tick.on { color: var(--ok); border-color: var(--ok); }
+.ob-next { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.ob-keys { margin-left: auto; font: 400 9px var(--mono); color: var(--faint); white-space: nowrap; }
+/* the rails clear the bar rather than sliding under it */
+.objbar-slot ~ .layout .rail, .objbar-slot ~ .layout .side { top: 74px; }
+.entry { scroll-margin-top: 66px; }
+
+/* ---- compact rows: unchanged objects cost a line, not a screen ---- */
+.entry.compact { margin: 0; padding: 0; border-top: 1px dashed var(--hairline); }
+.entry.compact::before, .entry.compact::after { display: none; }
+.entry.compact .entry-head { padding: 5px 8px; align-items: center; gap: 10px; }
+.entry.compact .name { font-size: 12px; color: var(--muted); }
+.entry.compact:hover { background: var(--surface); }
+.entry.compact:hover .name { color: var(--ink); }
+.entry.compact .kind { padding: 2px 5px 1px; font-size: 8.5px; }
+.entry.compact .trace-badge { font-size: 9.5px; padding-top: 0; }
+.entry.compact .read-tick { transform: scale(0.85); }
+.entry-tab.hidden { display: none; }
+.row-chev { flex: none; font: 400 11px/1 var(--mono); color: var(--faint); }
+.row-meta { flex: none; font: 400 9.5px/1 var(--mono); color: var(--faint); white-space: nowrap; }
+/* the open object is the page: lift it off the layers around it */
+.entry.open { background: color-mix(in srgb, var(--surface) 55%, transparent); border-radius: 8px; }

@@ -66,6 +66,14 @@ marked, labeled *not changed by this PR*. The reason an unchanged object is in
 the document at all is stated on its card, with a pointer to the call sites that
 pulled it in.
 
+**One object at a time.** A component opens on its first changed object with
+the diff already on screen. A sticky bar carries the component, the object, a
+`3 / 16` counter with prev/next, a jump menu and the read tick, so none of that
+scrolls away while you read. `j` / `k` walk the component, `n` jumps to the next
+unread object, `Esc` collapses. Objects the PR did not change collapse to
+one-line rows — a component of sixteen objects with one change costs one screen,
+not sixteen.
+
 **Review checkpoints.** Mark reviewed once; on the next push only what
 changed since renders at full attention — everything you already read dims.
 Checkmarks per object track what you personally read. Force-pushes are
