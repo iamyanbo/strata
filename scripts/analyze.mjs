@@ -125,10 +125,16 @@ export async function analyzePR(url, onProgress) {
   } catch { /* comments are best-effort */ }
 
   say("analyzing: git + TypeScript AST + def-use graph");
-  await runPipeline(
-    [repoDir, sha, outJson, meta.title ?? "", String(meta.number ?? ""), commentsPath, `${owner}/${repo}`],
-    onProgress
-  );
+  const metaJson = JSON.stringify({
+    title: meta.title ?? "",
+    number: String(meta.number ?? ""),
+    repo: `${owner}/${repo}`,
+    baseRef: meta.base?.ref,
+    headRef: meta.head?.ref,
+    headLabel: meta.head?.label,
+    commentsPath
+  });
+  await runPipeline([repoDir, sha, outJson, metaJson], onProgress);
 
   console.log(`[strata] done → data/${dataName}.json`);
   return { pr: dataName, title: meta.title, author: meta.user?.login, commits: meta.commits };

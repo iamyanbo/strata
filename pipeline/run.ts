@@ -1,8 +1,10 @@
 // Runner: analyze a merged PR (squash or merge commit) and emit PageData JSON.
 //
-//   node dist/pipeline/run.js <repoDir> <mergeCommitSha> <outJson>
+//   node dist/pipeline/run.js <repoDir> <mergeCommitSha> <outJson> [metaJson]
 //
 // base = first parent of the merge/squash commit; head = the commit itself.
+// metaJson carries the viewer metadata: title, number, repo, branch refs,
+// commentsPath.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -12,12 +14,27 @@ import { findSeeds, buildAdjacency, floodFill } from "./flow.js";
 import { emit } from "./emit.js";
 import type { RawComment } from "../src/types.js";
 
-const [repoDirRaw, mergeCommit, outJson, titleArg, numArg, commentsPath, repoArg] = process.argv.slice(2);
+const [repoDirRaw, mergeCommit, outJson, metaJson] = process.argv.slice(2);
 if (!repoDirRaw || !mergeCommit || !outJson) {
-  console.error("usage: run.js <repoDir> <mergeCommit> <outJson> [title] [prNumber] [commentsPath] [owner/repo]");
+  console.error("usage: run.js <repoDir> <mergeCommit> <outJson> [metaJson]");
   process.exit(1);
 }
 const repoDir = path.resolve(repoDirRaw);
+
+let meta: {
+  title?: string;
+  number?: string;
+  repo?: string;
+  baseRef?: string;
+  headRef?: string;
+  headLabel?: string;
+  commentsPath?: string;
+} = {};
+try { meta = JSON.parse(metaJson ?? "{}"); } catch {
+  console.error("invalid metaJson");
+  process.exit(1);
+}
+const commentsPath = meta.commentsPath ?? "";
 
 const workRoot = path.join(repoDir, "..", ".work");
 const headDir = path.join(workRoot, "head");
@@ -27,7 +44,7 @@ checkout(repoDir, mergeCommit, headDir);
 
 console.log("loading PR shape...");
 let pr = loadPR(repoDir, mergeCommit);
-if (titleArg) pr = { ...pr, title: titleArg };
+if (meta.title) pr = { ...pr, title: meta.title };
 console.log(`  ${pr.commits.length} commit(s), ${pr.files.length} file(s)`);
 
 // head-tree paths referenced by diff (rename-aware: new paths)
@@ -62,7 +79,11 @@ if (commentsPath) {
 }
 
 emit(pr, index, baseIndex, flow, fileNameMap, outJson, {
-  number: numArg,
-  repo: repoArg,
+  number: meta.number,
+  repo: meta.repo,
+  title: meta.title,
+  baseRef: meta.baseRef,
+  headRef: meta.headRef,
+  headLabel: meta.headLabel,
   comments
 });

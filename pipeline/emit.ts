@@ -17,7 +17,16 @@ export function emit(
   flow: FlowResult,
   fileNameMap: Map<string, string>,
   outPath: string,
-  meta?: { title?: string; number?: string; author?: string; repo?: string; comments?: RawComment[] }
+  meta?: {
+    title?: string;
+    number?: string;
+    author?: string;
+    repo?: string;
+    baseRef?: string;
+    headRef?: string;
+    headLabel?: string;
+    comments?: RawComment[];
+  }
 ): void {
   const entries = new Map<string, Entry>();
   // reuse flow entries as the base, then enrich
@@ -293,6 +302,11 @@ export function emit(
   const firstReal = [...pr.commits].reverse().find((c) => !/^Merge (pull request|branch|remote-tracking)/.test(c.message));
   const prTitle = meta?.title ?? (isMergeSubject && firstReal ? firstReal.message : pr.title);
   const prAuthor = meta?.author ?? firstReal?.author ?? pr.commits[0]?.author ?? "unknown";
+  // branch lineage: where this PR merges from and to (GitHub head/base refs)
+  const branch = meta?.baseRef && meta?.headRef
+    ? { head: meta.headRef, base: meta.baseRef, label: meta.headLabel }
+    : undefined;
+  const branchLine = branch ? ` \u00b7 ${branch.head} \u2192 ${branch.base}` : "";
   const page: PageData & { entries: Record<string, Entry> } = {
     head: pr.head,
     pr: {
@@ -301,13 +315,15 @@ export function emit(
       title: prTitle,
       author: prAuthor
     } satisfies PRInfo,
-    banner: `base ${pr.base.slice(0, 7)} \u2192 head ${pr.head.slice(0, 7)} \u00b7 TypeScript AST def\u2212use index \u00b7 3-hop co-change analysis \u00b7 per-line git blame`,
+    banner: `base ${pr.base.slice(0, 7)} \u2192 head ${pr.head.slice(0, 7)} \u00b7 TypeScript AST def\u2212use index \u00b7 3-hop co-change analysis \u00b7 per-line git blame${branchLine}`,
+    branch,
     initialComponent: components[0]?.id ?? "",
     components,
     commits,
     entries: Object.fromEntries(entries),
     edges,
-    extraFiles: extraFiles()
+    extraFiles: extraFiles(),
+    files: pr.files.map(toDiffLines)
   };
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });

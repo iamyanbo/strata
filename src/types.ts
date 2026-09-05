@@ -133,6 +133,8 @@ export interface PageData {
   pr: PRInfo;
   /** full sha of the PR head — commit_id for review exports */
   head?: string;
+  /** where the PR merges from and to (GitHub head/base refs) */
+  branch?: { head: string; base: string; label?: string };
   banner: string;
   initialComponent: string;
   components: ComponentDoc[];
@@ -143,4 +145,6 @@ export interface PageData {
   edges?: { a: string; b: string; rel: string }[];
   /** diffs of referenced files that are not entries (e.g. covering tests) */
   extraFiles?: Record<string, FileDiff>;
+  /** every file the PR changed, with per-line time attribution */
+  files?: FileDiff[];
 }

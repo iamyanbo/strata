@@ -274,6 +274,7 @@ function renderLine(l: DiffLine): HTMLElement {
   row.append(
     el("span", "no", lineNo(l.old)),
     el("span", "no", lineNo(l.new)),
+    el("span", "sign", l.kind === "add" ? "+" : l.kind === "del" ? "\u2212" : ""),
     el("code", undefined, l.text)
   );
   if (l.kind === "move") row.appendChild(el("span", "mark moved", "moved"));
@@ -838,6 +839,13 @@ function renderCommitDoc(): HTMLElement {
     }
     const sum = el("div", "overview");
     sum.appendChild(el("p", "ov-banner", page.banner));
+    if (page.branch) {
+      const b = el("p", "ov-branch");
+      const from = el("b", undefined, page.branch.head);
+      from.title = page.branch.label ?? page.branch.head;
+      b.append(from, el("span", undefined, ` \u2192 ${page.branch.base}`));
+      sum.appendChild(b);
+    }
     const facts = el("div", "ov-facts");
     facts.append(
       ovFact(String(real.length), "commits"),
@@ -903,6 +911,75 @@ function renderCommitDoc(): HTMLElement {
   if (nav.children.length) main.appendChild(nav);
 
   return main;
+}
+
+// ---- changed files tree --------------------------------------------------------------
+// GitHub-style repo structure for the PR: every changed file under its
+// directory, with +/− deltas and a tick per time band that touched it.
+// Clicking a file opens its full diff in an overlay.
+
+function openFileOverlay(fd: FileDiff): void {
+  const overlay = el("div", "overlay");
+  const card = el("div", "file-overlay");
+  const head = el("div", "fo-head");
+  const pathSpan = el("span", "fo-path", fd.path);
+  pathSpan.title = fd.path;
+  head.append(pathSpan, el("span", "delta", fd.delta));
+  const close = el("button", "strip-btn ghost", "close");
+  close.addEventListener("click", () => overlay.remove());
+  head.appendChild(close);
+  const body = el("div", "fo-body");
+  body.appendChild(renderFile(fd));
+  card.append(head, body);
+  overlay.appendChild(card);
+  overlay.addEventListener("click", (ev) => { if (ev.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function renderFileTree(): HTMLElement {
+  const wrap = el("div", "filetree");
+  const files = page.files ?? [];
+  if (!files.length) {
+    wrap.appendChild(el("p", "no-diff", "no changed files"));
+    return wrap;
+  }
+  interface TreeNode {
+    dirs: Map<string, TreeNode>;
+    files: FileDiff[];
+  }
+  const root: TreeNode = { dirs: new Map(), files: [] };
+  for (const f of files) {
+    const parts = f.path.split("/");
+    let node = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const d = parts[i];
+      if (!node.dirs.has(d)) node.dirs.set(d, { dirs: new Map(), files: [] });
+      node = node.dirs.get(d)!;
+    }
+    node.files.push(f);
+  }
+  const renderLevel = (node: TreeNode, depth: number): void => {
+    for (const [name, child] of [...node.dirs.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+      const dir = el("div", "ft-dir", name + "/");
+      dir.style.paddingLeft = `${8 + depth * 13}px`;
+      wrap.appendChild(dir);
+      renderLevel(child, depth + 1);
+    }
+    for (const f of [...node.files].sort((a, b) => a.path.localeCompare(b.path))) {
+      const row = el("button", "ft-file");
+      row.style.paddingLeft = `${8 + depth * 13}px`;
+      const name = el("span", "ft-name", f.path.split("/").pop()!);
+      name.title = f.path;
+      row.appendChild(name);
+      const bands = [...new Set(f.lines.map((l) => l.stratum).filter(Boolean) as number[])].sort((a, b) => a - b);
+      for (const b of bands) row.appendChild(el("i", `ft-band s${b}`));
+      row.appendChild(el("span", "ft-delta", f.delta));
+      row.addEventListener("click", () => openFileOverlay(f));
+      wrap.appendChild(row);
+    }
+  };
+  renderLevel(root, 0);
+  return wrap;
 }
 
 // ---- graph panel ------------------------------------------------------------
@@ -1412,16 +1489,28 @@ function renderCommitHistory(): HTMLElement {
   return box;
 }
 
+let sideTab: "graph" | "files" = "graph";
+
 function renderGraphPanel(): HTMLElement {
   const side = el("aside", "side");
-  if (mode === "components") {
-    const comp = component(currentComponent) ?? page.components[0];
-    side.appendChild(el("h3", "rail-h", "Dependency graph"));
-    side.appendChild(renderComponentGraph(comp));
-  } else {
+  if (mode === "commits") {
     side.appendChild(el("h3", "rail-h", "History"));
     side.appendChild(renderCommitHistory());
+    return side;
   }
+
+  // components lens: toggle between the dependency graph and the repo tree
+  side.appendChild(el("h3", "rail-h", sideTab === "files" ? "Changed files" : "Dependency graph"));
+  const tabs = el("div", "side-tabs");
+  const g = el("button", `side-tab${sideTab === "graph" ? " active" : ""}`, "graph");
+  const f = el("button", `side-tab${sideTab === "files" ? " active" : ""}`, "files");
+  g.addEventListener("click", () => { sideTab = "graph"; refresh(); });
+  f.addEventListener("click", () => { sideTab = "files"; refresh(); });
+  tabs.append(g, f);
+  side.appendChild(tabs);
+  side.appendChild(sideTab === "files"
+    ? renderFileTree()
+    : renderComponentGraph(component(currentComponent) ?? page.components[0]));
   return side;
 }
 // ---- export --------------------------------------------------------------------------
