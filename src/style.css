@@ -99,7 +99,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 14px 28px;
   border-bottom: 1px solid var(--hairline);
 }
-.wordmark { font: 600 14px/1 var(--sans); letter-spacing: -0.01em; }
+.wordmark { font: 600 14px/1 var(--sans); letter-spacing: -0.01em; color: inherit; text-decoration: none; cursor: pointer; }
 input.pr-url {
   flex: 0 1 300px;
   min-width: 140px;
@@ -118,6 +118,32 @@ input.pr-url.busy { opacity: 0.5; }
 .analyze-progress { display: none; font: 400 10px var(--mono); color: var(--muted); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .analyze-progress.on { display: block; }
 .topbar .spacer { flex: 1; }
+
+/* ---- home page ---- */
+
+.home { max-width: 1080px; margin: 0 auto; padding: 44px 28px 90px; }
+.home-h {
+  font: 500 10.5px/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  margin-bottom: 14px;
+}
+.home-list { display: flex; flex-direction: column; gap: 4px; }
+.home-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 8px;
+  text-align: left;
+}
+.home-row:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.home-repo { font: 600 13px var(--mono); color: var(--ink); flex: none; }
+.home-title { flex: 1; min-width: 0; font: 400 12.5px/1.4 var(--sans); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-row:hover .home-title { color: var(--ink); }
+.home-meta { font: 400 10px var(--mono); color: var(--faint); flex: none; }
 
 .pr-ref { margin-left: auto; font: 400 12px/1 var(--mono); color: var(--muted); }
 .pr-ref b { font-weight: 600; color: var(--ink); }

@@ -1,5 +1,5 @@
 import { PAGE } from "./data.js";
-import { render } from "./render.js";
+import { render, renderHome } from "./render.js";
 import type { PageData } from "./types.js";
 
 // Real pipeline output (data/<pr>.json); on failure, render the mock
@@ -14,17 +14,15 @@ async function boot(): Promise<void> {
     document.documentElement.dataset.theme = localStorage.getItem("strata-theme") ?? "dark";
   } catch { document.documentElement.dataset.theme = "dark"; }
 
-  let PR = new URLSearchParams(location.search).get("pr");
+  const PR = new URLSearchParams(location.search).get("pr");
   if (!PR) {
-    // no ?pr= → ask the server for the most recently analyzed PR;
-    // a fresh clone has none, so land on the bundled sample
-    try {
-      PR = (await (await fetch("/api/latest")).json()).pr;
-    } catch { PR = SAMPLE_PR; /* file:// or older server */
-    }
-    if (!PR) PR = SAMPLE_PR;
+    // home page: everything analyzed so far + the bundled sample
+    const recents = await fetch("/api/recent")
+      .then((r) => r.json())
+      .catch(() => []);
+    renderHome(recents);
+    return;
   }
-  if (!PR) { render({ ...PAGE, banner: MOCK_BANNER }); return; }
   try {
     const r = await fetch(`data/${PR}.json?v=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(`pipeline output ${r.status}`);

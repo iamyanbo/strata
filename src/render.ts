@@ -32,6 +32,7 @@ function svgEl<T extends SVGElement = SVGElement>(tag: string, cls?: string): T 
 }
 
 let page: PageData;
+let onHome = false;
 let mode: "commits" | "components" = "components";
 let currentComponent = "";
 let currentCommit: string | null = null;
@@ -1521,7 +1522,10 @@ function openExportCard(): void {
 
 function renderTopbar(): HTMLElement {
   const bar = el("header", "topbar");
-  bar.appendChild(el("span", "wordmark", "strata"));
+  const wm = el("a", "wordmark", "strata");
+  wm.href = "/";
+  wm.title = "home";
+  bar.appendChild(wm);
   bar.appendChild(el("span", "spacer"));
   const addr = el("input", "pr-url") as HTMLInputElement;
   addr.type = "text";
@@ -1568,12 +1572,14 @@ function renderTopbar(): HTMLElement {
     }
   });
   bar.appendChild(addr);
-  const threads = collectThreads();
-  if (dataName && threads.length) {
-    const exp = el("button", "theme-toggle", `export · ${threads.length}`);
-    exp.title = "push review threads to github as one review";
-    exp.addEventListener("click", () => openExportCard());
-    bar.appendChild(exp);
+  if (!onHome) {
+    const threads = collectThreads();
+    if (dataName && threads.length) {
+      const exp = el("button", "theme-toggle", `export · ${threads.length}`);
+      exp.title = "push review threads to github as one review";
+      exp.addEventListener("click", () => openExportCard());
+      bar.appendChild(exp);
+    }
   }
   const themeBtn = el("button", "theme-toggle");
   const themeLabel = (): string => (document.documentElement.dataset.theme === "light" ? "dark" : "light");
@@ -1587,12 +1593,14 @@ function renderTopbar(): HTMLElement {
     themeBtn.title = `switch to the ${themeLabel()} theme`;
   });
   bar.appendChild(themeBtn);
-  const ref = el("span", "pr-ref");
-  ref.append(
-    el("b", undefined, `${page.pr.repo} ${page.pr.number}`),
-    document.createTextNode(` \u00b7 ${page.pr.title}`)
-  );
-  bar.appendChild(ref);
+  if (!onHome) {
+    const ref = el("span", "pr-ref");
+    ref.append(
+      el("b", undefined, `${page.pr.repo} ${page.pr.number}`),
+      document.createTextNode(` \u00b7 ${page.pr.title}`)
+    );
+    bar.appendChild(ref);
+  }
   return bar;
 }
 
@@ -1610,9 +1618,51 @@ function renderToggle(): HTMLElement {
   return wrap;
 }
 
+// ---- home ----------------------------------------------------------------------------
+// The landing page: everything analyzed so far, newest first, plus the
+// bundled sample. Clicking the wordmark returns here from anywhere.
+
+export interface HomeRecent {
+  name: string;
+  repo: string;
+  number: string;
+  title: string;
+  commits: number;
+  mtime: number;
+}
+
+export function renderHome(recents: HomeRecent[]): void {
+  onHome = true;
+  dataName = "";
+
+  document.body.textContent = "";
+  document.body.appendChild(renderTopbar());
+
+  const main = el("main", "home");
+  main.appendChild(el("h1", "home-h", "Recent"));
+  const list = el("div", "home-list");
+  if (!recents.length) {
+    list.appendChild(el("p", "no-diff", "nothing analyzed yet — paste a github PR url above"));
+  }
+  for (const r of recents) {
+    const row = el("button", "home-row");
+    const d = new Date(r.mtime);
+    row.appendChild(el("span", "home-repo", `${r.repo} ${r.number}`));
+    const t = el("span", "home-title", r.title || r.name);
+    t.title = r.title;
+    row.appendChild(t);
+    row.appendChild(el("span", "home-meta", `${r.commits} commit${r.commits === 1 ? "" : "s"} \u00b7 ${MONTHS[d.getMonth()]} ${d.getDate()}`));
+    row.addEventListener("click", () => { location.href = `/?pr=${r.name}`; });
+    list.appendChild(row);
+  }
+  main.appendChild(list);
+  document.body.appendChild(main);
+}
+
 export function render(p: PageData, prName?: string, bannerOverride?: string): void {
   page = p;
   dataName = prName ?? "";
+  onHome = false;
   currentComponent = p.initialComponent;
   loadReview();
 

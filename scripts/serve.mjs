@@ -127,19 +127,33 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // which PR did we analyze most recently? (landing default)
-  if (u.pathname === "/api/latest") {
+  // the home page's list: every analyzed dataset, newest first
+  if (u.pathname === "/api/recent") {
     try {
       const files = await fs.readdir(path.join(ROOT, "data"));
-      const stats = await Promise.all(
-        files.filter((f) => f.endsWith(".json") && !f.endsWith(".comments.json")).map(async (f) => ({ f, m: (await fs.stat(path.join(ROOT, "data", f))).mtimeMs }))
-      );
-      stats.sort((a, b) => b.m - a.m);
+      const names = files.filter((f) => f.endsWith(".json") && !f.endsWith(".comments.json"));
+      const recents = [];
+      for (const f of names) {
+        try {
+          const full = path.join(ROOT, "data", f);
+          const st = await fs.stat(full);
+          const d = JSON.parse(await fs.readFile(full, "utf8"));
+          recents.push({
+            name: f.replace(/\.json$/, ""),
+            repo: d.pr?.repo ?? "",
+            number: d.pr?.number ?? "",
+            title: d.pr?.title ?? "",
+            commits: (d.commits ?? []).length,
+            mtime: st.mtimeMs
+          });
+        } catch { /* skip unreadable datasets */ }
+      }
+      recents.sort((a, b) => b.mtime - a.mtime);
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ pr: stats[0]?.f.replace(/\.json$/, "") ?? "sample" }));
+      res.end(JSON.stringify(recents));
     } catch {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ pr: "sample" }));
+      res.end(JSON.stringify([]));
     }
     return;
   }

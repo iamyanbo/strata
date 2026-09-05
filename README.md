@@ -19,8 +19,9 @@ npx tsc                # compile the viewer + pipeline to dist/
 node scripts/serve.mjs # → http://localhost:4517
 ```
 
-The bundled sample PR loads on first run. To review your own, paste any
-merged GitHub PR URL into the top bar:
+The app opens on its home page — everything you've analyzed, newest first,
+plus the bundled sample PR. To review your own, paste any merged GitHub PR
+URL into the top bar:
 
 ```sh
 node scripts/analyze.mjs https://github.com/owner/repo/pull/123
