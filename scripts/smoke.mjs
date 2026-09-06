@@ -179,6 +179,28 @@ try {
   const bare = document.querySelectorAll(".diff .ribbon:not([class*=' s'])").length;
   console.log(`[ribbons] attributed: ${d2}, unattributed (should be present but invisible): ${bare}`);
 
+  // -- the file lens: every changed file reachable, runs labeled by owner ----
+  document.querySelector('[data-mode="files"]').dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const railFiles = document.querySelectorAll(".rail .comp").length;
+  const runs = document.querySelectorAll(".run-head").length;
+  const owned = document.querySelectorAll(".run-jump").length;
+  const orphanRuns = document.querySelectorAll(".run-none").length;
+  const barCount = document.querySelector(".ob-count")?.textContent;
+  console.log(`[files] rail: ${railFiles} files, bar ${barCount}, runs: ${runs} (${owned} owned, ${orphanRuns} unowned)`);
+  if (railFiles !== page.files.length || !runs || !owned || !orphanRuns) { console.log("FILE LENS BROKEN"); process.exit(1); }
+
+  // j walks files, and every changed line of the PR is reachable this way
+  const seen = new Set();
+  for (let i = 0; i < page.files.length; i++) {
+    const path = document.querySelector(".doc .file-head .path").textContent;
+    seen.add(path);
+    document.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "j", bubbles: true }));
+  }
+  const covered = page.files.filter((f) => seen.has(f.path)).length;
+  const lines = page.files.reduce((n, f) => n + f.lines.filter((l) => l.kind !== "ctx").length, 0);
+  console.log(`[files] walking j reached ${covered}/${page.files.length} files (${lines} changed lines, all reachable)`);
+  if (covered !== page.files.length) { console.log("FILE WALK BROKEN"); process.exit(1); }
+
   console.log("SMOKE OK");
 } catch (err) {
   console.error("RENDER THREW:", err && err.stack ? err.stack.split("\n").slice(0, 6).join("\n") : err);

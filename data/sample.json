@@ -4509,6 +4509,7 @@
       ]
     }
   ],
+  "fileComments": {},
   "extraFiles": {
     "packages/zod/src/v4/core/tests/polyfill-collision.test.ts": {
       "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",

@@ -33,7 +33,7 @@ function svgEl<T extends SVGElement = SVGElement>(tag: string, cls?: string): T 
 
 let page: PageData;
 let onHome = false;
-let mode: "commits" | "components" = "components";
+let mode: "commits" | "components" | "files" = "components";
 let currentComponent = "";
 let currentCommit: string | null = null;
 const expanded = new Set<string>();
@@ -173,7 +173,7 @@ function introducerOf(entryId: string): Commit | undefined {
 
 // ---- navigation --------------------------------------------------------------
 
-function setMode(m: "commits" | "components"): void {
+function setMode(m: "commits" | "components" | "files"): void {
   mode = m;
   refresh();
 }
@@ -223,6 +223,7 @@ function fillObjBar(): void {
   if (!slot) return;
   slot.innerHTML = "";
   if (mode === "components" && page.components.length) slot.appendChild(renderObjectBar());
+  else if (mode === "files" && changedFiles().length) slot.appendChild(renderFileBar());
 }
 
 function fillStrip(): void {
@@ -233,6 +234,12 @@ function fillStrip(): void {
   if (strip) slot.appendChild(strip);
 }
 
+function docForMode(): HTMLElement {
+  if (mode === "commits") return renderCommitDoc();
+  if (mode === "files") return renderFileDoc();
+  return renderComponentDoc();
+}
+
 function refresh(): void {
   fillStrip();
   fillObjBar();
@@ -241,7 +248,7 @@ function refresh(): void {
   if (!layout) return;
   layout.innerHTML = "";
   layout.appendChild(renderRail());
-  layout.appendChild(mode === "commits" ? renderCommitDoc() : renderComponentDoc());
+  layout.appendChild(docForMode());
   layout.appendChild(renderGraphPanel());
   const toggle = document.querySelector(".mode-toggle");
   toggle?.querySelectorAll("button").forEach((b) => {
@@ -377,7 +384,11 @@ function hideRibbonTip(): void {
 function renderFile(f: FileDiff, comments?: ReviewComment[]): HTMLElement {
   const box = el("div", "file");
   const head = el("div", "file-head");
-  head.append(el("span", "path", f.path), el("span", "delta", f.delta));
+  // the path is a way into the file lens: the whole file, in line order
+  const path = el("button", "path", f.path);
+  path.title = "open this file in the file lens";
+  path.addEventListener("click", (ev) => { ev.stopPropagation(); selectFile(f.path); });
+  head.append(path, el("span", "delta", f.delta));
   const body = el("div", "diff");
   // GitHub-style: each review thread renders inline right after its anchor line.
   // Anchors are "path:line" (line = new-file line number).
@@ -785,6 +796,12 @@ function deltaDetail(e: Entry): HTMLElement {
 function renderRail(): HTMLElement {
   const rail = el("aside", "rail");
 
+  if (mode === "files") {
+    rail.appendChild(el("h3", "rail-h", `Files · ${changedFiles().length}`));
+    rail.appendChild(renderFileRail());
+    return rail;
+  }
+
   if (mode === "components") {
     rail.appendChild(el("h3", "rail-h", "Components"));
     const list = el("div", "comps");
@@ -902,10 +919,20 @@ function wireKeys(): void {
   if (keysWired) return;
   keysWired = true;
   document.addEventListener("keydown", (ev) => {
-    if (onHome || mode !== "components") return;
+    if (onHome || (mode !== "components" && mode !== "files")) return;
     if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
     const t = ev.target as HTMLElement | null;
     if (t && (/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName) || t.isContentEditable)) return;
+    if (mode === "files") {
+      const files = changedFiles();
+      const at = files.findIndex((f) => f.path === currentFile);
+      if (ev.key === "j" || ev.key === "k") {
+        const next = files[Math.min(files.length - 1, Math.max(0, at + (ev.key === "j" ? 1 : -1)))];
+        if (next) selectFile(next.path);
+        ev.preventDefault();
+      }
+      return;
+    }
     switch (ev.key) {
       case "j": stepEntry(1); break;
       case "k": stepEntry(-1); break;
@@ -923,6 +950,66 @@ function wireKeys(): void {
 }
 
 /** the sticky bar: which component, which object, and the way to the next one */
+function renderFileBar(): HTMLElement {
+  const files = changedFiles();
+  if (!files.some((f) => f.path === currentFile)) currentFile = files[0]?.path ?? "";
+  const at = Math.max(0, files.findIndex((f) => f.path === currentFile));
+  const bar = el("div", "objbar");
+
+  const step = (d: number): void => {
+    const next = files[Math.min(files.length - 1, Math.max(0, at + d))];
+    if (next) selectFile(next.path);
+  };
+  bar.appendChild(menuButton(
+    "comp",
+    () => {
+      const lab = el("span", "menu-lab");
+      lab.append(el("b", undefined, currentFile.split("/").pop() ?? "—"),
+        el("span", "menu-sub", `${files.length} files`));
+      return lab;
+    },
+    files.map((f) => {
+      const st = fileStats(f);
+      return {
+        id: f.path,
+        label: f.path,
+        mark: st.objects.length ? "●" : "",
+        current: f.path === currentFile,
+        detail: () => (st.add || st.del ? deltaChip(st.add, st.del) : el("span", "menu-kind", "no change"))
+      };
+    }),
+    (id) => selectFile(id)
+  ));
+  bar.appendChild(el("div", "ob-sep"));
+
+  const nav = el("div", "ob-nav");
+  const prev = el("button", "ob-step", "◂");
+  prev.title = "previous file (k)";
+  prev.disabled = at <= 0;
+  prev.addEventListener("click", () => step(-1));
+  const next = el("button", "ob-step", "▸");
+  next.title = "next file (j)";
+  next.disabled = at >= files.length - 1;
+  next.addEventListener("click", () => step(1));
+  nav.append(prev, el("span", "ob-count", `${at + 1} / ${files.length}`), next);
+  bar.appendChild(nav);
+
+  const f = fileByPath(currentFile);
+  if (f) {
+    const st = fileStats(f);
+    const chip = el("span", "ob-file-meta");
+    chip.appendChild(deltaChip(st.add, st.del));
+    bar.appendChild(chip);
+    if (!st.objects.length) bar.appendChild(el("span", "conn-chip un", "no object covers this file"));
+  }
+
+  const keys = el("span", "ob-keys");
+  const kbd = (k: string): HTMLElement => el("kbd", undefined, k);
+  keys.append(kbd("j"), kbd("k"), document.createTextNode(" walk files"));
+  bar.appendChild(keys);
+  return bar;
+}
+
 function renderObjectBar(): HTMLElement {
   const comp = component(currentComponent) ?? page.components[0];
   ensureCurrent(comp);
@@ -1088,6 +1175,206 @@ function renderLeftovers(comp: ComponentDoc): HTMLElement | null {
     art.appendChild(wrap);
   });
   return art;
+}
+
+// ---- lens: by file -----------------------------------------------------------
+// The component lens is a lens: it shows what the def−use fill reaches, and on a
+// real PR that is about half the changed lines — docs, untyped sources and files
+// whose changes sit outside every top-level symbol never appear. This lens is
+// the completeness backstop: every changed file, in line order, with each region
+// labeled by the object that owns it so the two lenses reinforce each other
+// instead of repeating each other.
+
+let currentFile = "";
+
+/** every changed file, in the one order the rail, the bar and j/k all use */
+function changedFiles(): FileDiff[] {
+  return [...(page.files ?? [])].sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function fileByPath(p: string): FileDiff | undefined {
+  return changedFiles().find((f) => f.path === p);
+}
+
+function selectFile(path: string): void {
+  mode = "files";
+  currentFile = path;
+  refresh();
+  document.getElementById("doc")?.scrollIntoView({ block: "start" });
+}
+
+/** line key → the entry whose span claimed it, for every object in the PR */
+function ownerOfLines(path: string): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const [id, e] of Object.entries(page.entries)) {
+    for (const f of e.files ?? []) {
+      if (f.path !== path) continue;
+      for (const l of f.lines) out.set(lineKey(l), id);
+    }
+  }
+  return out;
+}
+
+/** every thread on this file: the ones objects claimed, plus the orphans */
+function threadsOnFile(path: string): ReviewComment[] {
+  const out: ReviewComment[] = [];
+  for (const e of Object.values(page.entries)) {
+    if (e.files?.[0]?.path !== path) continue;
+    for (const c of e.comments ?? []) out.push(c);
+  }
+  for (const c of page.fileComments?.[path] ?? []) out.push(c);
+  return out;
+}
+
+function fileStats(f: FileDiff): { add: number; del: number; bands: number[]; objects: string[] } {
+  const d = deltaOf([f]);
+  const bands = [...new Set(f.lines.map((l) => l.stratum).filter(Boolean) as number[])].sort((a, b) => a - b);
+  const objects = Object.entries(page.entries)
+    .filter(([, e]) => e.files?.[0]?.path === f.path)
+    .map(([id]) => id);
+  return { ...d, bands, objects };
+}
+
+/** the file, in line order, cut into runs by which object owns each line */
+function renderFileDoc(): HTMLElement {
+  const main = el("main", "doc");
+  main.id = "doc";
+  const files = changedFiles();
+  if (!files.length) {
+    main.appendChild(el("p", "no-diff", "this dataset carries no file diffs"));
+    return main;
+  }
+  if (!files.some((f) => f.path === currentFile)) currentFile = files[0].path;
+  const f = fileByPath(currentFile)!;
+  const st = fileStats(f);
+
+  const head = el("header", "doc-head");
+  const h1 = el("h1", undefined, f.path.split("/").pop()!);
+  const meta = el("p", "doc-meta");
+  const dir = f.path.split("/").slice(0, -1).join("/");
+  if (dir) meta.append(el("span", undefined, dir + "/"), el("span", undefined, " · "));
+  meta.appendChild(deltaChip(st.add, st.del));
+  for (const b of st.bands) meta.appendChild(el("i", `ft-band s${b}`));
+  head.append(h1, meta);
+  head.appendChild(el("p", "origin",
+    st.objects.length
+      ? `${st.objects.length} object${st.objects.length === 1 ? "" : "s"} in this file · every changed line below, in order`
+      : "no indexed symbol covers this file — the object lens cannot reach it, so this is the only place its changes appear"));
+  main.appendChild(head);
+
+  const owner = ownerOfLines(f.path);
+  const threads = threadsOnFile(f.path);
+  const placed = new Set<ReviewComment>();
+  const box = el("div", "file filelens");
+  const body = el("div", "diff");
+
+  // group consecutive lines by owner so each run can name what it belongs to
+  let runOwner: string | null | undefined;
+  let run: HTMLElement | null = null;
+  const startRun = (id: string | null): void => {
+    runOwner = id;
+    const label = el("div", "run-head");
+    if (id) {
+      const e = entry(id)!;
+      const jump = el("button", "run-jump");
+      jump.append(el("span", "run-in", "in "), el("code", undefined, e.name), el("span", "run-kind", e.kind));
+      jump.title = "open this object in the component lens";
+      jump.addEventListener("click", () => {
+        const c = componentOf(id);
+        if (c) selectComponent(c.id, id);
+      });
+      label.appendChild(jump);
+      const comp = componentOf(id);
+      if (comp) label.appendChild(el("span", "run-comp", comp.name));
+    } else {
+      label.appendChild(el("span", "run-none", "no object — imports, top-level statements or a nested body"));
+    }
+    body.appendChild(label);
+    run = el("div", "run");
+    body.appendChild(run);
+  };
+
+  for (const l of f.lines) {
+    const id = owner.get(lineKey(l)) ?? null;
+    if (run === null || id !== runOwner) startRun(id);
+    run!.appendChild(renderLine(l, f.path));
+    for (const d of draftsAt(f.path, l.kind === "del" ? l.old : l.new, l.kind === "del" ? "LEFT" : "RIGHT")) {
+      run!.appendChild(renderDraft(d));
+    }
+    // a thread anchored at this line renders here, whether an object owns it or not
+    const at = l.new ?? l.old;
+    for (const c of threads) {
+      if (placed.has(c)) continue;
+      if (Number(c.anchor?.match(/:(\d+)\s*$/)?.[1]) === at) {
+        placed.add(c);
+        run!.appendChild(commentThread(c, staleState(c, l)));
+      }
+    }
+  }
+  // a thread whose anchor line is not in the diff still belongs to this file
+  const stranded = threads.filter((c) => !placed.has(c));
+  if (stranded.length) {
+    body.appendChild(el("div", "run-head")).appendChild(
+      el("span", "run-none", `${stranded.length} thread${stranded.length === 1 ? "" : "s"} anchored outside the diff`));
+    const run2 = el("div", "run");
+    for (const c of stranded) run2.appendChild(commentThread(c, "gone"));
+    body.appendChild(run2);
+  }
+  box.append(el("div", "file-head", ""), body);
+  (box.firstChild as HTMLElement).append(el("span", "path", f.path), el("span", "delta", f.delta));
+  main.appendChild(box);
+  return main;
+}
+
+/** the rail in this lens: every changed file, grouped by directory */
+function renderFileRail(): HTMLElement {
+  const list = el("div", "comps");
+  const files = changedFiles();
+  let lastDir = "";
+  for (const f of files) {
+    const dir = f.path.split("/").slice(0, -1).join("/");
+    if (dir !== lastDir) {
+      list.appendChild(el("div", "day-h", dir || "/"));
+      lastDir = dir;
+    }
+    const st = fileStats(f);
+    const btn = el("button", `comp${f.path === currentFile ? " active" : ""}`);
+    const name = el("span", "comp-path", f.path.split("/").pop()!);
+    name.title = f.path;
+    const stats = el("span", "comp-stats");
+    stats.appendChild(deltaChip(st.add, st.del));
+    if (!st.objects.length) stats.appendChild(el("span", "no-obj", "no object"));
+    for (const b of st.bands) stats.appendChild(el("i", `ft-band s${b}`));
+    btn.append(name, stats);
+    btn.addEventListener("click", () => selectFile(f.path));
+    list.appendChild(btn);
+  }
+  return list;
+}
+
+/** the side panel in this lens: which objects live here, and where they belong */
+function renderFileObjects(): HTMLElement {
+  const box = el("div", "filetree");
+  const f = fileByPath(currentFile);
+  const ids = f ? fileStats(f).objects : [];
+  if (!ids.length) {
+    box.appendChild(el("p", "no-diff", "no indexed object declares anything in this file"));
+    return box;
+  }
+  for (const id of ids) {
+    const e = entry(id)!;
+    const row = el("button", "ft-file");
+    const name = el("span", "ft-name", e.name);
+    name.title = e.summary;
+    row.appendChild(name);
+    const d = deltaOf(e.files);
+    if (d.add || d.del) row.appendChild(deltaChip(d.add, d.del));
+    const comp = componentOf(id);
+    if (comp) row.appendChild(el("span", "ft-delta", comp.name));
+    row.addEventListener("click", () => { if (comp) selectComponent(comp.id, id); });
+    box.appendChild(row);
+  }
+  return box;
 }
 
 function renderComponentDoc(): HTMLElement {
@@ -2553,6 +2840,11 @@ function renderGraphPanel(): HTMLElement {
     side.appendChild(renderCommitHistory());
     return side;
   }
+  if (mode === "files") {
+    side.appendChild(el("h3", "rail-h", "Objects in this file"));
+    side.appendChild(renderFileObjects());
+    return side;
+  }
 
   // components lens: toggle between the dependency graph and the repo tree
   side.appendChild(el("h3", "rail-h", sideTab === "files" ? "Changed files" : "Dependency graph"));
@@ -2832,9 +3124,12 @@ function renderToggle(): HTMLElement {
   byCommit.setAttribute("data-mode", "commits");
   const byComp = el("button", undefined, "By component");
   byComp.setAttribute("data-mode", "components");
+  const byFile = el("button", undefined, "By file");
+  byFile.setAttribute("data-mode", "files");
   byCommit.addEventListener("click", () => setMode("commits"));
   byComp.addEventListener("click", () => setMode("components"));
-  t.append(byCommit, byComp);
+  byFile.addEventListener("click", () => setMode("files"));
+  t.append(byCommit, byComp, byFile);
   wrap.appendChild(t);
   return wrap;
 }
@@ -2914,7 +3209,7 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
 
   const layout = el("div", "layout");
   layout.appendChild(renderRail());
-  layout.appendChild(mode === "commits" ? renderCommitDoc() : renderComponentDoc());
+  layout.appendChild(docForMode());
   layout.appendChild(renderGraphPanel());
   document.body.appendChild(layout);
   fillStrip();

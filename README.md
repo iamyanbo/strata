@@ -46,6 +46,15 @@ def−use graph; what they reach becomes a component you read top to bottom.
 The dependency graph panel shows the local shape, and a replay walks the PR
 commit by commit.
 
+**Three lenses over one PR.** *By commit* walks the history, *by component*
+follows the def−use fill, and *by file* is the completeness backstop: the
+component lens is a lens, and on a real PR it reaches only about half the changed
+lines — docs, untyped sources and files whose changes fall outside every
+top-level symbol never appear in it. The file lens lists every changed file, and
+shows each one in line order with each run of lines labeled by the object that
+owns it (click through to that object), or marked as belonging to none. Review
+threads on files no object covers finally have a home there.
+
 **One object, one diff.** An object shows the lines inside its own span — its
 declaration, its body, its doc comment — not the whole file it happens to live
 in. Six symbols declared in one edited file used to render six copies of the

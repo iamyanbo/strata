@@ -142,7 +142,7 @@ export interface PRInfo {
   author: string;
 }
 
-export type Mode = "commits" | "components";
+export type Mode = "commits" | "components" | "files";
 
 /** one place where `a` references `b`: the line that justifies the edge */
 export interface CallSite {
@@ -181,6 +181,8 @@ export interface PageData {
   entries: Record<string, Entry>;
   /** def−use edges between entries (a references b, i.e. a calls b) */
   edges?: GraphEdge[];
+  /** review threads on files no object covers — shown in the file lens */
+  fileComments?: Record<string, Comment[]>;
   /** diffs of referenced files that are not entries (e.g. covering tests) */
   extraFiles?: Record<string, FileDiff>;
   /** every file the PR changed, with per-line time attribution */

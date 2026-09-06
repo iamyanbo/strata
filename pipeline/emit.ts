@@ -264,6 +264,9 @@ export function emit(
     for (const commit of commits) if (shas.has(commit.sha)) commit.touches.push(id);
   }
 
+  // threads on files no object covers, kept for the file lens
+  const fileComments: Record<string, Comment[]> = {};
+
   // thread + attach review comments to the entries whose file they discuss
   if (meta?.comments?.length) {
     const withPath = meta.comments.filter((c) => c.path);
@@ -347,7 +350,13 @@ export function emit(
         const gap = line < r.start ? r.start - line : line - r.end;
         if (gap < bestGap) { bestGap = gap; best = id; }
       }
-      if (!best) continue;
+      if (!best) {
+        // no object in this file at all (docs, untyped sources, files with no
+        // seeds): the thread still belongs to the PR, so the file lens shows it
+        const { path, ...rest } = c;
+        (fileComments[c.path] ??= []).push(rest);
+        continue;
+      }
       const e = entries.get(best)!;
       const { path, ...rest } = c;
       e.comments = [...(e.comments ?? []), rest];
@@ -393,6 +402,7 @@ export function emit(
     commits,
     entries: Object.fromEntries(entries),
     edges,
+    fileComments,
     extraFiles: extraFiles(),
     files: pr.files.map(toDiffLines)
   };
