@@ -179,6 +179,20 @@ export interface GraphEdge {
   sites?: CallSite[];
 }
 
+/** A snapshot of the PR's checks. Time-stamped on purpose: it is read once,
+    during analysis, and CI keeps running afterwards. */
+export interface ChecksSnapshot {
+  total: number;
+  failing: number;
+  running: number;
+  state: "passing" | "failing" | "running";
+  /** the first few failing check names */
+  names: string[];
+  url: string;
+  /** ISO time the snapshot was taken */
+  at: string;
+}
+
 export interface PageData {
   pr: PRInfo;
   /** full sha of the PR head — commit_id for review exports */
@@ -190,6 +204,8 @@ export interface PageData {
   banner: string;
   /** how the analysis was built — shown behind the lineage line's ⓘ */
   method?: string[];
+  /** CI on the head commit, as it stood when the PR was analyzed */
+  checks?: ChecksSnapshot;
   initialComponent: string;
   components: ComponentDoc[];
   commits: Commit[];

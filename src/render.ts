@@ -2421,6 +2421,22 @@ function renderLineage(bannerText: string): HTMLElement {
     wrap.appendChild(ghLink("lin-out", `PR ${page.pr.number} ↗`, `${ghBase()}/pull/${num}`, "open the pull request"));
   }
 
+  // CI, as it stood when this PR was analyzed. A snapshot, and it says so:
+  // showing a stale "passing" would be worse than showing nothing.
+  const ck = page.checks;
+  if (ck) {
+    const chip = ghLink(`lin-checks ${ck.state}`,
+      ck.state === "failing" ? `${ck.failing} check${ck.failing === 1 ? "" : "s"} failing`
+      : ck.state === "running" ? `${ck.running} check${ck.running === 1 ? "" : "s"} running`
+      : `${ck.total} check${ck.total === 1 ? "" : "s"} passing`,
+      ck.url, "");
+    const when = new Date(ck.at);
+    const stamp = `read ${MONTHS[when.getMonth()]} ${when.getDate()} ${String(when.getHours()).padStart(2, "0")}:${String(when.getMinutes()).padStart(2, "0")} — re-analyze to refresh`;
+    chip.title = ck.names.length ? `${ck.names.join(", ")}
+${stamp}` : stamp;
+    wrap.appendChild(chip);
+  }
+
   // the method, kept but demoted: hover to read how this page was built
   const info = el("button", "lin-info", "ⓘ");
   info.setAttribute("aria-label", "how this analysis was built");

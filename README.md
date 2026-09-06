@@ -99,6 +99,11 @@ counter, and `j`/`k` step past them — you cannot review what the PR did not
 change. A component of sixteen objects with one change costs one screen, not
 sixteen.
 
+**Checks, stamped.** The lineage line carries CI on the head commit as it stood
+when the PR was analyzed — passing, failing with the names of what failed, or
+still running — linked to the checks tab. It says *read <time>* on hover,
+because a dataset is a photograph and CI keeps running after the shutter.
+
 **Review checkpoints.** *Mark reviewed* does what it says: it drops a
 checkpoint at today's commits **and** ticks off every changed object. On the
 next push, only the objects those commits touched come back to unread — the

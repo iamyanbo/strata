@@ -4,7 +4,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
-import type { PageData, Entry, ComponentDoc, Commit, PRInfo, EntryKind, Comment, RawComment, Stratum } from "../src/types.js";
+import type { PageData, Entry, ComponentDoc, Commit, PRInfo, EntryKind, Comment, RawComment, Stratum, ChecksSnapshot } from "../src/types.js";
 import type { RawPR, RawCommit, RawFileDiff } from "./git.js";
 import { sweepBands, isStaleWriter } from "./sweeps.js";
 import type { Index, Def } from "./index.js";
@@ -26,6 +26,7 @@ export function emit(
     baseRef?: string;
     headRef?: string;
     headLabel?: string;
+    checks?: ChecksSnapshot;
     comments?: RawComment[];
   }
 ): void {
@@ -406,6 +407,7 @@ export function emit(
       "per-line attribution: git blame for additions, per-commit diffs for deletions"
     ],
     branch,
+    checks: meta?.checks,
     initialComponent: components[0]?.id ?? "",
     components,
     commits,
