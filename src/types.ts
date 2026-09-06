@@ -171,9 +171,13 @@ export interface PageData {
   pr: PRInfo;
   /** full sha of the PR head — commit_id for review exports */
   head?: string;
+  /** full sha the PR is diffed against */
+  base?: string;
   /** where the PR merges from and to (GitHub head/base refs) */
   branch?: { head: string; base: string; label?: string };
   banner: string;
+  /** how the analysis was built — shown behind the lineage line's ⓘ */
+  method?: string[];
   initialComponent: string;
   components: ComponentDoc[];
   commits: Commit[];

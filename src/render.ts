@@ -3165,6 +3165,88 @@ function makeThemeToggle(): HTMLElement {
   return group;
 }
 
+// ---- lineage line --------------------------------------------------------------
+// What the old banner said, in the order a reviewer needs it: where this merges
+// from and to, then exactly which two commits the diff spans, both linked to
+// GitHub. The analysis method (AST index, hop count, blame) is true but it is
+// not something you re-read every session, so it moves behind the ⓘ.
+
+function ghBase(): string {
+  return page.pr.repo ? `https://github.com/${page.pr.repo}` : "";
+}
+
+function ghLink(cls: string, text: string, href: string, title?: string): HTMLElement {
+  if (!href) return el("span", cls, text);
+  const a = el("a", cls, text) as HTMLAnchorElement;
+  a.href = href;
+  a.target = "_blank";
+  a.rel = "noopener";
+  if (title) a.title = title;
+  return a;
+}
+
+/** "colinhacks:branch" (a fork) → that fork's own tree */
+function branchHref(ref: string, label?: string): string {
+  if (!ghBase()) return "";
+  const forked = label?.includes(":") ? label.split(":") : null;
+  return forked
+    ? `https://github.com/${forked[0]}/${page.pr.repo.split("/")[1]}/tree/${forked[1]}`
+    : `${ghBase()}/tree/${ref}`;
+}
+
+function renderLineage(bannerText: string): HTMLElement {
+  // the mock/failure banner keeps its loud form — it is a warning, not lineage
+  if (bannerText.startsWith("⚠")) return el("div", "banner warn", bannerText);
+
+  const wrap = el("div", "lineage");
+  // the bundled example still says so — it is the one dataset that ships
+  if (bannerText.startsWith("sample dataset")) wrap.appendChild(el("span", "conn-chip comp", "sample"));
+  const b = page.branch;
+  if (b) {
+    wrap.appendChild(el("span", "lin-cap", "merging"));
+    wrap.appendChild(ghLink("lin-branch head", b.head, branchHref(b.head, b.label), b.label ?? b.head));
+    wrap.appendChild(el("span", "lin-arrow", "→"));
+    wrap.appendChild(ghLink("lin-branch base", b.base, branchHref(b.base)));
+    wrap.appendChild(el("span", "lin-dot", "·"));
+  }
+
+  const base = page.base ?? "";
+  const head = page.head ?? "";
+  if (base || head) {
+    wrap.appendChild(el("span", "lin-cap", "diff"));
+    wrap.appendChild(ghLink("lin-sha", base.slice(0, 7) || "base",
+      base ? `${ghBase()}/commit/${base}` : "", "the commit this PR is measured against"));
+    wrap.appendChild(el("span", "lin-range", "…"));
+    wrap.appendChild(ghLink("lin-sha", head.slice(0, 7) || "head",
+      head ? `${ghBase()}/commit/${head}` : "", "the newest commit in this PR"));
+    if (base && head && ghBase()) {
+      wrap.appendChild(ghLink("lin-out", "compare ↗", `${ghBase()}/compare/${base}...${head}`,
+        "open this range on github"));
+    }
+    wrap.appendChild(el("span", "lin-dot", "·"));
+  }
+
+  const num = page.pr.number.replace("#", "");
+  if (num && ghBase()) {
+    wrap.appendChild(ghLink("lin-out", `PR ${page.pr.number} ↗`, `${ghBase()}/pull/${num}`, "open the pull request"));
+  }
+
+  // the method, kept but demoted: hover to read how this page was built
+  const info = el("button", "lin-info", "ⓘ");
+  info.setAttribute("aria-label", "how this analysis was built");
+  info.addEventListener("mouseenter", () => showHoverCard(info, (card) => {
+    card.appendChild(el("div", "hc-when", "how this page was built"));
+    // the method is a typed list; the banner string is only a fallback for
+    // datasets emitted before it existed
+    const parts = page.method ?? bannerText.split(" · ").filter((x) => !/→/.test(x));
+    for (const part of parts) card.appendChild(el("div", "hc-msg", part));
+
+  }));
+  info.addEventListener("mouseleave", hideHoverCard);
+  wrap.appendChild(info);
+  return wrap;
+}
+
 function renderTopbar(): HTMLElement {
   const bar = el("header", "topbar");
   const wm = el("a", "wordmark", "strata");
@@ -3184,8 +3266,10 @@ function renderTopbar(): HTMLElement {
   if (!onHome) bar.appendChild(el("span", "export-slot"));
   if (!onHome) {
     const ref = el("span", "pr-ref");
+    const num = page.pr.number.replace("#", "");
     ref.append(
-      el("b", undefined, `${page.pr.repo} ${page.pr.number}`),
+      ghLink("pr-link", `${page.pr.repo} ${page.pr.number}`,
+        num && ghBase() ? `${ghBase()}/pull/${num}` : "", "open the pull request on github"),
       document.createTextNode(` \u00b7 ${page.pr.title}`)
     );
     bar.appendChild(ref);
@@ -3281,7 +3365,7 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
   document.body.textContent = "";
   document.body.appendChild(renderTopbar());
   const bannerText = bannerOverride ?? p.banner;
-  document.body.appendChild(el("div", `banner${bannerText.startsWith("\u26a0") ? " warn" : ""}`, bannerText));
+  document.body.appendChild(renderLineage(bannerText));
   document.body.appendChild(el("div", "strip-slot"));
   document.body.appendChild(el("div", "sticky-sentinel"));
   document.body.appendChild(el("div", "objbar-slot"));

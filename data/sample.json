@@ -1,5 +1,6 @@
 {
   "head": "18e71c71daff6e79ab8f00a48db252ccb340da1f",
+  "base": "68aca3dc402c59f5c4e30322e83028389e44b8b5",
   "pr": {
     "repo": "colinhacks/zod",
     "number": "#6541",
@@ -7,6 +8,11 @@
     "author": "Colin McDonnell"
   },
   "banner": "base 68aca3d → head 18e71c7 · TypeScript AST def−use index · 3-hop co-change analysis · per-line git blame · rename-json-schema-process-helper → main",
+  "method": [
+    "TypeScript AST def−use index over base and head",
+    "components: flood fill from changed symbols, 3 hops",
+    "per-line attribution: git blame for additions, per-commit diffs for deletions"
+  ],
   "branch": {
     "head": "rename-json-schema-process-helper",
     "base": "main",

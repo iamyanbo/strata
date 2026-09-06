@@ -389,6 +389,7 @@ export function emit(
   const branchLine = branch ? ` \u00b7 ${branch.head} \u2192 ${branch.base}` : "";
   const page: PageData & { entries: Record<string, Entry> } = {
     head: pr.head,
+    base: pr.base,
     pr: {
       repo: meta?.repo ?? "",
       number: prNum ? `#${prNum}` : "",
@@ -396,6 +397,11 @@ export function emit(
       author: prAuthor
     } satisfies PRInfo,
     banner: `base ${pr.base.slice(0, 7)} \u2192 head ${pr.head.slice(0, 7)} \u00b7 TypeScript AST def\u2212use index \u00b7 3-hop co-change analysis \u00b7 per-line git blame${branchLine}`,
+    method: [
+      "TypeScript AST def−use index over base and head",
+      "components: flood fill from changed symbols, 3 hops",
+      "per-line attribution: git blame for additions, per-commit diffs for deletions"
+    ],
     branch,
     initialComponent: components[0]?.id ?? "",
     components,
