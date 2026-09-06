@@ -112,7 +112,14 @@ const server = http.createServer(async (req, res) => {
           commit_id: head || undefined,
           event,
           body: `exported from strata\n<!-- strata-threads: ${fresh.map((c) => c.id).join(",")} -->`,
-          comments: fresh.map((c) => ({ path: c.path, side: "RIGHT", line: c.line, body: c.body }))
+          // side follows the line: a note on a removed line anchors LEFT, where
+          // `line` is the number in the file BEFORE the change
+          comments: fresh.map((c) => ({
+            path: c.path,
+            side: c.side === "LEFT" ? "LEFT" : "RIGHT",
+            line: c.line,
+            body: c.body
+          }))
         })
       }).then((r) => r.json());
       if (out.errors || out.message === "Not Found") {

@@ -1441,3 +1441,56 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .gtip-open:hover { background: color-mix(in srgb, var(--card-fg) 22%, transparent); border-color: transparent; }
 .peek { background: color-mix(in srgb, var(--ink) 3%, transparent); border-radius: 0 6px 6px 0; padding: 6px 9px; }
 .peek-line.at { background: color-mix(in srgb, var(--s1) 16%, transparent); border-radius: 3px; }
+
+/* ---- review notes written here ---- */
+/* the affordance: a quiet + at the end of a row, awake on hover */
+.ln { position: relative; }
+.ln-actions { display: inline-flex; align-items: center; gap: 8px; justify-self: end; padding-right: 8px; }
+.ln-note {
+  opacity: 0; flex: none;
+  width: 17px; height: 17px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  font: 600 11px var(--mono); color: var(--paper);
+  background: var(--accent); border-radius: 4px; cursor: pointer;
+  transition: opacity 0.1s ease;
+}
+.ln:hover .ln-note, .ln-note:focus-visible { opacity: 1; }
+.ln-note:hover { background: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
+
+.composer { margin: 6px 10px 10px 96px; }
+.composer-in {
+  width: 100%;
+  font: 400 12px/1.6 var(--mono);
+  color: var(--ink); background: var(--paper);
+  border: 1px solid var(--strong); border-radius: 8px;
+  padding: 9px 11px; outline: none; resize: vertical;
+}
+.composer-in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.composer-actions { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+.composer-hint { flex: 1; font: 400 9.5px var(--mono); color: var(--faint); }
+
+.note {
+  margin: 6px 10px 10px 96px;
+  padding: 9px 12px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+}
+.note.sent { border-left-color: var(--ok); }
+.note-head { display: flex; align-items: center; gap: 8px; font: 400 10.5px/1 var(--mono); color: var(--muted); }
+.note-head b { color: var(--ink); font-weight: 600; }
+.note-anchor { color: var(--faint); }
+.note-chip {
+  font: 500 8.5px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-radius: 999px; padding: 3px 7px;
+}
+.note-chip.sent { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.note-tools { margin-left: auto; display: flex; gap: 4px; }
+.note-tool { font: 400 9.5px var(--mono); color: var(--faint); padding: 2px 5px; border-radius: 4px; cursor: pointer; }
+.note-tool:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.note-body { margin-top: 5px; font: 400 12.5px/1.6 var(--sans); color: var(--ink); white-space: pre-wrap; }
+
+.theme-toggle.has-notes { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--hairline)); }
+.exp-row.mine b { color: var(--accent); }

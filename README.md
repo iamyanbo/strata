@@ -85,8 +85,15 @@ thread flags "rewritten since" with an expandable before/after of what
 changed. Facts like "covered by X.test.ts" jump straight to the covering
 test's diff, and "untested" is stated plainly on the object header.
 
-**Export.** Push your threads back to GitHub as a single review (needs
-`GITHUB_TOKEN`); re-exports skip already-pushed threads.
+**Write the review here.** Hover any diff line and the `+` opens a composer:
+notes anchor to that line, render inline where a GitHub thread would, and are
+kept per PR in your browser until you push them. A note on a removed line
+anchors to the old file, so it lands on the left side of the GitHub diff where
+the line still exists.
+
+**Export.** Your notes and the threads that came back from GitHub leave together
+as a single review (needs `GITHUB_TOKEN`); re-exports skip anything already
+pushed, and pushed notes are marked *on github* instead of *not sent yet*.
 
 ## How it works
 

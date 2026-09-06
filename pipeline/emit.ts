@@ -184,6 +184,40 @@ export function emit(
     }
   }
 
+  // --- deletions: blame cannot see a line that no longer exists at head, so a
+  // removed line is attributed to the commit whose OWN diff removed that text.
+  // Same provenance as an addition — the ribbon answers when, who and which
+  // commit on both sides of the change, not just on the lines that survived.
+  const removals = new Map<string, { sha: string; band: Stratum | undefined }[]>();
+  for (const c of [...pr.commits].filter((c) => !isMerge(c)).reverse()) {
+    for (const f of c.files) {
+      for (const l of f.lines) {
+        if (l.kind !== "del" || !l.text.trim()) continue;
+        const key = `${f.path} ${l.text.trim()}`;
+        if (!removals.has(key)) removals.set(key, []);
+        removals.get(key)!.push({ sha: c.sha, band: bandOfSha.get(c.sha) });
+      }
+    }
+  }
+  // the same text can be removed more than once in a file; walk the whole-PR
+  // deletions in order and consume the per-commit removals in the same order
+  const taken = new Map<string, number>();
+  for (const f of pr.files) {
+    for (const l of f.lines) {
+      if (l.kind !== "del" || !l.text.trim()) continue;
+      const key = `${f.path} ${l.text.trim()}`;
+      const list = removals.get(key);
+      if (!list?.length) continue;
+      const i = Math.min(taken.get(key) ?? 0, list.length - 1);
+      taken.set(key, i + 1);
+      const hit = list[i];
+      if (hit.band) {
+        l.stratum = hit.band;
+        l.by = hit.sha.slice(0, 7);
+      }
+    }
+  }
+
   const commits: Commit[] = pr.commits.map((c, i) => ({
     id: `c${i}`,
     sha: c.sha.slice(0, 7),

@@ -1,5 +1,5 @@
 import type { Commit, ComponentDoc, DiffLine, Entry, FileDiff, GraphEdge, PageData } from "./types.js";
-import type { Comment as ReviewComment } from "./types.js";
+import type { Comment as ReviewComment, DraftComment } from "./types.js";
 
 // ---- rendering -------------------------------------------------------------
 // Two lenses over one PR. The toggle switches the rail and the document:
@@ -204,6 +204,20 @@ function selectCommit(id: string): void {
   document.getElementById("doc")?.scrollIntoView({ block: "start" });
 }
 
+function fillExport(): void {
+  const slot = document.querySelector(".export-slot");
+  if (!slot) return;
+  slot.innerHTML = "";
+  const threads = collectThreads();
+  const mine = unsentDrafts().length;
+  if (!dataName || !threads.length) return;
+  const exp = el("button", `theme-toggle${mine ? " has-notes" : ""}`,
+    mine ? `${mine} note${mine === 1 ? "" : "s"} to push` : `export · ${threads.length}`);
+  exp.title = "push your notes and review threads to github as one review";
+  exp.addEventListener("click", () => openExportCard());
+  slot.appendChild(exp);
+}
+
 function fillObjBar(): void {
   const slot = document.querySelector(".objbar-slot");
   if (!slot) return;
@@ -222,6 +236,7 @@ function fillStrip(): void {
 function refresh(): void {
   fillStrip();
   fillObjBar();
+  fillExport();
   const layout = document.querySelector(".layout");
   if (!layout) return;
   layout.innerHTML = "";
@@ -265,7 +280,7 @@ function whenRange(from: string | undefined, to: string | undefined): string {
 
 // ---- diff ----------------------------------------------------------------------
 
-function renderLine(l: DiffLine): HTMLElement {
+function renderLine(l: DiffLine, path?: string): HTMLElement {
   // lines you had already seen at your last checkpoint render dimmed
   const seen = !!(review && l.by && review.seenCommits.includes(l.by));
   const row = el("div", `ln ${l.kind}${l.stratum ? ` s${l.stratum}` : ""}${seen ? " seen" : ""}`);
@@ -275,7 +290,8 @@ function renderLine(l: DiffLine): HTMLElement {
   const ribbon = el("span", `ribbon${l.stratum ? ` s${l.stratum}` : l.conflict ? " cf" : ""}`);
   if (l.stratum) {
     const c = commitBySha(l.by ?? "");
-    ribbon.addEventListener("mouseenter", () => showRibbonTip(ribbon, c, l.stratum!, false));
+    // deletions carry the commit that REMOVED the line, so the card says so
+    ribbon.addEventListener("mouseenter", () => showRibbonTip(ribbon, c, l.stratum!, false, l.kind === "del"));
     ribbon.addEventListener("mouseleave", hideRibbonTip);
   } else if (l.conflict) {
     const c = commitBySha(l.by ?? "");
@@ -289,7 +305,23 @@ function renderLine(l: DiffLine): HTMLElement {
     el("span", "sign", l.kind === "add" ? "+" : l.kind === "del" ? "\u2212" : ""),
     el("code", undefined, l.text)
   );
-  if (l.kind === "move") row.appendChild(el("span", "mark moved", "moved"));
+  const actions = el("span", "ln-actions");
+  if (l.kind === "move") actions.appendChild(el("span", "mark moved", "moved"));
+  // any line can carry a note: added and context lines anchor to the new file,
+  // deleted lines to the old one, which is the side GitHub wants for them
+  const side: "RIGHT" | "LEFT" = l.kind === "del" ? "LEFT" : "RIGHT";
+  const at = side === "LEFT" ? l.old : l.new;
+  if (path && at !== undefined) {
+    const add = el("button", "ln-note", "＋");
+    add.title = `comment on line ${at}`;
+    add.setAttribute("aria-label", "add a review note on this line");
+    add.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openComposer(row, path, at, side);
+    });
+    actions.appendChild(add);
+  }
+  row.appendChild(actions);
   return row;
 }
 
@@ -323,13 +355,13 @@ function hideHoverCard(): void {
 }
 
 /** the diff tick's hover card: when the line was written, by whom, in which commit */
-function showRibbonTip(ribbon: HTMLElement, c: Commit | undefined, band: number, conflict = false): void {
+function showRibbonTip(ribbon: HTMLElement, c: Commit | undefined, band: number, conflict = false, removed = false): void {
   showHoverCard(ribbon, (card) => {
     const when = el("span", "hc-when");
     when.appendChild(el("i", band ? `tk-tick s${band}` : "tk-tick cf"));
     when.appendChild(el("b", undefined,
       conflict ? `merge resolution${c ? ` · ${whenLabel(c.ts, c.day, c.time)}` : ""}`
-      : c ? `written ${whenLabel(c.ts, c.day, c.time)}` : `time band ${band}/4`));
+      : c ? `${removed ? "removed" : "written"} ${whenLabel(c.ts, c.day, c.time)}` : `time band ${band}/4`));
     card.appendChild(when);
     if (c) {
       card.appendChild(el("div", "hc-who", c.author));
@@ -360,7 +392,12 @@ function renderFile(f: FileDiff, comments?: ReviewComment[]): HTMLElement {
     } else loose.push(c);
   }
   for (const l of f.lines) {
-    body.appendChild(renderLine(l));
+    const row = renderLine(l, f.path);
+    body.appendChild(row);
+    // your own notes sit under their line, like a thread would
+    for (const d of draftsAt(f.path, l.kind === "del" ? l.old : l.new, l.kind === "del" ? "LEFT" : "RIGHT")) {
+      body.appendChild(renderDraft(d));
+    }
     const ln = l.new ?? l.old;
     if (ln === undefined) continue;
     // place the thread at the closest diff row at-or-before its anchor line
@@ -449,6 +486,110 @@ function commentThread(c: ReviewComment, state?: "stale" | "gone"): HTMLElement 
   });
   if (stalePanel) wrap.append(head, stalePanel, bodyWrap);
   else wrap.append(head, bodyWrap);
+  return wrap;
+}
+
+// ---- review notes you write here ---------------------------------------------
+// Comments authored in strata live in localStorage until you push them: one
+// document per PR, keyed the same way as the review checkpoint. They render
+// inline in the diff exactly where a GitHub thread would, and leave through the
+// same export as the threads that came back from GitHub.
+
+let drafts: DraftComment[] = [];
+let draftKey = "";
+
+function loadDrafts(): void {
+  draftKey = `strata-notes:${page.pr.repo}${page.pr.number}`;
+  try {
+    const raw = localStorage.getItem(draftKey);
+    drafts = raw ? (JSON.parse(raw) as DraftComment[]) : [];
+  } catch {
+    drafts = [];
+  }
+}
+
+function saveDrafts(): void {
+  try { localStorage.setItem(draftKey, JSON.stringify(drafts)); } catch { /* storage unavailable */ }
+}
+
+function draftsAt(path: string, line: number | undefined, side: "RIGHT" | "LEFT"): DraftComment[] {
+  if (line === undefined) return [];
+  return drafts.filter((d) => d.path === path && d.line === line && d.side === side);
+}
+
+/** unsent notes are what the export button counts */
+function unsentDrafts(): DraftComment[] {
+  return drafts.filter((d) => !d.exportedAt);
+}
+
+function addDraft(path: string, line: number, side: "RIGHT" | "LEFT", body: string): void {
+  drafts.push({
+    id: `d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    path, line, side, body,
+    created: new Date().toISOString(),
+    author: "you"
+  });
+  saveDrafts();
+}
+
+function removeDraft(id: string): void {
+  drafts = drafts.filter((d) => d.id !== id);
+  saveDrafts();
+}
+
+/** the composer: a textarea under the line, Cmd/Ctrl+Enter to save */
+function openComposer(after: HTMLElement, path: string, line: number, side: "RIGHT" | "LEFT", existing?: DraftComment): void {
+  after.parentElement?.querySelector(".composer")?.remove();
+  const box = el("div", "composer");
+  const ta = el("textarea", "composer-in") as HTMLTextAreaElement;
+  ta.placeholder = `note on ${path.split("/").pop()}:${line}${side === "LEFT" ? " (removed line)" : ""}`;
+  ta.value = existing?.body ?? "";
+  ta.rows = 3;
+  const actions = el("div", "composer-actions");
+  const hint = el("span", "composer-hint", "⌘/Ctrl + Enter to save");
+  const cancel = el("button", "strip-btn ghost", "cancel");
+  const save = el("button", "strip-btn", existing ? "update note" : "add note");
+  const commit = (): void => {
+    const body = ta.value.trim();
+    if (!body) return;
+    if (existing) {
+      existing.body = body;
+      saveDrafts();
+    } else {
+      addDraft(path, line, side, body);
+    }
+    refresh();
+  };
+  cancel.addEventListener("click", () => box.remove());
+  save.addEventListener("click", commit);
+  ta.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); commit(); }
+    if (ev.key === "Escape") { ev.stopPropagation(); box.remove(); }
+  });
+  actions.append(hint, cancel, save);
+  box.append(ta, actions);
+  after.insertAdjacentElement("afterend", box);
+  ta.focus();
+}
+
+/** a note of your own, rendered where a GitHub thread would sit */
+function renderDraft(d: DraftComment): HTMLElement {
+  const wrap = el("div", `note${d.exportedAt ? " sent" : ""}`);
+  const head = el("div", "note-head");
+  head.append(
+    el("span", `hist-av sm ${authorColor(d.author)}`, d.author.slice(0, 1).toUpperCase()),
+    el("b", undefined, d.author),
+    el("span", "note-anchor", `${d.path.split("/").pop()}:${d.line}${d.side === "LEFT" ? " · removed" : ""}`),
+    el("span", `note-chip${d.exportedAt ? " sent" : ""}`, d.exportedAt ? "on github" : "not sent yet")
+  );
+  const tools = el("div", "note-tools");
+  const edit = el("button", "note-tool", "edit");
+  edit.addEventListener("click", () => openComposer(wrap, d.path, d.line, d.side, d));
+  const del = el("button", "note-tool", "delete");
+  del.addEventListener("click", () => { removeDraft(d.id); refresh(); });
+  tools.append(edit, del);
+  head.appendChild(tools);
+  wrap.append(head, el("p", "note-body", d.body));
   return wrap;
 }
 
@@ -2350,27 +2491,79 @@ function renderGraphPanel(): HTMLElement {
   return side;
 }
 // ---- export --------------------------------------------------------------------------
-// Selected review threads leave as one GitHub review: POST /api/export resolves
-// the token server-side, and every export stamps the thread ids it carried in
-// the review body, so re-exports skip already-pushed threads instead of duping.
+// Everything you wrote here leaves as one GitHub review: POST /api/export
+// resolves the token server-side, and every export stamps the thread ids it
+// carried in the review body, so re-exports skip already-pushed items instead of
+// duping. Notes written in strata and threads that came back from GitHub travel
+// through the same door.
 
-function collectThreads(): { e: Entry; c: ReviewComment }[] {
-  const out: { e: Entry; c: ReviewComment }[] = [];
+interface ExportItem {
+  id: string;
+  path: string;
+  line?: number;
+  side: "RIGHT" | "LEFT";
+  body: string;
+  author: string;
+  anchor: string;
+  /** written here rather than fetched from GitHub */
+  mine: boolean;
+  sent: boolean;
+  replies?: ReviewComment[];
+}
+
+function collectThreads(): ExportItem[] {
+  const out: ExportItem[] = [];
+  // your unsent notes lead: they are the reason to open this card
+  for (const d of [...drafts].sort((a, b) => Number(!!a.exportedAt) - Number(!!b.exportedAt) || a.created.localeCompare(b.created))) {
+    out.push({
+      id: d.id,
+      path: d.path,
+      line: d.line,
+      side: d.side,
+      body: d.body,
+      author: d.author,
+      anchor: `${d.path}:${d.line}${d.side === "LEFT" ? " (removed)" : ""}`,
+      mine: true,
+      sent: !!d.exportedAt
+    });
+  }
   for (const e of Object.values(page.entries)) {
-    for (const c of e.comments ?? []) out.push({ e, c });
+    for (const c of e.comments ?? []) {
+      const anchor = c.anchor ?? "";
+      out.push({
+        id: String(c.id ?? anchor),
+        path: anchor.replace(/:\d+\s*$/, ""),
+        line: Number(anchor.match(/:(\d+)\s*$/)?.[1] ?? 0) || undefined,
+        side: "RIGHT",
+        body: c.body,
+        author: c.author,
+        anchor,
+        mine: false,
+        sent: false,
+        replies: c.replies
+      });
+    }
   }
   return out;
 }
 
-function exportMarkdown(picked: { e: Entry; c: ReviewComment }[]): string {
+function exportMarkdown(picked: ExportItem[]): string {
   const lines: string[] = [];
-  for (const { c } of picked) {
-    lines.push(`**${c.anchor ?? "(no anchor)"} — ${c.author}**`);
+  for (const c of picked) {
+    lines.push(`**${c.anchor || "(no anchor)"} — ${c.author}**`);
     lines.push(c.body);
     for (const r of c.replies ?? []) lines.push(`> ${r.author}: ${r.body}`);
     lines.push("");
   }
   return lines.join("\n");
+}
+
+/** stamp the notes we just pushed so they never go twice */
+function markExported(ids: string[]): void {
+  const set = new Set(ids);
+  const now = new Date().toISOString();
+  for (const d of drafts) if (set.has(d.id) && !d.exportedAt) d.exportedAt = now;
+  saveDrafts();
 }
 
 function openExportCard(): void {
@@ -2381,18 +2574,19 @@ function openExportCard(): void {
   card.appendChild(el("p", "exp-note",
     `${threads.length} thread${threads.length === 1 ? "" : "s"} · pushed as one GitHub review${page.head ? ` on head ${page.head.slice(0, 7)}` : ""}`));
   const checks: HTMLInputElement[] = [];
-  for (const { c } of threads) {
-    const row = el("label", "exp-row");
+  for (const c of threads) {
+    const row = el("label", `exp-row${c.mine ? " mine" : ""}`);
     const box = document.createElement("input");
     box.type = "checkbox";
-    box.checked = true;
+    box.checked = !c.sent; // already on GitHub: listed, but not sent again
     checks.push(box);
     row.appendChild(box);
     const txt = el("span", "exp-txt");
     txt.append(
-      el("b", undefined, c.anchor ?? ""),
+      el("b", undefined, c.anchor || "(no anchor)"),
       document.createTextNode(` — ${c.author}: ${c.body.length > 90 ? c.body.slice(0, 89) + "…" : c.body}`)
     );
+    if (c.mine) txt.appendChild(el("span", `note-chip${c.sent ? " sent" : ""}`, c.sent ? "on github" : "yours"));
     row.appendChild(txt);
     card.appendChild(row);
   }
@@ -2416,10 +2610,11 @@ function openExportCard(): void {
       body: JSON.stringify({
         pr: dataName,
         head: page.head,
-        comments: picked.map(({ c }) => ({
-          id: String(c.id ?? c.anchor ?? ""),
-          path: (c.anchor ?? "").replace(/:\d+\s*$/, ""),
-          line: Number(c.anchor?.match(/:(\d+)\s*$/)?.[1] ?? 0) || undefined,
+        comments: picked.map((c) => ({
+          id: c.id,
+          path: c.path,
+          line: c.line,
+          side: c.side,
           body: c.body
         }))
       })
@@ -2427,6 +2622,10 @@ function openExportCard(): void {
       .then((r) => r.json())
       .then((out) => {
         overlay.remove();
+        if (!out.error) {
+          markExported(picked.filter((c) => c.mine).map((c) => c.id));
+          refresh();
+        }
         window.alert(out.error ? `export failed: ${out.error}` : out.message ?? `exported ${out.exported} comment${out.exported === 1 ? "" : "s"}`);
       })
       .catch(() => {
@@ -2532,15 +2731,9 @@ function renderTopbar(): HTMLElement {
   bar.appendChild(progress);
   wireAnalyze(addr, progress);
   bar.appendChild(addr);
-  if (!onHome) {
-    const threads = collectThreads();
-    if (dataName && threads.length) {
-      const exp = el("button", "theme-toggle", `export · ${threads.length}`);
-      exp.title = "push review threads to github as one review";
-      exp.addEventListener("click", () => openExportCard());
-      bar.appendChild(exp);
-    }
-  }
+  // a slot, not a button: the count changes every time you write a note, and
+  // the topbar itself must not re-render (it owns the url field you type in)
+  if (!onHome) bar.appendChild(el("span", "export-slot"));
   if (!onHome) {
     const ref = el("span", "pr-ref");
     ref.append(
@@ -2631,6 +2824,7 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
   onHome = false;
   currentComponent = p.initialComponent;
   loadReview();
+  loadDrafts();
 
   document.body.textContent = "";
   document.body.appendChild(renderTopbar());
@@ -2647,5 +2841,6 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
   document.body.appendChild(layout);
   fillStrip();
   fillObjBar();
+  fillExport();
   wireKeys();
 }

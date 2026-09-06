@@ -27,6 +27,21 @@ export interface FileDiff {
   lines: DiffLine[];
 }
 
+/** a review note written in strata, before (or after) it reaches GitHub */
+export interface DraftComment {
+  id: string;
+  /** head-relative path of the file the note hangs on */
+  path: string;
+  /** new-file line for a RIGHT note, old-file line for a LEFT one */
+  line: number;
+  side: "RIGHT" | "LEFT";
+  body: string;
+  created: string;
+  author: string;
+  /** ISO time it was pushed to GitHub; unset means still local */
+  exportedAt?: string;
+}
+
 export interface Comment {
   id?: string;
   author: string;

@@ -3,20 +3,23 @@
 import { JSDOM } from "jsdom";
 import { readFileSync } from "node:fs";
 
-const dom = new JSDOM("<!doctype html><html><body></body></html>", { pretendToBeVisual: true });
+// a real origin, so localStorage works — review checkpoints and the notes you
+// write here both live there, and an opaque origin would silently swallow them
+const dom = new JSDOM("<!doctype html><html><body></body></html>", { pretendToBeVisual: true, url: "http://localhost/" });
 globalThis.document = dom.window.document;
 globalThis.window = dom.window;
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.Element = dom.window.Element;
 globalThis.SVGSVGElement = dom.window.SVGSVGElement;
 globalThis.getComputedStyle = dom.window.getComputedStyle;
+globalThis.localStorage = dom.window.localStorage;
 Element.prototype.scrollIntoView = () => {}; // jsdom gap, real browsers have it
 
 const { render } = await import("../dist/src/render.js");
 const page = JSON.parse(readFileSync(new URL("../data/sample.json", import.meta.url), "utf8"));
 
 try {
-  render(page);
+  render(page, "sample"); // a dataset name, so the export path is live
 
   // -- components lens --------------------------------------------------------
   const nodes = document.querySelectorAll(".gp-node").length;
@@ -96,6 +99,44 @@ try {
   console.log(`[link] connection hover lights ${lit} edge(s) in the graph`);
   if (!lit) { console.log("CROSS-PANEL HIGHLIGHT BROKEN"); process.exit(1); }
   document.querySelector(".conn").dispatchEvent(new dom.window.MouseEvent("mouseleave", { bubbles: true }));
+
+  // -- notes: write one on a diff line, see it inline and in the export -------
+  // n jumps to the next unread CHANGED object, which is the one with a diff
+  document.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "n", bubbles: true }));
+  const noteBtn = document.querySelector(".ln.add .ln-note");
+  noteBtn.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const ta = document.querySelector(".composer-in");
+  ta.value = "smoke: does this handle an empty $defs?";
+  [...document.querySelectorAll(".composer-actions .strip-btn")].pop()
+    .dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const notes = document.querySelectorAll(".note").length;
+  const noteText = document.querySelector(".note-body")?.textContent ?? "";
+  console.log(`[notes] rendered inline: ${notes}, body: ${JSON.stringify(noteText.slice(0, 32))}`);
+  if (!notes || !noteText) { console.log("NOTE COMPOSER BROKEN"); process.exit(1); }
+
+  // a note on a deleted line must anchor to the OLD file (GitHub side LEFT)
+  const delBtn = document.querySelector(".ln.del .ln-note");
+  if (delBtn) {
+    delBtn.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    const ta2 = document.querySelector(".composer-in");
+    ta2.value = "smoke: why was this removed?";
+    [...document.querySelectorAll(".composer-actions .strip-btn")].pop()
+      .dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  }
+  const stored = JSON.parse(dom.window.localStorage.getItem(`strata-notes:${page.pr.repo}${page.pr.number}`) ?? "[]");
+  console.log(`[notes] stored: ${stored.map((d) => `${d.path.split("/").pop()}:${d.line} ${d.side}`).join(" | ")}`);
+  if (stored.length !== 2 || !stored.some((d) => d.side === "LEFT")) { console.log("NOTE ANCHORING BROKEN"); process.exit(1); }
+
+  // the export button counts them and the card lists them as yours
+  const expBtn = document.querySelector(".theme-toggle.has-notes");
+  console.log(`[export] button: ${expBtn ? expBtn.textContent : "MISSING"}`);
+  expBtn.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const mineRows = document.querySelectorAll(".exp-row.mine").length;
+  const checked = [...document.querySelectorAll(".exp-row input")].filter((i) => i.checked).length;
+  console.log(`[export] card rows from strata: ${mineRows}, checked: ${checked}`);
+  if (mineRows !== 2 || !checked) { console.log("EXPORT CARD BROKEN"); process.exit(1); }
+  document.querySelector(".overlay").remove();
+  dom.window.localStorage.clear();
 
   // -- commits lens -----------------------------------------------------------
   document.querySelector('[data-mode="commits"]').dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));

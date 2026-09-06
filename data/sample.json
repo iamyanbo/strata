@@ -4205,7 +4205,9 @@
             {
               "kind": "del",
               "text": "   * `process()` when the map grows, and in `JSONSchemaGenerator.emit()`, which can also change",
-              "old": 131
+              "old": 131,
+              "stratum": 1,
+              "by": "18e71c7"
             },
             {
               "kind": "add",
@@ -4253,7 +4255,9 @@
             {
               "kind": "del",
               "text": "export function process<T extends schemas.$ZodType>(",
-              "old": 212
+              "old": 212,
+              "stratum": 1,
+              "by": "18e71c7"
             },
             {
               "kind": "add",
@@ -4308,7 +4312,9 @@
             {
               "kind": "del",
               "text": "      process(parent, ctx, params);",
-              "old": 267
+              "old": 267,
+              "stratum": 1,
+              "by": "18e71c7"
             },
             {
               "kind": "add",
@@ -4413,7 +4419,9 @@
             {
               "kind": "del",
               "text": "    process(schema, ctx);",
-              "old": 835
+              "old": 835,
+              "stratum": 1,
+              "by": "18e71c7"
             },
             {
               "kind": "add",
@@ -4461,7 +4469,9 @@
             {
               "kind": "del",
               "text": "    process(schema, ctx);",
-              "old": 850
+              "old": 850,
+              "stratum": 1,
+              "by": "18e71c7"
             },
             {
               "kind": "add",
@@ -6118,7 +6128,9 @@
         {
           "kind": "del",
           "text": "  process,",
-          "old": 13
+          "old": 13,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6166,7 +6178,9 @@
         {
           "kind": "del",
           "text": "    return process(schema, this.ctx, _params);",
-          "old": 105
+          "old": 105,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6220,7 +6234,9 @@
         {
           "kind": "del",
           "text": "  process,",
-          "old": 20
+          "old": 20,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6268,7 +6284,9 @@
         {
           "kind": "del",
           "text": "  json.items = process(def.element, ctx as any, {",
-          "old": 297
+          "old": 297,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6316,7 +6334,9 @@
         {
           "kind": "del",
           "text": "      process(shape[key]!, ctx as any, {",
-          "old": 341
+          "old": 341,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6364,7 +6384,9 @@
         {
           "kind": "del",
           "text": "    json.additionalProperties = process(def.catchall, ctx as any, {",
-          "old": 373
+          "old": 373,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6412,7 +6434,9 @@
         {
           "kind": "del",
           "text": "      process(def.shape[key]!, ctx as any, {",
-          "old": 417
+          "old": 417,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6460,7 +6484,9 @@
         {
           "kind": "del",
           "text": "    process(x, ctx as any, {",
-          "old": 433
+          "old": 433,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6508,7 +6534,9 @@
         {
           "kind": "del",
           "text": "  const a = process(def.left, ctx as any, {",
-          "old": 447
+          "old": 447,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6538,7 +6566,9 @@
         {
           "kind": "del",
           "text": "  const b = process(def.right, ctx as any, {",
-          "old": 451
+          "old": 451,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6586,7 +6616,9 @@
         {
           "kind": "del",
           "text": "    process(x, ctx as any, {",
-          "old": 476
+          "old": 476,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6628,7 +6660,9 @@
         {
           "kind": "del",
           "text": "    ? process(def.rest, ctx as any, {",
-          "old": 482
+          "old": 482,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6676,7 +6710,9 @@
         {
           "kind": "del",
           "text": "    const valueSchema = process(def.valueType, ctx as any, {",
-          "old": 628
+          "old": 628,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6724,7 +6760,9 @@
         {
           "kind": "del",
           "text": "      json.propertyNames = process(def.keyType, ctx as any, {",
-          "old": 639
+          "old": 639,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6772,7 +6810,9 @@
         {
           "kind": "del",
           "text": "    json.additionalProperties = process(def.valueType, ctx as any, {",
-          "old": 651
+          "old": 651,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6820,7 +6860,9 @@
         {
           "kind": "del",
           "text": "  const inner = process(def.innerType, ctx as any, params);",
-          "old": 674
+          "old": 674,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6868,7 +6910,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 686
+          "old": 686,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6916,7 +6960,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 715
+          "old": 715,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -6964,7 +7010,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 724
+          "old": 724,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7012,7 +7060,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 734
+          "old": 734,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7060,7 +7110,9 @@
         {
           "kind": "del",
           "text": "  process(innerType, ctx as any, params);",
-          "old": 751
+          "old": 751,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7108,7 +7160,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 758
+          "old": 758,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7156,7 +7210,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 766
+          "old": 766,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7204,7 +7260,9 @@
         {
           "kind": "del",
           "text": "  process(def.innerType, ctx as any, params);",
-          "old": 773
+          "old": 773,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7252,7 +7310,9 @@
         {
           "kind": "del",
           "text": "  process(innerType, ctx as any, params);",
-          "old": 780
+          "old": 780,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7300,7 +7360,9 @@
         {
           "kind": "del",
           "text": "      process(schema, ctx as any);",
-          "old": 853
+          "old": 853,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7348,7 +7410,9 @@
         {
           "kind": "del",
           "text": "  process(input, ctx as any);",
-          "old": 885
+          "old": 885,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7730,7 +7794,9 @@
         {
           "kind": "del",
           "text": "   * `process()` when the map grows, and in `JSONSchemaGenerator.emit()`, which can also change",
-          "old": 131
+          "old": 131,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7778,7 +7844,9 @@
         {
           "kind": "del",
           "text": "export function process<T extends schemas.$ZodType>(",
-          "old": 212
+          "old": 212,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7833,7 +7901,9 @@
         {
           "kind": "del",
           "text": "      process(parent, ctx, params);",
-          "old": 267
+          "old": 267,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7938,7 +8008,9 @@
         {
           "kind": "del",
           "text": "    process(schema, ctx);",
-          "old": 835
+          "old": 835,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
@@ -7986,7 +8058,9 @@
         {
           "kind": "del",
           "text": "    process(schema, ctx);",
-          "old": 850
+          "old": 850,
+          "stratum": 1,
+          "by": "18e71c7"
         },
         {
           "kind": "add",
