@@ -95,7 +95,9 @@ scrolls away while you read. `j` / `k` walk the component, `n` jumps to the next
 unread object, `Esc` collapses. Objects the PR did not change are not mixed in
 with the ones it did: they wait at the end of the component behind one collapsed
 row, *referenced, not changed*, and each says by name which changed objects reach
-it. A component of sixteen objects with one change costs one screen, not
+it. They take no part in reviewing either: no read checkmark, no place in the
+counter, and `j`/`k` step past them — you cannot review what the PR did not
+change. A component of sixteen objects with one change costs one screen, not
 sixteen.
 
 **Review checkpoints.** Mark reviewed once; on the next push only what

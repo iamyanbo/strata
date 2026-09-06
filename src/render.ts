@@ -885,9 +885,12 @@ function renderRail(): HTMLElement {
     const list = el("div", "comps");
     for (const c of page.components) {
       const btn = el("button", `comp${c.id === currentComponent ? " active" : ""}`);
-      const stats = review
-        ? `${c.stats} · ${c.entryIds.filter((id) => review!.read.includes(id)).length}/${c.entryIds.length} read`
-        : c.stats;
+      const changed = objectsOf(c);
+      const ctx = contextOf(c).length;
+      const read = changed.filter((id) => review?.read.includes(id)).length;
+      const stats = review && changed.length
+        ? `${read}/${changed.length} read${ctx ? ` · ${ctx} referenced` : ""}`
+        : `${changed.length} changed${ctx ? ` · ${ctx} referenced` : ""}`;
       btn.append(
         el("span", "comp-path", c.name),
         el("span", "comp-stats", stats)
@@ -927,19 +930,23 @@ function renderRail(): HTMLElement {
 
 let currentEntry = "";
 
-/** the component's objects in reading order: what changed, then what is only
-    referenced. The sticky bar walks this same order, so `4 / 16` always means
-    the fourth thing down the page. */
+/** The objects a reviewer walks: the ones this PR changed, biggest change
+    first. You cannot review what the PR did not touch, so referenced-but-
+    unchanged objects are not stops on the way through — they are not counted,
+    not stepped onto by j/k, and carry no read checkmark. */
 function objectsOf(comp: ComponentDoc): string[] {
-  const live = comp.entryIds.filter((id) => entry(id));
   const weight = (id: string): number => {
     const d = deltaOf(entry(id)!.files);
     return d.add + d.del;
   };
-  // the substance of the change leads; one-line declarations settle to the end
-  // of the stream on their own, without being hidden from anyone
-  const changed = live.filter((id) => entry(id)!.seed).sort((a, b) => weight(b) - weight(a));
-  return [...changed, ...live.filter((id) => !entry(id)!.seed)];
+  return comp.entryIds
+    .filter((id) => entry(id)?.seed)
+    .sort((a, b) => weight(b) - weight(a));
+}
+
+/** the rest: in the component because changed code reaches them */
+function contextOf(comp: ComponentDoc): string[] {
+  return comp.entryIds.filter((id) => entry(id) && !entry(id)!.seed);
 }
 
 /** which component we have already opened an object for — landing on a
@@ -1102,6 +1109,7 @@ function renderObjectBar(): HTMLElement {
   ensureCurrent(comp);
   const list = objectsOf(comp);
   const at = Math.max(0, list.indexOf(currentEntry));
+  const ctx = contextOf(comp).length;
 
   const bar = el("div", "objbar");
 
@@ -1109,7 +1117,7 @@ function renderObjectBar(): HTMLElement {
     "comp",
     () => {
       const lab = el("span", "menu-lab");
-      lab.append(el("b", undefined, comp.name), el("span", "menu-sub", `${comp.entryIds.length}`));
+      lab.append(el("b", undefined, comp.name), el("span", "menu-sub", `${list.length}`));
       return lab;
     },
     page.components.map((c) => ({
@@ -1117,12 +1125,17 @@ function renderObjectBar(): HTMLElement {
       label: c.name,
       mark: c.id === comp.id ? "•" : "",
       current: c.id === comp.id,
-      detail: () => el("span", "menu-kind", `${c.entryIds.length} objects`)
+      detail: () => el("span", "menu-kind", `${objectsOf(c).length} changed`)
     })),
     (id) => { currentEntry = ""; selectComponent(id); }
   ));
 
   bar.appendChild(el("div", "ob-sep"));
+
+  if (!list.length) {
+    bar.appendChild(el("span", "conn-chip un", `nothing changed here · ${ctx} referenced object${ctx === 1 ? "" : "s"}`));
+    return bar;
+  }
 
   const nav = el("div", "ob-nav");
   const prev = el("button", "ob-step", "◂");
@@ -1521,7 +1534,11 @@ function renderComponentDoc(): HTMLElement {
 
   const head = el("header", "doc-head");
   const meta = el("p", "doc-meta");
-  meta.appendChild(el("span", undefined, comp.stats));
+  // count what the reviewer walks, not everything the fill reached
+  const nChanged = objectsOf(comp).length;
+  const nCtx = contextOf(comp).length;
+  meta.appendChild(el("span", undefined,
+    `${nChanged} changed object${nChanged === 1 ? "" : "s"}${nCtx ? ` · ${nCtx} referenced` : ""}`));
   if (d.add || d.del) {
     meta.append(
       el("span", undefined, " \u00b7 "),
@@ -1534,11 +1551,8 @@ function renderComponentDoc(): HTMLElement {
   main.appendChild(head);
 
   const list = el("div", "entries");
-  const ordered = objectsOf(comp);
-  const changed = ordered.filter((id) => entry(id)!.seed);
-  const context = ordered.filter((id) => !entry(id)!.seed);
-  for (const id of changed) list.appendChild(renderEntry(entry(id)!));
-  const ctx = renderContextGroup(context);
+  for (const id of objectsOf(comp)) list.appendChild(renderEntry(entry(id)!));
+  const ctx = renderContextGroup(contextOf(comp));
   if (ctx) list.appendChild(ctx);
   const rest = renderLeftovers(comp);
   if (rest) list.appendChild(rest);
@@ -1688,14 +1702,17 @@ function renderEntry(e: Entry): HTMLElement {
   const nameRow = el("div", "name-row");
   // the reviewer's read checkmark — independent of the time checkpoint
   const isRead = review?.read.includes(e.id) ?? false;
-  const tick = el("button", `read-tick${isRead ? " on" : ""}`);
-  tick.title = isRead ? "marked as read — click to unmark" : "mark as read";
-  tick.addEventListener("click", (ev) => {
-    ev.stopPropagation();
-    toggleRead(e.id);
-    refresh();
-  });
-  nameRow.appendChild(tick);
+  // only what changed can be reviewed, so only what changed carries the tick
+  if (e.seed) {
+    const tick = el("button", `read-tick${isRead ? " on" : ""}`);
+    tick.title = isRead ? "marked as read — click to unmark" : "mark as read";
+    tick.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      toggleRead(e.id);
+      refresh();
+    });
+    nameRow.appendChild(tick);
+  }
   nameRow.append(
     el("code", "name", e.name),
     el("i", "row-leader"),
@@ -1829,6 +1846,7 @@ function renderEntry(e: Entry): HTMLElement {
     // footer: mark the whole object as read without collapsing back to the top
     const foot = el("div", "entry-foot");
     const readNow = review?.read.includes(e.id) ?? false;
+    if (!e.seed) foot.classList.add("hidden");
     const rb = el("button", `foot-read${readNow ? " read" : ""}`,
       readNow ? "\u2713 marked as read — unmark" : "\u2713 mark as read");
     rb.title = "mark this object as read";

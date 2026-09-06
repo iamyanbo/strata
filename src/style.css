@@ -1594,3 +1594,4 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .why-name { color: var(--ink); font-weight: 600; }
 /* the group's heading already says these are unchanged — no per-row stub */
 .context-body .entry-tab { display: none; }
+.entry-foot.hidden { display: none; }

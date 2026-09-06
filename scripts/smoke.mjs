@@ -78,6 +78,13 @@ try {
   const revealed = document.querySelectorAll(".context-body > .entry").length;
   console.log(`[context] expanding reveals ${revealed} referenced object(s)`);
   if (!revealed) { console.log("CONTEXT GROUP EMPTY"); process.exit(1); }
+  // a referenced object is not reviewable: no read tick, no place in the walk
+  const ticks = document.querySelectorAll(".context-body .read-tick").length;
+  const comp = page.components.find((c) => c.id === page.initialComponent) ?? page.components[0];
+  const changed = comp.entryIds.filter((id) => page.entries[id]?.seed).length;
+  const counted = Number((document.querySelector(".ob-count")?.textContent ?? "0/0").split("/")[1]);
+  console.log(`[context] read ticks on referenced objects: ${ticks}, walk covers ${counted} of ${changed} changed objects in this component`);
+  if (ticks || counted !== changed) { console.log("REVIEW BOOKKEEPING BROKEN"); process.exit(1); }
   group.querySelector(".entry-head").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 
   // -- per-object diffs: no two objects show the same file-wide diff ----------
