@@ -5,6 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseUnifiedDiff } from "../dist/pipeline/git.js";
 import { sweepBands, isStaleWriter, SWEEP_GAP_HOURS } from "../dist/pipeline/sweeps.js";
+import { insignificant, changedHeadLines } from "../dist/pipeline/flow.js";
 import { parsePrUrl } from "../scripts/analyze.mjs";
 import { readFileSync } from "node:fs";
 
@@ -146,4 +147,82 @@ test("bundled dataset: every edge is directed and carries its call sites", () =>
   // direction is meaningful: a caller referencing itself both ways would be a bug
   const keys = new Set(page.edges.map((e) => `${e.a}->${e.b}`));
   assert.equal(keys.size, page.edges.length, "no duplicate directed edges");
+});
+
+// ---- what counts as a change -------------------------------------------------
+// A symbol is "changed" when a changed line falls inside its span. Blank lines
+// and separator rules must not count, or an added blank above a //////// banner
+// reads as an edit to the interface below it.
+
+test("insignificant: blanks and rules say nothing about the code", () => {
+  for (const t of ["", "   ", "	", "////////////////", "// ----", "=====", "/*", "*/", "  ***  "]) {
+    assert.equal(insignificant(t), true, JSON.stringify(t));
+  }
+  for (const t of ["const a = 1;", "// explain the thing", "}", "import x from 'y';", "* @param a"]) {
+    assert.equal(insignificant(t), false, JSON.stringify(t));
+  }
+});
+
+test("changedHeadLines: additions map to their line, deletions to the line they sit against", () => {
+  const f = {
+    path: "a.ts",
+    delta: "",
+    lines: [
+      { kind: "ctx", old: 10, new: 10, text: "keep" },
+      { kind: "del", old: 11, text: "gone" },          // sits against head line 10
+      { kind: "add", new: 11, text: "fresh" },
+      { kind: "add", new: 12, text: "" },              // blank: not a change
+      { kind: "ctx", old: 12, new: 13, text: "keep" }
+    ]
+  };
+  assert.deepEqual([...changedHeadLines(f)].sort((a, b) => a - b), [10, 11]);
+});
+
+test("changedHeadLines: a file of nothing but blank shifts touches no line", () => {
+  const f = { path: "a.ts", delta: "", lines: [{ kind: "add", new: 4, text: "   " }, { kind: "del", old: 9, text: "" }] };
+  assert.equal(changedHeadLines(f).size, 0);
+});
+
+// ---- dataset invariants ------------------------------------------------------
+
+const sample = JSON.parse(readFileSync(new URL("../data/sample.json", import.meta.url), "utf8"));
+
+test("bundled dataset: no two objects claim the same line", () => {
+  const owner = new Map();
+  for (const [id, e] of Object.entries(sample.entries)) {
+    for (const f of e.files ?? []) {
+      for (const l of f.lines) {
+        const key = `${f.path}|${l.kind}|${l.old ?? ""}|${l.new ?? ""}`;
+        assert.equal(owner.get(key) ?? id, id, `${key} claimed by two objects`);
+        owner.set(key, id);
+      }
+    }
+  }
+});
+
+test("bundled dataset: a changed object has at least one line of real code", () => {
+  for (const [id, e] of Object.entries(sample.entries)) {
+    if (!e.seed) continue;
+    const real = (e.files ?? []).some((f) =>
+      f.lines.some((l) => l.kind !== "ctx" && !insignificant(l.text)));
+    assert.ok(real, `${id} is marked changed but nothing in it changed`);
+  }
+});
+
+test("bundled dataset: every changed line is attributed to a commit", () => {
+  const shas = new Set(sample.commits.map((c) => c.sha));
+  for (const f of sample.files) {
+    for (const l of f.lines) {
+      if (l.kind === "ctx") continue;
+      assert.ok(l.by, `${f.path}:${l.new ?? l.old} has no commit`);
+      assert.ok(shas.has(l.by), `${l.by} is not a commit of this PR`);
+    }
+  }
+});
+
+test("bundled dataset: the lineage the header links to is present", () => {
+  assert.match(sample.head, /^[0-9a-f]{40}$/);
+  assert.match(sample.base, /^[0-9a-f]{40}$/);
+  assert.ok(sample.branch.head && sample.branch.base);
+  assert.ok(Array.isArray(sample.method) && sample.method.length);
 });

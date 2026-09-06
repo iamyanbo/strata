@@ -34,15 +34,18 @@ GitHub API reads.
 
 ## Before you open a PR
 
-- `npx tsc` — no errors
-- `node scripts/smoke.mjs` — passes with real pipeline data
-- If you touched the pipeline: regenerate a dataset and click through both
-  lenses (By commit / By component)
+- `npm run check` — type-check clean, all tests green
+- If you touched the pipeline: regenerate a dataset and walk all three lenses
+  (By commit / By component / By file)
 - UI changes: check the dark **and** light theme
+- New behavior: add a case to `tests/`. Pipeline logic goes in
+  `pipeline.test.mjs`; anything a reviewer can see goes in `render.test.mjs`,
+  which runs the viewer in jsdom as one ordered session
 
 ## Code style
 
 - TypeScript, strict; no framework in the renderer — DOM only
+- See [ARCHITECTURE.md](ARCHITECTURE.md) for where a change belongs
 - Colors and spacing come from the variables in `src/style.css`; nothing
   hardcodes a hex value outside `:root` / `[data-theme="light"]`
 - Comments explain constraints and rules, not what the next line does

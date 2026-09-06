@@ -156,11 +156,14 @@ Analysis reads public API endpoints without a token (60 req/hr — set
 ## Development
 
 ```sh
-npx tsc                    # build
-npx tsc --watch            # rebuild on change
-npm test                   # unit tests (diff parser, sweeps, staleness rule)
-node scripts/smoke.mjs     # headless render check against data/sample.json
+npx tsc              # build
+npx tsc --watch      # rebuild on change
+npm test             # pipeline units, dataset invariants, and the viewer in jsdom
+npm run check        # type-check, then the tests
 ```
+
+[ARCHITECTURE.md](ARCHITECTURE.md) walks the four pipeline stages and the
+viewer's modules.
 
 Knobs: `STRATA_SWEEP_GAP_HOURS` (default 2) controls when a burst of commits
 becomes a new sweep; `STRATA_FETCH_DEPTH` overrides the shallow-fetch depth
