@@ -49,6 +49,7 @@ No framework, no build step beyond `tsc`. Modules, smallest first:
 | `src/hovercard.ts` | the single floating card every hover surface shares |
 | `src/chrome.ts` | the theme switch and the "paste a PR url" control |
 | `src/home.ts` | the landing page |
+| `src/demo.ts` | the landing page's working replica of the viewer |
 | `src/graph.ts` | the dependency graph: edge semantics, layout, story replay |
 | `src/render.ts` | the three lenses, the diff, notes, review state, export |
 | `src/types.ts` | the shape of `data/<pr>.json` — the contract between halves |

@@ -5,6 +5,7 @@
 
 import { el, svgIcon, MONTHS } from "./dom.js";
 import { makeThemeToggle, wireAnalyze } from "./chrome.js";
+import { demoShot } from "./demo.js";
 
 export interface HomeRecent {
   name: string;
@@ -67,69 +68,6 @@ const STEPS: { n: string; name: string; body: string }[] = [
   { n: "4", name: "read", body: "strata opens on the biggest change" }
 ];
 
-/** A small replica of the app, drawn with the product's own tokens: a lens bar,
-    an object with two ribboned diff rows, and callers converging on a hub. */
-function productShot(): HTMLElement {
-  const shot = el("div", "shot");
-
-  const bar = el("div", "shot-bar");
-  const seg = el("div", "shot-seg");
-  for (const [i, name] of ["By commit", "By component", "By file"].entries()) {
-    seg.appendChild(el("span", `shot-seg-b${i === 1 ? " on" : ""}`, name));
-  }
-  bar.append(seg, el("span", "shot-chip", "processSchema"), el("span", "shot-count", "1 / 14"));
-  shot.appendChild(bar);
-
-  const body = el("div", "shot-body");
-
-  const doc = el("div", "shot-doc");
-  const head = el("div", "shot-head");
-  head.append(
-    el("span", "shot-name", "processSchema"),
-    el("span", "shot-kind", "FUNCTION"),
-    el("span", "shot-delta", "+3 −2")
-  );
-  doc.appendChild(head);
-  const rows: { band: number | null; kind: string; no: string; text: string }[] = [
-    { band: null, kind: "ctx", no: "211", text: "  ): JSONSchema.BaseSchema {" },
-    { band: 4, kind: "del", no: "212", text: "− export function process<T ext…" },
-    { band: 1, kind: "add", no: "212", text: "+ export function processSchema<T…" },
-    { band: null, kind: "ctx", no: "213", text: "    schema: T," }
-  ];
-  for (const r of rows) {
-    const row = el("div", `shot-ln ${r.kind}`);
-    row.append(
-      el("i", `shot-rib${r.band ? ` s${r.band}` : ""}`),
-      el("span", "shot-no", r.no),
-      el("code", undefined, r.text)
-    );
-    doc.appendChild(row);
-  }
-  body.appendChild(doc);
-
-  const graph = el("div", "shot-graph");
-  graph.innerHTML = `
-    <svg viewBox="0 0 160 120" class="shot-svg" aria-hidden="true">
-      <defs><marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker></defs>
-      <line x1="26" y1="26" x2="70" y2="58" class="sh-edge risk" marker-end="url(#sa)"/>
-      <line x1="134" y1="24" x2="90" y2="58" class="sh-edge risk" marker-end="url(#sa)"/>
-      <line x1="80" y1="30" x2="80" y2="52" class="sh-edge risk" marker-end="url(#sa)"/>
-      <line x1="80" y1="76" x2="46" y2="100" class="sh-edge" marker-end="url(#sa)"/>
-      <line x1="80" y1="76" x2="116" y2="100" class="sh-edge" marker-end="url(#sa)"/>
-      <circle cx="22" cy="22" r="7" class="sh-node ghost"/>
-      <circle cx="138" cy="20" r="7" class="sh-node ghost"/>
-      <circle cx="80" cy="26" r="6" class="sh-node ghost"/>
-      <circle cx="80" cy="64" r="12" class="sh-node hub"/>
-      <circle cx="42" cy="104" r="7" class="sh-node"/>
-      <circle cx="120" cy="104" r="7" class="sh-node"/>
-    </svg>`;
-  graph.appendChild(el("div", "shot-legend", "3 unchanged callers depend on changed code"));
-  body.appendChild(graph);
-
-  shot.appendChild(body);
-  return shot;
-}
-
 export function renderHome(recents: HomeRecent[]): void {
   document.body.textContent = "";
   const main = el("main", "home");
@@ -161,7 +99,7 @@ export function renderHome(recents: HomeRecent[]): void {
   hero.appendChild(alt);
   main.appendChild(hero);
 
-  main.appendChild(productShot());
+  main.appendChild(demoShot());
 
   // ---- what it does
   const feats = el("section", "home-sec");

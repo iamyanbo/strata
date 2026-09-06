@@ -1589,65 +1589,209 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .hero-link { color: var(--link-fg); text-decoration: none; border-bottom: 1px solid transparent; }
 .hero-link:hover { border-bottom-color: currentColor; }
 
-/* ---- the product shot: the app, in miniature, from the same variables ---- */
+/* ===== the landing demo ======================================================
+   A working replica: the lens switch drives it, ribbons and edges answer hover,
+   and the stage replays. Motion is decoration only — every animation is a fade
+   or a slide over content that is already there, and all of it is off under
+   prefers-reduced-motion. */
+
 .shot {
   margin: 34px 0 8px;
   border: 1px solid var(--hairline); border-radius: 12px;
   background: var(--surface); box-shadow: var(--shadow-2);
   overflow: hidden;
+  animation: shot-rise 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
+@keyframes shot-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
 .shot-bar {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0;
   padding: 9px 12px; border-bottom: 1px solid var(--hairline);
   background: color-mix(in srgb, var(--ink) 3%, transparent);
 }
+.shot-bar .spacer { flex: 1; }
 .shot-seg { display: inline-flex; gap: 2px; border: 1px solid var(--hairline); border-radius: 7px; padding: 2px; }
-.shot-seg-b { font: 500 9.5px/1 var(--mono); color: var(--faint); padding: 5px 9px; border-radius: 5px; }
-.shot-seg-b.on { background: var(--elev); color: var(--ink); border: 1px solid var(--hairline); }
-.shot-chip {
-  font: 500 10px/1 var(--mono); color: var(--ink);
-  background: var(--elev); border: 1px solid var(--hairline);
-  border-radius: 6px; padding: 5px 8px;
+.shot-seg-b {
+  font: 500 9.5px/1 var(--mono); color: var(--faint);
+  padding: 5px 9px; border-radius: 5px; cursor: pointer;
+  border: 1px solid transparent;
+  transition: color 0.14s ease, background 0.14s ease;
 }
-.shot-count { font: 400 9.5px var(--mono); color: var(--faint); }
+.shot-seg-b:hover { color: var(--ink); }
+.shot-seg-b.on { background: var(--elev); color: var(--ink); border-color: var(--hairline); box-shadow: var(--shadow-1); }
+.shot-count { font: 400 9.5px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.shot-keys { font: 400 8.5px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+.shot-replay {
+  font: 500 9.5px/1 var(--mono); color: var(--muted);
+  background: var(--elev); border: 1px solid var(--hairline);
+  border-radius: 6px; padding: 5px 9px; cursor: pointer;
+}
+.shot-replay:hover { color: var(--ink); border-color: var(--strong); }
+/* until you touch it, the demo advertises that it moves on its own */
+.shot:not(.touched) .shot-seg-b.on { animation: seg-pulse 5.2s ease-in-out infinite; }
+@keyframes seg-pulse {
+  0%, 84% { box-shadow: var(--shadow-1); }
+  92% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  100% { box-shadow: var(--shadow-1); }
+}
 
-.shot-body { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 0; }
+.shot-body { display: grid; grid-template-columns: minmax(0, 1fr) 214px; }
 @media (max-width: 760px) {
   .shot-body { grid-template-columns: minmax(0, 1fr); }
-  /* stacked, the graph would blow up to the full width of the card */
-  .shot-graph { border-left: none; border-top: 1px solid var(--hairline); align-items: center; }
+  .shot-graph, .shot-side { border-left: none; border-top: 1px solid var(--hairline); align-items: center; }
   .shot-svg { max-width: 280px; }
 }
 
-.shot-doc { padding: 14px 16px 18px; min-width: 0; }
-.shot-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 10px; }
+.shot-doc { padding: 14px 16px 16px; min-width: 0; }
+.shot-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 12px; }
+.shot-tick { width: 12px; height: 12px; border: 1.5px solid var(--faint); border-radius: 50%; flex: none; }
 .shot-name { font: 600 13px var(--mono); color: var(--ink); }
 .shot-kind {
   font: 500 8px/1 var(--mono); letter-spacing: 0.06em; color: var(--muted);
   background: color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 999px; padding: 3px 7px;
 }
 .shot-delta { font: 600 10px var(--mono); color: var(--ok); }
+.shot-refs { margin-left: auto; font: 400 9.5px var(--mono); color: var(--faint); }
+.shot-foot { margin-top: 10px; font: 400 9.5px/1.5 var(--mono); color: var(--faint); }
+
+.shot-file { border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; background: var(--paper); }
+.shot-file-head {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 7px 10px; background: var(--surface); border-bottom: 1px solid var(--hairline);
+  font: 400 10px var(--mono); color: var(--muted); min-width: 0;
+}
+.shot-path { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shot-file-head .shot-delta { margin-left: auto; flex: none; }
+
 .shot-ln {
-  display: flex; align-items: baseline; gap: 8px; min-width: 0;
-  font: 400 11px/1.9 var(--mono); color: var(--muted);
+  position: relative;
+  display: flex; align-items: baseline; gap: 7px; min-width: 0;
+  font: 400 11px/1.95 var(--mono); color: var(--muted);
   white-space: nowrap; overflow: hidden;
 }
 .shot-ln.add { background: var(--add-bg); }
 .shot-ln.del { background: var(--del-bg); }
+.shot-ln:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.shot-ln.add:hover { background: color-mix(in srgb, var(--ok) 18%, var(--paper)); }
+.shot-ln.del:hover { background: color-mix(in srgb, var(--gap) 17%, var(--paper)); }
 .shot-ln code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .shot-no { color: var(--faint); font-size: 9.5px; width: 26px; text-align: right; flex: none; }
-.shot-rib { width: 3px; align-self: stretch; border-radius: 2px; margin: 3px 0; flex: none; background: transparent; }
+.shot-sign { width: 8px; flex: none; text-align: center; color: var(--faint); }
+.shot-ln.add .shot-sign { color: var(--ok); }
+.shot-ln.del .shot-sign { color: var(--gap); }
+.shot-rib {
+  width: 3px; align-self: stretch; margin: 3px 0; flex: none;
+  border-radius: 2px; background: transparent;
+  transition: width 0.12s ease;
+}
 .shot-rib.s1 { background: var(--s1); }
-.shot-rib.s4 { background: repeating-linear-gradient(180deg, var(--s4) 0 3px, transparent 3px 6px); }
+.shot-rib.s2 { background: var(--s2); }
+.shot-rib.s4 { background: var(--s4); }
+.shot-rib.del { background: repeating-linear-gradient(180deg, var(--s4) 0 3px, transparent 3px 6px); }
+.shot-ln:hover .shot-rib:not(:empty), .shot-ln:hover .shot-rib.s1,
+.shot-ln:hover .shot-rib.s2, .shot-ln:hover .shot-rib.s4 { width: 5px; cursor: help; }
 
-.shot-graph { border-left: 1px solid var(--hairline); padding: 12px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.shot-svg { width: 100%; height: auto; display: block; }
-.sh-edge { stroke: var(--edge); stroke-width: 1.4; }
+/* the note affordance, awake on hover like the real one */
+.shot-note {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  opacity: 0; width: 16px; height: 16px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  font: 600 10px var(--mono); color: var(--paper);
+  background: var(--accent); border-radius: 4px; cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+.shot-ln:hover .shot-note { opacity: 1; }
+.shot-composer {
+  display: flex; align-items: baseline; gap: 8px;
+  margin: 4px 0 4px 44px; padding: 7px 10px;
+  border-left: 2px solid var(--accent); border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  animation: note-in 0.22s ease both;
+}
+@keyframes note-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.shot-comp-who { font: 600 9.5px var(--mono); color: var(--accent); }
+.shot-comp-body { font: 400 10.5px/1.5 var(--sans); color: var(--muted); }
+
+/* run headers in the file lens */
+.shot-run {
+  display: flex; align-items: baseline; gap: 7px;
+  padding: 7px 10px 5px; border-top: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  font: 400 9.5px var(--mono); color: var(--link-fg);
+}
+.shot-run:first-child { border-top: none; }
+.shot-run code { font-weight: 600; font-size: 10.5px; }
+.shot-run-in { color: var(--faint); }
+.shot-run-kind { font-size: 8px; letter-spacing: 0.05em; color: var(--faint); }
+.shot-run.none { color: var(--faint); font-style: italic; }
+
+/* ---- side panels ---- */
+.shot-graph, .shot-side { border-left: 1px solid var(--hairline); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.shot-side-h { font: 500 8.5px/1 var(--mono); letter-spacing: 0.12em; color: var(--faint); margin-bottom: 2px; }
+.shot-hist, .shot-filerow {
+  display: flex; align-items: baseline; gap: 7px;
+  padding: 6px 7px; border-radius: 6px; min-width: 0;
+  font: 400 9.5px var(--mono); color: var(--muted); cursor: default;
+}
+.shot-hist:hover, .shot-filerow:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.shot-hist.on, .shot-filerow.on { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
+.shot-hist-msg, .shot-fname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shot-hist-meta, .shot-fdelta { flex: none; font-size: 8.5px; color: var(--faint); }
+.shot-dot { width: 7px; height: 7px; border-radius: 2px; flex: none; align-self: center; }
+.shot-dot.s1 { background: var(--s1); } .shot-dot.s2 { background: var(--s2); }
+.shot-dot.s3 { background: var(--s3); } .shot-dot.s4 { background: var(--s4); }
+.shot-noobj { flex: none; font-size: 7.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); }
+
+.shot-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.sh-edge { stroke: var(--edge); stroke-width: 1.4; transition: opacity 0.14s ease, stroke-width 0.14s ease; }
 .sh-edge.risk { stroke: var(--edge-risk); stroke-width: 2; }
-.sh-node { fill: var(--s1); stroke: var(--ink); stroke-width: 1.4; }
-.sh-node.hub { fill: var(--s1); stroke: var(--ink); stroke-width: 2.4; }
+.sh-hit { stroke: transparent; stroke-width: 9; cursor: pointer; }
+.sh-node { fill: var(--s1); stroke: var(--ink); stroke-width: 1.4; transition: opacity 0.14s ease; }
+.sh-node.hub { stroke-width: 2.4; }
 .sh-node.ghost { fill: var(--surface); stroke: var(--faint); stroke-width: 1.4; stroke-dasharray: 2.5 2.5; }
-.shot-legend { font: 400 9px/1.4 var(--mono); color: var(--edge-risk); }
+.sh-label { font: 400 5.4px var(--mono); fill: var(--faint); paint-order: stroke; stroke: var(--surface); stroke-width: 2.4px; stroke-linejoin: round; }
+.sh-g { cursor: pointer; }
+.sh-g:hover .sh-label { fill: var(--ink); }
+/* hovering one wire dims the rest, exactly as the app does */
+.shot-graph.lit .sh-edge { opacity: 0.16; }
+.shot-graph.lit .sh-g { opacity: 0.34; }
+.shot-graph.lit .sh-edge.hi { opacity: 1; stroke-width: 2.6; }
+.shot-graph.lit .sh-g.hi { opacity: 1; }
+.shot-legend { font: 400 9px/1.4 var(--mono); color: var(--edge-risk); margin-top: auto; }
+.hc-site { margin-top: 5px; font: 400 9.5px var(--mono); color: #8b939e; }
+
+/* ---- the entry animation: the stage builds itself, once per switch ---- */
+.shot-stage.in .shot-ln,
+.shot-stage.in .shot-hist,
+.shot-stage.in .shot-filerow {
+  animation: row-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms + 60ms);
+}
+@keyframes row-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+
+.shot-stage.in .shot-file, .shot-stage.in .shot-head { animation: fade-in 0.3s ease both; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* edges draw themselves from caller to callee */
+.shot-stage.in .sh-edge {
+  stroke-dasharray: calc(var(--len) * 1px);
+  stroke-dashoffset: calc(var(--len) * 1px);
+  animation: draw 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 90ms + 220ms);
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.shot-stage.in .sh-node {
+  animation: pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+  transform-box: fill-box; transform-origin: center;
+}
+@keyframes pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+.shot-stage.in .sh-label { animation: fade-in 0.4s ease both; animation-delay: 520ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shot, .shot-stage.in *, .shot-composer { animation: none !important; }
+  .shot:not(.touched) .shot-seg-b.on { animation: none; }
+}
 
 /* ---- sections ---- */
 .home-sec { padding-top: 76px; }

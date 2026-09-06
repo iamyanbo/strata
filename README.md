@@ -153,6 +153,10 @@ Export reads `GITHUB_TOKEN` (or a `github.token` file in the repo root).
 Analysis reads public API endpoints without a token (60 req/hr — set
 `GITHUB_TOKEN` to raise it). The token never leaves the local server process.
 
+The landing page carries a working miniature of the viewer: the lens switch
+drives it, ribbons and edges answer hover with the same cards the app uses, and
+it cycles through the three lenses until you touch it.
+
 ## Development
 
 ```sh
