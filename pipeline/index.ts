@@ -14,7 +14,7 @@ export interface Def {
   kind: string;          // function | class | method | interface | typeAlias | const | property | enum | enumMember
   file: string;          // head-relative posix path
   start: number;
-  /** start including leading trivia — the doc comment belongs to the symbol */
+  /** start including the doc comment ATTACHED to this symbol (see attachedStart) */
   full: number;
   end: number;
   /** module-scope declaration (graph node); locals attach to enclosing */
@@ -33,6 +33,27 @@ export interface Index {
   fileUses: Map<string, { start: number; end: number; defId: string; prop?: boolean }[]>;
   /** collapsed-mirror map: any indexed-relative path → its canonical file */
   canonical: Map<string, string>;
+}
+
+/** Where a declaration really begins, doc comment included.
+    getFullStart() reaches back to the end of the previous token, which swallows
+    blank lines, section banners and whatever trailing comment the PREVIOUS
+    declaration left behind — so an added blank line above a `////////` rule
+    would count as a change to the interface below it. Only a comment block
+    directly attached to the declaration (no blank line between) and carrying
+    actual words is part of the symbol. */
+function attachedStart(text: string, node: ts.Node, sf: ts.SourceFile): number {
+  const start = node.getStart(sf);
+  const ranges = ts.getLeadingCommentRanges(text, node.getFullStart()) ?? [];
+  let boundary = start;
+  for (let i = ranges.length - 1; i >= 0; i--) {
+    const r = ranges[i];
+    const between = text.slice(r.end, boundary);
+    if (/\n[ \t]*\r?\n/.test(between)) break;                   // a blank line detaches it
+    if (!/[^\s/*\-=#~_]/.test(text.slice(r.pos, r.end))) break;   // a rule, not a doc comment
+    boundary = r.pos;
+  }
+  return boundary;
 }
 
 function listTsFiles(root: string): string[] {
@@ -167,7 +188,7 @@ function scan(root: string, prefer?: Set<string>): {
           defs.push({
             id: `${rel}#${name}#${kind}#${defs.length}`,
             name, kind, file: rel,
-            start: node.getStart(sf), full: node.getFullStart(), end: node.getEnd(),
+            start: node.getStart(sf), full: attachedStart(text, node, sf), end: node.getEnd(),
             topLevel,
             uses: []
           });

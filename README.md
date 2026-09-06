@@ -56,8 +56,11 @@ owns it (click through to that object), or marked as belonging to none. Review
 threads on files no object covers finally have a home there.
 
 **One object, one diff.** An object shows the lines inside its own span — its
-declaration, its body, its doc comment — not the whole file it happens to live
-in. Six symbols declared in one edited file used to render six copies of the
+declaration, its body, and the doc comment *attached* to it (a `////////` rule or
+a comment separated by a blank line belongs to no symbol, so an added blank line
+above one is not a change to the interface below it) — not the whole file it
+happens to live in. A change made only of blank lines or separator rules is not
+a change: the symbol stays context, and the line falls to the file view. Six symbols declared in one edited file used to render six copies of the
 same file-wide diff, with the same threads and the same introducing commit on
 each. Review threads land on the object whose span contains them, and a commit
 "touches" an object only when it wrote or removed one of that object's lines.

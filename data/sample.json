@@ -23,7 +23,7 @@
     {
       "id": "flow-0",
       "name": "processSchema",
-      "origin": "derived from changed symbols JSONSchemaGenerator, arrayProcessor, objectProcessor, propertiesProcessor, unionProcessor, intersectionProcessor and 18 more · def−use edges · 3-hop reach",
+      "origin": "derived from changed symbols JSONSchemaGenerator, arrayProcessor, objectProcessor, propertiesProcessor, unionProcessor, intersectionProcessor and 17 more · def−use edges · 3-hop reach",
       "stats": "16 objects",
       "entryIds": [
         "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
@@ -2274,21 +2274,8 @@
       "files": [
         {
           "path": "packages/zod/src/v4/core/to-json-schema.ts",
-          "delta": "+3 −2",
+          "delta": "+3 −1",
           "lines": [
-            {
-              "kind": "ctx",
-              "text": "",
-              "old": 211,
-              "new": 211
-            },
-            {
-              "kind": "del",
-              "text": "export function process<T extends schemas.$ZodType>(",
-              "old": 212,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
             {
               "kind": "add",
               "text": "// never rename this back to `process`: bundler polyfills inject a top-level `const process` that a lexical declaration of the same name collides with (#6397)",
@@ -2688,12 +2675,6 @@
           "lines": [
             {
               "kind": "ctx",
-              "text": "",
-              "old": 444,
-              "new": 444
-            },
-            {
-              "kind": "ctx",
               "text": "export const intersectionProcessor: Processor<schemas.$ZodIntersection> = (schema, ctx, json, params) => {",
               "old": 445,
               "new": 445
@@ -3086,12 +3067,6 @@
           "lines": [
             {
               "kind": "ctx",
-              "text": "",
-              "old": 671,
-              "new": 671
-            },
-            {
-              "kind": "ctx",
               "text": "export const nullableProcessor: Processor<schemas.$ZodNullable> = (schema, ctx, json, params) => {",
               "old": 672,
               "new": 672
@@ -3158,12 +3133,6 @@
           "path": "packages/zod/src/v4/core/json-schema-processors.ts",
           "delta": "+1 −1",
           "lines": [
-            {
-              "kind": "ctx",
-              "text": "",
-              "old": 683,
-              "new": 683
-            },
             {
               "kind": "ctx",
               "text": "export const nonoptionalProcessor: Processor<schemas.$ZodNonOptional> = (schema, ctx, _json, params) => {",
@@ -3234,12 +3203,6 @@
           "lines": [
             {
               "kind": "ctx",
-              "text": "",
-              "old": 712,
-              "new": 712
-            },
-            {
-              "kind": "ctx",
               "text": "export const defaultProcessor: Processor<schemas.$ZodDefault> = (schema, ctx, json, params) => {",
               "old": 713,
               "new": 713
@@ -3306,12 +3269,6 @@
           "path": "packages/zod/src/v4/core/json-schema-processors.ts",
           "delta": "+1 −1",
           "lines": [
-            {
-              "kind": "ctx",
-              "text": "",
-              "old": 770,
-              "new": 770
-            },
             {
               "kind": "ctx",
               "text": "export const optionalProcessor: Processor<schemas.$ZodOptional> = (schema, ctx, _json, params) => {",
@@ -3470,22 +3427,8 @@
       "files": [
         {
           "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "+4 −0",
+          "delta": "+2 −0",
           "lines": [
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
             {
               "kind": "add",
               "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
@@ -3523,15 +3466,8 @@
       "files": [
         {
           "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "+2 −0",
+          "delta": "+1 −0",
           "lines": [
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
             {
               "kind": "add",
               "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
@@ -3562,15 +3498,8 @@
       "files": [
         {
           "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "+2 −0",
+          "delta": "+1 −0",
           "lines": [
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
             {
               "kind": "add",
               "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
@@ -3665,15 +3594,8 @@
       "files": [
         {
           "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "+3 −0",
+          "delta": "+2 −0",
           "lines": [
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
             {
               "kind": "add",
               "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",

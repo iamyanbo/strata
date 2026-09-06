@@ -932,7 +932,14 @@ let currentEntry = "";
     the fourth thing down the page. */
 function objectsOf(comp: ComponentDoc): string[] {
   const live = comp.entryIds.filter((id) => entry(id));
-  return [...live.filter((id) => entry(id)!.seed), ...live.filter((id) => !entry(id)!.seed)];
+  const weight = (id: string): number => {
+    const d = deltaOf(entry(id)!.files);
+    return d.add + d.del;
+  };
+  // the substance of the change leads; one-line declarations settle to the end
+  // of the stream on their own, without being hidden from anyone
+  const changed = live.filter((id) => entry(id)!.seed).sort((a, b) => weight(b) - weight(a));
+  return [...changed, ...live.filter((id) => !entry(id)!.seed)];
 }
 
 /** which component we have already opened an object for — landing on a

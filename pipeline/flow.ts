@@ -83,14 +83,23 @@ export function defRange(index: Index, d: Def): { start: number; end: number } {
     ?? { start: offsetToLine(d.file, d.start, index), end: offsetToLine(d.file, d.end, index) };
 }
 
-/** head line numbers a file's diff touched: an added line is its own head line,
-    a deleted line is attributed to the head line it sits against */
+/** a changed line that says nothing about the code: blank, or a rule of
+    slashes, dashes or equals. Moving one of these does not change a symbol,
+    and letting it count made blank-line shifts look like edits. */
+export function insignificant(text: string): boolean {
+  const t = text.trim();
+  return !t || /^[/*\-=#~_ ]+$/.test(t);
+}
+
+/** head line numbers a file's diff touched, blank and separator lines aside:
+    an added line is its own head line, a deleted line is attributed to the head
+    line it sits against */
 export function changedHeadLines(f: RawFileDiff): Set<number> {
   const out = new Set<number>();
   let lastNew = 0;
   for (const l of f.lines) {
     if (l.new !== undefined) lastNew = l.new;
-    if (l.kind === "ctx") continue;
+    if (l.kind === "ctx" || insignificant(l.text)) continue;
     out.add(l.new ?? Math.max(1, lastNew));
   }
   return out;

@@ -9,7 +9,7 @@ import type { RawPR, RawCommit, RawFileDiff } from "./git.js";
 import { sweepBands, isStaleWriter } from "./sweeps.js";
 import type { Index, Def } from "./index.js";
 import type { FlowResult } from "./flow.js";
-import { defRange } from "./flow.js";
+import { defRange, insignificant } from "./flow.js";
 
 export function emit(
   pr: RawPR,
@@ -254,8 +254,11 @@ export function emit(
     const r = defRange(index, def);
     ranges.set(id, r);
     const slice = sliceToRange(fileDiff, r.start, r.end);
-    e.files = slice.lines.length ? [slice] : [];
-    if (!e.files.length) e.seed = false; // nothing of this object actually changed
+    // an object whose only changed lines are blank or a separator rule did not
+    // change: it drops to context, and the line itself falls to the file view
+    const real = slice.lines.some((l) => l.kind !== "ctx" && !insignificant(l.text));
+    e.files = real ? [slice] : [];
+    if (!real) e.seed = false;
   }
 
   for (const [id, e] of entries) {
