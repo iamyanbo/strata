@@ -87,7 +87,19 @@ export interface TraceLink {
   negative?: boolean;
 }
 
-export type EntryKind = "function" | "type" | "route" | "config" | "block";
+/** The kinds the indexer actually emits (pipeline/index.ts, defKind). The old
+    union — "type" | "route" | "config" | "block" — described nothing the
+    pipeline produces, and emit.ts cast around it. */
+export type EntryKind =
+  | "function"
+  | "class"
+  | "interface"
+  | "typeAlias"
+  | "enum"
+  | "enumMember"
+  | "method"
+  | "property"
+  | "const";
 
 /** One changed object. May appear in several components (things correlate). */
 export interface Entry {

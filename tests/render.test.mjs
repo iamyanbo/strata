@@ -152,6 +152,16 @@ test("reset forgets the checkpoint and every tick", () => {
   assert.equal(all(".read-tick.on").length, 0);
 });
 
+test("the untested chip stays off types, which no test can exercise", () => {
+  click(document.querySelector('[data-mode="components"]'));
+  for (const card of all(".entries > .entry")) {
+    const kind = card.querySelector(".kind")?.textContent ?? "";
+    if (kind === "TYPEALIAS" || kind === "INTERFACE") {
+      assert.equal(card.querySelector(".untested-chip"), null, `${kind} should not claim to be untested`);
+    }
+  }
+});
+
 test("the commit lens renders history and a commit's diff", () => {
   click(document.querySelector('[data-mode="commits"]'));
   assert.ok(all(".hist-row").length, "history rows");

@@ -56,7 +56,7 @@ const E: Record<string, Entry> = {
   },
   "stripeerror": {
     id: "stripeerror",
-    kind: "type",
+    kind: "typeAlias",
     name: "StripeError.retryable",
     summary: "new flag; mapping table grew from 9 to 11 codes",
     files: [{
@@ -159,7 +159,7 @@ const E: Record<string, Entry> = {
   },
   "lineitem": {
     id: "lineitem",
-    kind: "type",
+    kind: "typeAlias",
     name: "LineItem.qty",
     summary: "typed non-null, but legacy resolver can emit null",
     files: [{
@@ -180,7 +180,7 @@ const E: Record<string, Entry> = {
   },
   "sdk": {
     id: "sdk",
-    kind: "config",
+    kind: "const",
     name: "stripe v13 \u2192 v14",
     summary: "dependency bump; drives error-code adaptation",
     files: [{
@@ -196,7 +196,7 @@ const E: Record<string, Entry> = {
   },
   "tests": {
     id: "tests",
-    kind: "block",
+    kind: "const",
     name: "tests/payments.spec.ts",
     summary: "untouched by this PR \u2014 0 assertions on retry behavior",
     files: [],

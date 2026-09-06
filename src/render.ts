@@ -1765,8 +1765,11 @@ function renderEntry(e: Entry): HTMLElement {
     badge.title = `${e.refs} reference${e.refs === 1 ? "" : "s"} at head`;
     head.appendChild(badge);
   }
-  // promoted fact: nothing reaches this symbol from any test file
-  if (e.seed && e.traces.some((t) => t.relation === "no direct test references")) {
+  // promoted fact: nothing reaches this symbol from any test file.
+  // Types cannot be exercised by a test on their own, so the chip would fire on
+  // every interface and alias in the PR and mean nothing.
+  const testable = e.kind !== "typeAlias" && e.kind !== "interface";
+  if (e.seed && testable && e.traces.some((t) => t.relation === "no direct test references")) {
     const uc = el("span", "untested-chip", "untested");
     uc.addEventListener("mouseenter", () => showHoverCard(uc, (card) => {
       card.appendChild(el("div", "hc-msg", "no test file references this symbol"));
