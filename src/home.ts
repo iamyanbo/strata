@@ -1,4 +1,4 @@
-// The landing page. It is the first thing anyone sees, so it says what strata
+// The landing page. It is the first thing anyone sees, so it says what Strata
 // does before asking for a PR url, and it says it with the same ink, bands and
 // ribbons the app itself uses — every figure here is built from the product's
 // own tokens rather than a screenshot that would go stale.
@@ -71,7 +71,7 @@ const STEPS: { n: string; name: string; body: string }[] = [
   { n: "1", name: "fetch", body: "shallow-clone just the commits around the PR" },
   { n: "2", name: "index", body: "TypeScript AST over base and head, imports resolved" },
   { n: "3", name: "fill", body: "seed from the diff, walk def−use edges three hops" },
-  { n: "4", name: "read", body: "strata opens on the biggest change" }
+  { n: "4", name: "read", body: "Strata opens on the biggest change" }
 ];
 
 export function renderHome(recents: HomeRecent[]): void {
@@ -79,7 +79,7 @@ export function renderHome(recents: HomeRecent[]): void {
   const main = el("main", "home");
 
   const nav = el("div", "home-nav");
-  nav.append(el("span", "home-mark", "strata"), el("span", "spacer"), makeThemeToggle());
+  nav.append(el("span", "home-mark", "Strata"), el("span", "spacer"), makeThemeToggle());
   main.appendChild(nav);
 
   // ---- hero
@@ -87,7 +87,7 @@ export function renderHome(recents: HomeRecent[]): void {
   hero.appendChild(el("p", "hero-eyebrow", "local code review for github pull requests"));
   hero.appendChild(el("h1", "hero-h1", "Read a pull request the way it was written."));
   hero.appendChild(el("p", "hero-sub",
-    "strata rebuilds a PR from its commits: who wrote each line and when, which symbols actually changed, and what still depends on them. It runs on your machine and nothing leaves it."));
+    "Strata rebuilds a PR from its commits: who wrote each line and when, which symbols actually changed, and what still depends on them. It runs on your machine and nothing leaves it."));
 
   const form = el("div", "hero-form");
   const input = el("input", "hero-input") as HTMLInputElement;

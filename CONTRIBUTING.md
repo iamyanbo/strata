@@ -1,4 +1,4 @@
-# Contributing to strata
+# Contributing to Strata
 
 Thanks for taking a look. A few ground rules keep this project what it is.
 

@@ -1,4 +1,4 @@
-// Point strata at any GitHub PR: shallow-fetch exactly the merge commit's
+// Point Strata at any GitHub PR: shallow-fetch exactly the merge commit's
 // window (no full clone), run the pipeline, emit viewer JSON.
 //
 //   node scripts/analyze.mjs https://github.com/owner/repo/pull/123

@@ -1,6 +1,6 @@
 # Architecture
 
-strata is two halves: a **pipeline** that turns a pull request into one JSON
+Strata is two halves: a **pipeline** that turns a pull request into one JSON
 document, and a **viewer** that reads only that document. They never run at the
 same time and never share memory — if a claim is on screen, it is in the JSON,
 and if it is in the JSON, some pipeline stage computed it from git or the AST.

@@ -572,7 +572,7 @@ function commentThread(c: ReviewComment, state?: "stale" | "gone"): HTMLElement 
 }
 
 // ---- review notes you write here ---------------------------------------------
-// Comments authored in strata live in localStorage until you push them: one
+// Comments authored in Strata live in localStorage until you push them: one
 // document per PR, keyed the same way as the review checkpoint. They render
 // inline in the diff exactly where a GitHub thread would, and leave through the
 // same export as the threads that came back from GitHub.
@@ -2186,7 +2186,7 @@ function renderGraphPanel(): HTMLElement {
 // Everything you wrote here leaves as one GitHub review: POST /api/export
 // resolves the token server-side, and every export stamps the thread ids it
 // carried in the review body, so re-exports skip already-pushed items instead of
-// duping. Notes written in strata and threads that came back from GitHub travel
+// duping. Notes written in Strata and threads that came back from GitHub travel
 // through the same door.
 
 interface ExportItem {
@@ -2434,7 +2434,7 @@ function renderLineage(bannerText: string): HTMLElement {
 
 function renderTopbar(): HTMLElement {
   const bar = el("header", "topbar");
-  const wm = el("a", "wordmark", "strata");
+  const wm = el("a", "wordmark", "Strata");
   wm.href = "/";
   wm.title = "home";
   bar.appendChild(wm);

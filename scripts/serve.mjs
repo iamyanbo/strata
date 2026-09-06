@@ -1,4 +1,4 @@
-// Local strata server: static files + POST /api/analyze (point-at-a-PR) with
+// Local Strata server: static files + POST /api/analyze (point-at-a-PR) with
 // GET /api/progress for live stage updates + POST /api/export (review push).
 //   node scripts/serve.mjs   → http://localhost:4517
 
@@ -111,7 +111,8 @@ const server = http.createServer(async (req, res) => {
         body: JSON.stringify({
           commit_id: head || undefined,
           event,
-          body: `exported from strata\n<!-- strata-threads: ${fresh.map((c) => c.id).join(",")} -->`,
+          // the marker stays lowercase: it is an identifier this code greps for
+          body: `Review notes from Strata — ${fresh.length} comment${fresh.length === 1 ? "" : "s"}\n<!-- strata-threads: ${fresh.map((c) => c.id).join(",")} -->`,
           // side follows the line: a note on a removed line anchors LEFT, where
           // `line` is the number in the file BEFORE the change
           comments: fresh.map((c) => ({

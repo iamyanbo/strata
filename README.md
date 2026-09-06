@@ -1,7 +1,7 @@
-# strata
+# Strata
 
 A local code-review workspace for GitHub pull requests. Paste a PR URL and
-strata rebuilds the change as it actually happened: every written line
+Strata rebuilds the change as it actually happened: every written line
 stamped with the commit that produced it, related changes grouped into
 components by how the code references itself, and review threads that age
 with the code instead of against it.

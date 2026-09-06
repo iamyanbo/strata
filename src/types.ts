@@ -27,7 +27,7 @@ export interface FileDiff {
   lines: DiffLine[];
 }
 
-/** a review note written in strata, before (or after) it reaches GitHub */
+/** a review note written in Strata, before (or after) it reaches GitHub */
 export interface DraftComment {
   id: string;
   /** head-relative path of the file the note hangs on */
