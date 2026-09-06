@@ -65,8 +65,8 @@ same file-wide diff, with the same threads and the same introducing commit on
 each. Review threads land on the object whose span contains them, and a commit
 "touches" an object only when it wrote or removed one of that object's lines.
 Whatever belongs to no symbol — imports, top-level statements, the bodies of
-test callbacks — is collected at the end of the component so the diff stays
-complete.
+test callbacks — is collected into a card at the end of the component: real
+changed lines, so it reads like any other change and is ticked off like one.
 
 **A graph that says why.** Edges are directed — arrows point caller → callee —
 and colored by where the PR's changes sit on them: both ends changed, changed
@@ -94,8 +94,7 @@ the diff already on screen. A sticky bar carries the component, the object, a
 scrolls away while you read. `j` / `k` walk the component, `n` jumps to the next
 unread object, `Esc` collapses. Objects the PR did not change are not mixed in
 with the ones it did: they wait at the end of the component behind one collapsed
-row, *referenced, not changed*, and each says by name which changed objects reach
-it. They take no part in reviewing either: no read checkmark, no place in the
+row, *unchanged references*, and each says by name what reaches it. They take no part in reviewing either: no read checkmark, no place in the
 counter, and `j`/`k` step past them — you cannot review what the PR did not
 change. A component of sixteen objects with one change costs one screen, not
 sixteen.

@@ -70,13 +70,21 @@ try {
 
   // -- mark reviewed: a checkpoint AND every changed object ticked off -------
   {
-    const changed = Object.values(page.entries).filter((e) => e.seed).length;
+    // every stop: changed objects, plus each component's loose changes
+    const rest = page.components.filter((c) => {
+      const own = new Set(c.entryIds.flatMap((id) => (page.entries[id]?.files ?? []).flatMap((f) =>
+        f.lines.map((l) => `${f.path}|${l.kind}|${l.old ?? ""}|${l.new ?? ""}`))));
+      const paths = new Set(c.entryIds.flatMap((id) => (page.entries[id]?.files ?? []).map((f) => f.path)));
+      return page.files.some((f) => paths.has(f.path) &&
+        f.lines.some((l) => l.kind !== "ctx" && !own.has(`${f.path}|${l.kind}|${l.old ?? ""}|${l.new ?? ""}`)));
+    }).length;
+    const changed = Object.values(page.entries).filter((e) => e.seed).length + rest;
     document.querySelector(".review-strip .strip-btn").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
     const state = JSON.parse(dom.window.localStorage.getItem(`strata-review:${page.pr.repo}${page.pr.number}`) ?? "{}");
     const strip = document.querySelector(".review-strip").textContent;
     const ticks = document.querySelectorAll(".read-tick.on").length;
     const nextUnread = document.querySelector(".ob-next");
-    console.log(`[reviewed] read: ${state.read.length}/${changed} changed objects, strip: ${JSON.stringify(strip.trim().slice(0, 46))}`);
+    console.log(`[reviewed] read: ${state.read.length}/${changed} stops, strip: ${JSON.stringify(strip.trim().slice(0, 46))}`);
     console.log(`[reviewed] ticked cards on screen: ${ticks}, next-unread button: ${nextUnread ? nextUnread.textContent : "gone"}`);
     if (state.read.length !== changed || !ticks || nextUnread) { console.log("MARK REVIEWED BROKEN"); process.exit(1); }
 
@@ -101,18 +109,21 @@ try {
   // a referenced object is not reviewable: no read tick, no place in the walk
   const ticks = document.querySelectorAll(".context-body .read-tick").length;
   const comp = page.components.find((c) => c.id === page.initialComponent) ?? page.components[0];
-  const changed = comp.entryIds.filter((id) => page.entries[id]?.seed).length;
+  // +1 for the component's loose changes, which are a stop on the walk too
+  const changed = comp.entryIds.filter((id) => page.entries[id]?.seed).length
+    + (document.querySelector(".entry.rest") ? 1 : 0);
   const counted = Number((document.querySelector(".ob-count")?.textContent ?? "0/0").split("/")[1]);
-  console.log(`[context] read ticks on referenced objects: ${ticks}, walk covers ${counted} of ${changed} changed objects in this component`);
+  console.log(`[context] read ticks on referenced objects: ${ticks}, walk covers ${counted} of ${changed} stops in this component`);
   if (ticks || counted !== changed) { console.log("REVIEW BOOKKEEPING BROKEN"); process.exit(1); }
   group.querySelector(".entry-head").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 
   // -- per-object diffs: no two objects show the same file-wide diff ----------
   const deltas = [...document.querySelectorAll(".entry .delta-chip")].map((d) => d.textContent);
   const dupes = deltas.filter((d, i) => deltas.indexOf(d) !== i && d !== "").length;
-  const leftovers = document.querySelector(".entry.leftovers");
+  const leftovers = document.querySelector(".entry.rest");
   console.log(`[slices] object deltas: ${[...new Set(deltas)].slice(0, 6).join(" ")}${deltas.length > 6 ? " …" : ""}`);
-  console.log(`[slices] leftovers row: ${leftovers ? leftovers.querySelector(".row-meta").textContent : "MISSING"}`);
+  console.log(`[slices] loose-changes card: ${leftovers ? leftovers.querySelector(".trace-badge").textContent : "MISSING"}, reviewable: ${!!leftovers?.querySelector(".read-tick")}`);
+  if (leftovers && !leftovers.querySelector(".read-tick")) { console.log("LOOSE CHANGES NOT REVIEWABLE"); process.exit(1); }
   if (!leftovers) { console.log("LEFTOVERS BROKEN"); process.exit(1); }
   // the open object's diff must be smaller than its whole file's diff
   {

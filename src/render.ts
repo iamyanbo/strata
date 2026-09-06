@@ -75,14 +75,23 @@ function markReviewed(): void {
   review = {
     seenCommits: page.commits.filter((c) => !isMergeCommit(c)).map((c) => c.sha),
     reviewedAt: Date.now(),
-    read: Object.entries(page.entries).filter(([, e]) => e.seed).map(([id]) => id)
+    read: reviewableIds()
   };
   saveReview();
+}
+
+/** every stop a reviewer is expected to visit: changed objects, plus each
+    component's loose changes */
+function reviewableIds(): string[] {
+  const out = Object.entries(page.entries).filter(([, e]) => e.seed).map(([id]) => id);
+  for (const c of page.components) if (unclaimedFiles(c).length) out.push(restId(c));
+  return out;
 }
 
 /** lines in this object written or removed by a commit that did not exist at
     your last checkpoint */
 function newSinceCheckpoint(id: string): number {
+  if (isRest(id)) return 0;
   // reviewedAt, not seenCommits.length: a force-push can leave a real
   // checkpoint with none of its commits still on the branch, and that is
   // exactly when everything should come back for another look
@@ -141,13 +150,13 @@ function renderReviewStrip(): HTMLElement | null {
   reset.title = "forget the checkpoint and every read mark";
   reset.addEventListener("click", () => { clearReview(); refresh(); });
 
-  const changedIds = Object.entries(page.entries).filter(([, e]) => e.seed).map(([id]) => id);
+  const changedIds = reviewableIds();
   const unread = changedIds.filter((id) => !isRead(id)).length;
 
   if (!review) {
     s.appendChild(el("span", undefined,
-      `not yet reviewed · ${real.length} commit${real.length === 1 ? "" : "s"} · ${changedIds.length} changed object${changedIds.length === 1 ? "" : "s"}`));
-    mark.title = "checkpoint at today's commits and tick off every changed object";
+      `not yet reviewed · ${real.length} commit${real.length === 1 ? "" : "s"} · ${changedIds.length} to review`));
+    mark.title = "checkpoint at today's commits, and tick everything off";
     s.appendChild(mark);
     return s;
   }
@@ -166,8 +175,8 @@ function renderReviewStrip(): HTMLElement | null {
   const fresh = real.filter((c) => !review!.seenCommits.includes(c.sha));
   if (!fresh.length) {
     s.appendChild(el("span", undefined, unread
-      ? `reviewed ${when} · ${unread} object${unread === 1 ? "" : "s"} still unread`
-      : `reviewed ${when} · all ${changedIds.length} object${changedIds.length === 1 ? "" : "s"} read`));
+      ? `reviewed ${when} · ${unread} still unread`
+      : `reviewed ${when} · all ${changedIds.length} read`));
     if (unread) {
       mark.textContent = "mark all read";
       s.append(mark, reset);
@@ -934,8 +943,8 @@ function renderRail(): HTMLElement {
       const ctx = contextOf(c).length;
       const read = changed.filter((id) => isRead(id)).length;
       const stats = review && changed.length
-        ? `${read}/${changed.length} read${ctx ? ` · ${ctx} referenced` : ""}`
-        : `${changed.length} changed${ctx ? ` · ${ctx} referenced` : ""}`;
+        ? `${read}/${changed.length} read${ctx ? ` · ${ctx} unchanged` : ""}`
+        : `${changed.length} to review${ctx ? ` · ${ctx} unchanged` : ""}`;
       btn.append(
         el("span", "comp-path", c.name),
         el("span", "comp-stats", stats)
@@ -984,9 +993,17 @@ function objectsOf(comp: ComponentDoc): string[] {
     const d = deltaOf(entry(id)!.files);
     return d.add + d.del;
   };
-  return comp.entryIds
+  const changed = comp.entryIds
     .filter((id) => entry(id)?.seed)
     .sort((a, b) => weight(b) - weight(a));
+  // whatever belongs to no symbol is still part of the change, so it is the
+  // last stop rather than something you scroll past
+  return unclaimedFiles(comp).length ? [...changed, restId(comp)] : changed;
+}
+
+/** how a stop names itself, whether it is an object or the leftovers card */
+function stopName(id: string): string {
+  return isRest(id) ? "outside any object" : entry(id)?.name ?? id;
 }
 
 /** the rest: in the component because changed code reaches them */
@@ -1004,7 +1021,7 @@ function ensureCurrent(comp: ComponentDoc): void {
   if (!list.length) { currentEntry = ""; return; }
   const openHere = list.find((id) => expanded.has(id));
   if (openHere) { currentEntry = openHere; openedFor = comp.id; return; }
-  if (!list.includes(currentEntry)) currentEntry = list.find((id) => entry(id)!.seed) ?? list[0];
+  if (!list.includes(currentEntry)) currentEntry = list[0];
   if (openedFor !== comp.id) {
     openedFor = comp.id;
     expanded.clear();
@@ -1043,7 +1060,7 @@ function stepEntry(delta: number): void {
 /** the next changed object you have not ticked off, wrapping around */
 function nextUnread(): void {
   const comp = component(currentComponent) ?? page.components[0];
-  const list = objectsOf(comp).filter((id) => entry(id)!.seed);
+  const list = objectsOf(comp);
   const read = new Set(list.filter((id) => isRead(id)));
   const at = list.indexOf(currentEntry);
   const rotated = [...list.slice(at + 1), ...list.slice(0, at + 1)];
@@ -1139,7 +1156,7 @@ function renderFileBar(): HTMLElement {
     const chip = el("span", "ob-file-meta");
     chip.appendChild(deltaChip(st.add, st.del));
     bar.appendChild(chip);
-    if (!st.objects.length) bar.appendChild(el("span", "conn-chip un", "no object covers this file"));
+    if (!st.objects.length) bar.appendChild(el("span", "conn-chip un", "no objects"));
   }
 
   const keys = el("span", "ob-keys");
@@ -1178,7 +1195,7 @@ function renderObjectBar(): HTMLElement {
   bar.appendChild(el("div", "ob-sep"));
 
   if (!list.length) {
-    bar.appendChild(el("span", "conn-chip un", `nothing changed here · ${ctx} referenced object${ctx === 1 ? "" : "s"}`));
+    bar.appendChild(el("span", "conn-chip un", `nothing to review · ${ctx} unchanged`));
     return bar;
   }
 
@@ -1200,32 +1217,28 @@ function renderObjectBar(): HTMLElement {
     "obj",
     () => {
       const lab = el("span", "menu-lab");
-      lab.appendChild(el("b", undefined, here?.name ?? "—"));
+      lab.appendChild(el("b", undefined, stopName(currentEntry)));
       if (here) lab.appendChild(deltaDetail(here));
       return lab;
     },
-    list.map((id) => {
-      const e = entry(id)!;
-      return {
-        id,
-        label: e.name,
-        mark: isRead(id) ? "✓" : newSinceCheckpoint(id) ? "↻" : "●",
-        current: id === currentEntry,
-        detail: () => deltaDetail(e)
-      };
-    }),
+    list.map((id) => ({
+      id,
+      label: stopName(id),
+      mark: isRead(id) ? "✓" : newSinceCheckpoint(id) ? "↻" : "●",
+      current: id === currentEntry,
+      detail: () => (isRest(id) ? el("span", "menu-kind", "no symbol") : deltaDetail(entry(id)!))
+    })),
     (id) => openEntry(id)
   ));
 
   // the current object's identity and read state, kept out of the scroll
   bar.appendChild(el("div", "ob-sep"));
 
-  const cur = entry(currentEntry);
-  if (cur) {
-    const read = isRead(cur.id);
+  if (currentEntry) {
+    const read = isRead(currentEntry);
     const tick = el("button", `ob-tick${read ? " on" : ""}`, read ? "✓ read" : "mark read");
-    tick.title = "mark this object as read";
-    tick.addEventListener("click", () => { toggleRead(cur.id); refresh(); });
+    tick.title = "mark this as read";
+    tick.addEventListener("click", () => { toggleRead(currentEntry); refresh(); });
     bar.appendChild(tick);
     const unread = objectsOf(comp).filter((id) => !isRead(id)).length;
     if (unread) {
@@ -1297,7 +1310,7 @@ function renderContextGroup(ids: string[]): HTMLElement | null {
   const files = new Set(ids.map((id) => nodeFile(id).split("/").pop() ?? ""));
   nameRow.append(
     el("span", "row-chev", "›"),
-    el("code", "name", "referenced, not changed"),
+    el("code", "name", "unchanged references"),
     el("i", "row-leader"),
     el("span", "kind", `${ids.length} object${ids.length === 1 ? "" : "s"}`),
     el("span", "row-meta", [...files].slice(0, 3).join(", ") + (files.size > 3 ? `, +${files.size - 3}` : ""))
@@ -1308,8 +1321,7 @@ function renderContextGroup(ids: string[]): HTMLElement | null {
 
   const fill = (): void => {
     const body = el("div", "entry-body context-body");
-    body.appendChild(el("p", "conn-sum",
-      "this PR changes none of these. They are in the component because changed code reaches them, so their diffs are empty and their Connections explain the link."));
+    body.appendChild(el("p", "conn-sum", "reached by the changes, unchanged themselves"));
     for (const id of ids) body.appendChild(renderEntry(entry(id)!));
     art.appendChild(body);
   };
@@ -1324,41 +1336,58 @@ function renderContextGroup(ids: string[]): HTMLElement | null {
   return art;
 }
 
+/** the id the leftovers card is reviewed under — it holds real changed lines,
+    so it is a stop on the walk and it can be ticked off like anything else */
+function restId(comp: ComponentDoc): string {
+  return `rest:${comp.id}`;
+}
+
+function isRest(id: string): boolean {
+  return id.startsWith("rest:");
+}
+
 function renderLeftovers(comp: ComponentDoc): HTMLElement | null {
   const files = unclaimedFiles(comp);
   if (!files.length) return null;
   const n = files.reduce((s, f) => s + f.lines.filter((l) => l.kind !== "ctx").length, 0);
+  const id = restId(comp);
+  const open = expanded.has(id);
 
-  const art = el("article", "entry compact leftovers");
+  const art = el("article", `entry rest${open ? " open" : " compact"}`);
+  art.id = `entry-${id}`;
   const head = el("header", "entry-head");
   const title = el("div", "entry-title");
   const nameRow = el("div", "name-row");
+  const read = isRead(id);
+  const tick = el("button", `read-tick${read ? " on" : ""}`);
+  tick.title = read ? "marked as read — click to unmark" : "mark as read";
+  tick.addEventListener("click", (ev) => { ev.stopPropagation(); toggleRead(id); refresh(); });
   nameRow.append(
-    el("span", "row-chev", "›"),
+    tick,
     el("code", "name", "outside any object"),
     el("i", "row-leader"),
     el("span", "kind", `${files.length} file${files.length === 1 ? "" : "s"}`),
-    el("span", "row-meta", `${n} changed line${n === 1 ? "" : "s"}`)
+    deltaChip(
+      files.reduce((s, f) => s + f.lines.filter((l) => l.kind === "add").length, 0),
+      files.reduce((s, f) => s + f.lines.filter((l) => l.kind === "del").length, 0)
+    )
   );
-  title.append(nameRow);
+  title.append(nameRow, el("p", "summary", "imports, top-level statements and test bodies — changes that belong to no symbol"));
   head.appendChild(title);
+  head.appendChild(el("span", "trace-badge", `${n} line${n === 1 ? "" : "s"}`));
   art.appendChild(head);
 
-  let open = false;
-  head.addEventListener("click", () => {
-    open = !open;
-    art.classList.toggle("compact", !open);
-    art.classList.toggle("open", open);
-    const body = art.querySelector(".entry-body");
-    if (body) { body.remove(); return; }
+  if (open) {
     const wrap = el("div", "entry-body");
     const sec = el("section", "sec");
-    sec.appendChild(el("h4", "sec-h", "Changed, but part of no symbol"));
-    sec.appendChild(el("p", "conn-sum",
-      "imports, top-level statements and the bodies of test callbacks are not objects the graph can reach — they are shown here so the component's diff is complete"));
+    sec.appendChild(el("h4", "sec-h", "Changes"));
     for (const f of files) sec.appendChild(renderFile(f));
     wrap.appendChild(sec);
     art.appendChild(wrap);
+  }
+  head.addEventListener("click", () => {
+    if (expanded.has(id)) { expanded.delete(id); refresh(); }
+    else openEntry(id, false);
   });
   return art;
 }
@@ -1446,8 +1475,8 @@ function renderFileDoc(): HTMLElement {
   head.append(h1, meta);
   head.appendChild(el("p", "origin",
     st.objects.length
-      ? `${st.objects.length} object${st.objects.length === 1 ? "" : "s"} in this file · every changed line below, in order`
-      : "no indexed symbol covers this file — the object lens cannot reach it, so this is the only place its changes appear"));
+      ? `${st.objects.length} object${st.objects.length === 1 ? "" : "s"} · every changed line, in order`
+      : "no symbol covers this file — it appears only in this lens"));
   main.appendChild(head);
 
   const owner = ownerOfLines(f.path);
@@ -1475,7 +1504,7 @@ function renderFileDoc(): HTMLElement {
       const comp = componentOf(id);
       if (comp) label.appendChild(el("span", "run-comp", comp.name));
     } else {
-      label.appendChild(el("span", "run-none", "no object — imports, top-level statements or a nested body"));
+      label.appendChild(el("span", "run-none", "no object"));
     }
     body.appendChild(label);
     run = el("div", "run");
@@ -1546,7 +1575,7 @@ function renderFileObjects(): HTMLElement {
   const f = fileByPath(currentFile);
   const ids = f ? fileStats(f).objects : [];
   if (!ids.length) {
-    box.appendChild(el("p", "no-diff", "no indexed object declares anything in this file"));
+    box.appendChild(el("p", "no-diff", "no object declares anything here"));
     return box;
   }
   for (const id of ids) {
@@ -1580,10 +1609,10 @@ function renderComponentDoc(): HTMLElement {
   const head = el("header", "doc-head");
   const meta = el("p", "doc-meta");
   // count what the reviewer walks, not everything the fill reached
-  const nChanged = objectsOf(comp).length;
+  const nStops = objectsOf(comp).length;
   const nCtx = contextOf(comp).length;
   meta.appendChild(el("span", undefined,
-    `${nChanged} changed object${nChanged === 1 ? "" : "s"}${nCtx ? ` · ${nCtx} referenced` : ""}`));
+    `${nStops} to review${nCtx ? ` · ${nCtx} unchanged` : ""}`));
   if (d.add || d.del) {
     meta.append(
       el("span", undefined, " \u00b7 "),
@@ -1596,7 +1625,10 @@ function renderComponentDoc(): HTMLElement {
   main.appendChild(head);
 
   const list = el("div", "entries");
-  for (const id of objectsOf(comp)) list.appendChild(renderEntry(entry(id)!));
+  // the walk's last stop is the leftovers card, which renderLeftovers appends
+  for (const id of objectsOf(comp)) {
+    if (!isRest(id)) list.appendChild(renderEntry(entry(id)!));
+  }
   const ctx = renderContextGroup(contextOf(comp));
   if (ctx) list.appendChild(ctx);
   const rest = renderLeftovers(comp);
@@ -1659,8 +1691,7 @@ function connectionRow(e: GraphEdge, selfId: string): HTMLElement {
       site.classList.toggle("open", open);
       if (!open || peek.childElementCount) return;
       const changedSide = nodeSeed(otherId);
-      peek.appendChild(el("div", "peek-note",
-        `${s.file}${changedSide ? "" : " · not changed by this PR — shown for context"}`));
+      peek.appendChild(el("div", "peek-note", `${s.file}${changedSide ? "" : " · unchanged"}`));
       s.ctx!.forEach((text, i) => {
         const n = (s.ctxStart ?? s.line) + i;
         const ln = el("div", `peek-line${n === s.line ? " at" : ""}`);
@@ -1691,7 +1722,7 @@ function renderConnections(id: string): HTMLElement | null {
   const sum = el("p", "conn-sum");
   sum.textContent =
     `${incoming.length} caller${incoming.length === 1 ? "" : "s"} · ${out.length} call${out.length === 1 ? "" : "s"} out` +
-    (untouched && nodeSeed(id) ? ` · ${untouched} caller${untouched === 1 ? " is" : "s are"} untouched by this PR` : "");
+    (untouched && nodeSeed(id) ? ` · ${untouched} unchanged` : "");
   if (untouched && nodeSeed(id)) sum.classList.add("warn");
   sec.appendChild(sum);
 
@@ -1702,7 +1733,7 @@ function renderConnections(id: string): HTMLElement | null {
     // callers the PR never touched have no diff to show, so say so once here
     // rather than leaving the reviewer to wonder where their code went
     if (label === "called by" && list.some((x) => !nodeSeed(x.a))) {
-      h.appendChild(el("span", "conn-group-note", "unchanged callers have no diff — open a call site to read it"));
+      h.appendChild(el("span", "conn-group-note", "open a call site to read it"));
     }
     sec.appendChild(h);
     // riskiest first: unchanged callers of changed code lead the list
@@ -1776,7 +1807,7 @@ function renderEntry(e: Entry): HTMLElement {
   if (e.seed && untouchedCallers) {
     const wc = el("span", "wire-chip", `${untouchedCallers} unchanged caller${untouchedCallers === 1 ? "" : "s"}`);
     wc.addEventListener("mouseenter", () => showHoverCard(wc, (card) => {
-      card.appendChild(el("div", "hc-msg", "these callers were not modified by this PR but depend on code it changed"));
+      card.appendChild(el("div", "hc-msg", "unchanged callers of code this PR changed"));
       for (const x of wired.in.filter((y) => !nodeSeed(y.a)).slice(0, 5)) {
         card.appendChild(el("div", "hc-who", entry(x.a)?.name ?? x.a));
       }
@@ -1850,20 +1881,15 @@ function renderEntry(e: Entry): HTMLElement {
       if (callers.length) {
         const names = callers.slice(0, 2).map((x) => entry(x.a)?.name ?? x.a);
         const more = callers.length - names.length;
-        why.appendChild(document.createTextNode("This PR does not change it. It is here because "));
+        why.appendChild(document.createTextNode("Unchanged. Reached by "));
         names.forEach((n, i) => {
           if (i) why.appendChild(document.createTextNode(more ? ", " : " and "));
           why.appendChild(el("code", "why-name", n));
         });
-        why.appendChild(document.createTextNode(
-          more
-            ? ` and ${more} other changed object${more === 1 ? "" : "s"} reach it.`
-            : ` reach${callers.length === 1 ? "es" : ""} it.`
-        ));
+        why.appendChild(document.createTextNode(more ? ` and ${more} more.` : "."));
       } else {
-        why.textContent = "This PR does not change it. The fill pulled it in from changed code nearby.";
+        why.textContent = "Unchanged. Pulled in from changed code nearby.";
       }
-      why.appendChild(el("span", "no-diff-hint", "its call sites are under Connections"));
       chg.appendChild(why);
     }
     const written = commitsOf(e.id);

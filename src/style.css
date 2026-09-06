@@ -1545,11 +1545,10 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .theme-toggle.has-notes { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--hairline)); }
 .exp-row.mine b { color: var(--accent); }
 
-/* the leftovers row: same weight as an unchanged-context row, never a card */
-.entry.leftovers { border-top: 1px dashed var(--hairline); }
-.entry.leftovers .name { color: var(--faint); font-style: italic; }
-.entry.leftovers.open { background: none; border: 1px dashed var(--hairline); box-shadow: none; }
-.entry.leftovers.open .name { color: var(--muted); }
+/* the leftovers card carries real changed lines — it reads like any other
+   change, not like the unchanged-context group next to it */
+.entry.rest .name { color: var(--ink); }
+.entry.rest .summary { font-size: 12px; }
 
 /* ---- the file lens: runs of lines, labeled by the object that owns them ---- */
 .file.filelens { margin-top: 6px; }
