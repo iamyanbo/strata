@@ -459,8 +459,6 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .ov-fact span { font: 400 10px var(--mono); color: var(--faint); }
 
 /* review-comment findability */
-.cmt-badge { font: 600 10px var(--mono); color: var(--ink); background: color-mix(in srgb, var(--s2) 26%, transparent); border: none; border-radius: 20px; padding: 2px 8px; white-space: nowrap; cursor: pointer; }
-.cmt-badge:hover { background: color-mix(in srgb, var(--s2) 45%, transparent); }
 
 /* commit history: github-style list, people + time bands */
 .hist { display: flex; flex-direction: column; }
@@ -708,7 +706,7 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
   color: var(--faint);
   padding-top: 3px;
 }
-.trace-badge.has-gaps { color: var(--gap); }
+.trace-badge { font-variant-numeric: tabular-nums; }
 
 .entry.flash { animation: flash 1.4s ease; }
 @keyframes flash {
@@ -1275,6 +1273,9 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .menu-wrap.obj .menu-btn, .menu-wrap.comp .menu-btn { max-width: 100%; }
 .objbar > .conn-chip { flex: none; }
 @media (max-width: 1180px) { .ob-keys { display: none; } }
+/* below this the row genuinely cannot hold everything, so let it wrap rather
+   than overlap — at desktop widths it still never wraps */
+@media (max-width: 1020px) { .objbar { flex-wrap: wrap; } }
 .ob-keys kbd {
   font: 500 9px var(--mono); color: var(--muted);
   background: var(--paper); border: 1px solid var(--hairline);
@@ -1292,6 +1293,8 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
   box-shadow: var(--shadow-1);
 }
 .menu-btn:hover { border-color: var(--strong); }
+/* never let a label truncate away to an empty box */
+.menu-btn { min-width: 92px; }
 .menu-lab { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .menu-lab b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .menu-sub { font: 400 9.5px var(--mono); color: var(--faint); }
@@ -1422,8 +1425,15 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .conn-chip.comp { color: var(--link-fg); background: color-mix(in srgb, var(--accent) 15%, transparent); }
 .untested-chip { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent); }
 .new-chip { color: var(--s2); background: color-mix(in srgb, var(--s2) 18%, transparent); }
-.cmt-badge { color: var(--ink); background: color-mix(in srgb, var(--s2) 22%, transparent); text-transform: none; letter-spacing: 0; }
-.cmt-badge:hover { background: color-mix(in srgb, var(--s2) 34%, transparent); }
+.cmt-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--s2); background: color-mix(in srgb, var(--s2) 14%, transparent);
+  text-transform: none; letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.chip-ic { display: inline-flex; }
+.chip-ic svg { width: 10px; height: 10px; display: block; }
+.cmt-badge:hover { background: color-mix(in srgb, var(--s2) 24%, transparent); }
 .menu-kind { border: none; padding: 3px 0; }
 
 /* +/- always reads green/red, in chips and in menus alike */

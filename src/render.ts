@@ -1797,9 +1797,7 @@ function renderEntry(e: Entry): HTMLElement {
   const entryDelta = deltaOf(e.files);
   if (entryDelta.add || entryDelta.del) nameRow.append(deltaChip(entryDelta.add, entryDelta.del));
   if (e.comments?.length) {
-    const cb = el("span", "cmt-badge", `💬 ${e.comments.length}`);
-    cb.title = "review threads";
-    nameRow.append(cb);
+    nameRow.append(threadChip(e.comments.length));
   }
   // scan-level signal: callers this PR never touched, on an object it changed
   const wired = edgesOf(e.id);
@@ -1839,11 +1837,14 @@ function renderEntry(e: Entry): HTMLElement {
   } else {
     title.append(el("p", "summary", e.summary));
   }
-  const gaps = e.traces.filter((t) => t.negative).length;
-  const badge = el("span", "trace-badge",
-    `${e.traces.length} fact${e.traces.length === 1 ? "" : "s"}${gaps ? ` \u00b7 ${gaps} gap${gaps > 1 ? "s" : ""}` : ""}`
-  );
-  head.append(title, badge);
+  // the header carries the blast radius, not a count of the rows in Impact:
+  // "2 facts" was a reference count plus a test fact, on every single card
+  head.appendChild(title);
+  if (e.refs) {
+    const badge = el("span", "trace-badge", `${e.refs} ref${e.refs === 1 ? "" : "s"}`);
+    badge.title = `${e.refs} reference${e.refs === 1 ? "" : "s"} at head`;
+    head.appendChild(badge);
+  }
   // promoted fact: nothing reaches this symbol from any test file
   if (e.seed && e.traces.some((t) => t.relation === "no direct test references")) {
     const uc = el("span", "untested-chip", "untested");
@@ -2805,7 +2806,7 @@ function renderComponentGraph(comp: ComponentDoc): HTMLElement {
     tip.append(head, meta, fact, sum, open);
     if (e.comments?.length) {
       const cc = el("div", "gtip-meta");
-      cc.textContent = `💬 ${e.comments.length} review thread${e.comments.length === 1 ? "" : "s"}`;
+      cc.textContent = `${e.comments.length} review thread${e.comments.length === 1 ? "" : "s"}`;
       tip.appendChild(cc);
     }
     tip.style.display = "block";
@@ -3277,6 +3278,18 @@ function wireAnalyze(input: HTMLInputElement, progress: HTMLElement): void {
         .catch(() => fail("analysis could not be started"));
     }
   });
+}
+
+const THREAD_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg>`;
+
+/** the thread count, with a drawn bubble rather than an emoji */
+function threadChip(n: number): HTMLElement {
+  const chip = el("span", "cmt-badge");
+  const ic = el("span", "chip-ic");
+  ic.innerHTML = THREAD_SVG;
+  chip.append(ic, el("span", undefined, String(n)));
+  chip.title = `${n} review thread${n === 1 ? "" : "s"}`;
+  return chip;
 }
 
 const MOON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
