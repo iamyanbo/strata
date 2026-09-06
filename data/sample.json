@@ -12,34 +12,34 @@
     "base": "main",
     "label": "colinhacks:rename-json-schema-process-helper"
   },
-  "initialComponent": "flow-3",
+  "initialComponent": "flow-0",
   "components": [
     {
-      "id": "flow-3",
+      "id": "flow-0",
       "name": "processSchema",
-      "origin": "derived from changed symbols processSchema · def−use edges · 3-hop reach",
+      "origin": "derived from changed symbols JSONSchemaGenerator, arrayProcessor, objectProcessor, propertiesProcessor, unionProcessor, intersectionProcessor and 18 more · def−use edges · 3-hop reach",
       "stats": "16 objects",
       "entryIds": [
         "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-        "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
+        "packages/bench/compile-matrix.ts#filter#const#163",
         "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
         "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-        "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757",
-        "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881",
-        "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-        "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-        "packages/zod/src/v4/core/to-json-schema.ts#assignProps#function#11609",
         "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
         "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
         "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354",
         "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
         "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
         "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
-        "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358"
+        "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358",
+        "packages/zod/src/v4/core/json-schema-processors.ts#tupleProcessor#const#9362",
+        "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392",
+        "packages/zod/src/v4/core/json-schema-processors.ts#nullableProcessor#const#9403",
+        "packages/zod/src/v4/core/json-schema-processors.ts#nonoptionalProcessor#const#9407",
+        "packages/zod/src/v4/core/json-schema-processors.ts#defaultProcessor#const#9414"
       ]
     },
     {
-      "id": "flow-1",
+      "id": "flow-2",
       "name": "here",
       "origin": "derived from changed symbols here, CLASSIC, MINI · def−use edges · 3-hop reach",
       "stats": "3 objects",
@@ -50,7 +50,7 @@
       ]
     },
     {
-      "id": "flow-0",
+      "id": "flow-1",
       "name": "INJECTED",
       "origin": "derived from changed symbols INJECTED, polyfills · def−use edges · 3-hop reach",
       "stats": "2 objects",
@@ -60,7 +60,7 @@
       ]
     },
     {
-      "id": "flow-2",
+      "id": "flow-3",
       "name": "ENTRY",
       "origin": "derived from changed symbols ENTRY · def−use edges · 3-hop reach",
       "stats": "1 objects",
@@ -81,25 +81,26 @@
       "message": "Rename the JSON Schema `process` helper so bundler polyfills cannot collide (#6541)",
       "stratum": 1,
       "touches": [
+        "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
+        "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
+        "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+        "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
+        "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
+        "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354",
+        "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358",
+        "packages/zod/src/v4/core/json-schema-processors.ts#tupleProcessor#const#9362",
+        "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392",
+        "packages/zod/src/v4/core/json-schema-processors.ts#nullableProcessor#const#9403",
+        "packages/zod/src/v4/core/json-schema-processors.ts#nonoptionalProcessor#const#9407",
+        "packages/zod/src/v4/core/json-schema-processors.ts#defaultProcessor#const#9414",
+        "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
+        "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
         "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#INJECTED#const#11566",
         "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#polyfills#const#11570",
         "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567",
         "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#CLASSIC#const#11568",
         "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#MINI#const#11569",
-        "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#ENTRY#const#11571",
-        "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-        "packages/zod/src/v4/core/to-json-schema.ts#assignProps#function#11609",
-        "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-        "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-        "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-        "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
-        "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
-        "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
-        "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354",
-        "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358",
-        "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
-        "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
-        "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757"
+        "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#ENTRY#const#11571"
       ],
       "files": [
         {
@@ -2092,2097 +2093,108 @@
     }
   ],
   "entries": {
-    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#INJECTED#const#11566": {
-      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#INJECTED#const#11566",
-      "kind": "const",
-      "name": "INJECTED",
-      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+    "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290": {
+      "id": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
+      "kind": "class",
+      "name": "JSONSchemaGenerator",
+      "summary": "class in packages/zod/src/v4/core/json-schema-generator.ts",
       "files": [
         {
-          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "new",
+          "path": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "delta": "+1 −1",
           "lines": [
             {
-              "kind": "add",
-              "text": "import * as path from \"node:path\";",
-              "new": 1,
+              "kind": "ctx",
+              "text": "   * This must be called before emit().",
+              "old": 102,
+              "new": 102
+            },
+            {
+              "kind": "ctx",
+              "text": "   */",
+              "old": 103,
+              "new": 103
+            },
+            {
+              "kind": "ctx",
+              "text": "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
+              "old": 104,
+              "new": 104
+            },
+            {
+              "kind": "del",
+              "text": "    return process(schema, this.ctx, _params);",
+              "old": 105,
               "stratum": 1,
               "by": "18e71c7"
             },
             {
               "kind": "add",
-              "text": "import { fileURLToPath } from \"node:url\";",
-              "new": 2,
+              "text": "    return processSchema(schema, this.ctx, _params);",
+              "new": 105,
               "stratum": 1,
               "by": "18e71c7"
             },
             {
-              "kind": "add",
-              "text": "import { build, transform } from \"esbuild\";",
-              "new": 3,
-              "stratum": 1,
-              "by": "18e71c7"
+              "kind": "ctx",
+              "text": "  }",
+              "old": 106,
+              "new": 106
             },
             {
-              "kind": "add",
-              "text": "import { expect, test } from \"vitest\";",
-              "new": 4,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
+              "kind": "ctx",
               "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
+              "old": 107,
+              "new": 107
             },
             {
-              "kind": "add",
-              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
-              "new": 7,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
-              "new": 8,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
-              "new": 10,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
-              "new": 11,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
-              "new": 12,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
-              "new": 14,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
-              "new": 16,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
-              "new": 17,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 18,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test.each([",
-              "new": 19,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"classic\", CLASSIC],",
-              "new": 20,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"mini\", MINI],",
-              "new": 21,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "])(",
-              "new": 22,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  \"a %s bundle reaching toJSONSchema parses beside polyfilled node globals\",",
-              "new": 23,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  async (_flavor, entrypoint) => {",
-              "new": 24,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const result = await build({",
-              "new": 25,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      stdin: { contents: ENTRY.replace(\"%ENTRY%\", entrypoint), loader: \"ts\", resolveDir: here },",
-              "new": 26,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      bundle: true,",
-              "new": 27,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      format: \"esm\",",
-              "new": 28,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      target: \"es2020\",",
-              "new": 29,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      write: false,",
-              "new": 30,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      logLevel: \"silent\",",
-              "new": 31,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      banner: { js: polyfills },",
-              "new": 32,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    });",
-              "new": 33,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const out = result.outputFiles[0]!.text;",
-              "new": 34,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 35,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    expect(out).toContain(\"https://json-schema.org/draft/2020-12/schema\");",
-              "new": 36,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 37,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    // the banner is appended after esbuild has already renamed its own symbols, so this second pass is where a duplicate surfaces: `The symbol \"process\" has already been declared`",
-              "new": 38,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    await expect(transform(out, { loader: \"js\", format: \"esm\" })).resolves.toBeTruthy();",
-              "new": 39,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  },",
-              "new": 40,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  30000",
-              "new": 41,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": ");",
-              "new": 42,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 43,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test(\"the pre-rename `process` export still resolves to the helper\", () => {",
-              "new": 44,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  expect(core.process).toBe(core.processSchema);",
-              "new": 45,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "});",
-              "new": 46,
-              "stratum": 1,
-              "by": "18e71c7"
+              "kind": "ctx",
+              "text": "  /**",
+              "old": 108,
+              "new": 108
             }
           ]
         }
       ],
       "traces": [
         {
-          "relation": "2 references at head · 2 touched by this PR"
+          "relation": "5 references at head · 1 touched by this PR"
         },
         {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+          "relation": "covered by to-json-schema.test.ts",
+          "file": "packages/zod/src/v4/classic/tests/to-json-schema.test.ts"
         }
       ],
-      "refs": 2,
+      "refs": 5,
       "seed": true
     },
-    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#polyfills#const#11570": {
-      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#polyfills#const#11570",
-      "kind": "const",
-      "name": "polyfills",
-      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-      "files": [
-        {
-          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "new",
-          "lines": [
-            {
-              "kind": "add",
-              "text": "import * as path from \"node:path\";",
-              "new": 1,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { fileURLToPath } from \"node:url\";",
-              "new": 2,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { build, transform } from \"esbuild\";",
-              "new": 3,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { expect, test } from \"vitest\";",
-              "new": 4,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
-              "new": 7,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
-              "new": 8,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
-              "new": 10,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
-              "new": 11,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
-              "new": 12,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
-              "new": 14,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
-              "new": 16,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
-              "new": 17,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 18,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test.each([",
-              "new": 19,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"classic\", CLASSIC],",
-              "new": 20,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"mini\", MINI],",
-              "new": 21,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "])(",
-              "new": 22,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  \"a %s bundle reaching toJSONSchema parses beside polyfilled node globals\",",
-              "new": 23,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  async (_flavor, entrypoint) => {",
-              "new": 24,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const result = await build({",
-              "new": 25,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      stdin: { contents: ENTRY.replace(\"%ENTRY%\", entrypoint), loader: \"ts\", resolveDir: here },",
-              "new": 26,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      bundle: true,",
-              "new": 27,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      format: \"esm\",",
-              "new": 28,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      target: \"es2020\",",
-              "new": 29,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      write: false,",
-              "new": 30,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      logLevel: \"silent\",",
-              "new": 31,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      banner: { js: polyfills },",
-              "new": 32,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    });",
-              "new": 33,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const out = result.outputFiles[0]!.text;",
-              "new": 34,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 35,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    expect(out).toContain(\"https://json-schema.org/draft/2020-12/schema\");",
-              "new": 36,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 37,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    // the banner is appended after esbuild has already renamed its own symbols, so this second pass is where a duplicate surfaces: `The symbol \"process\" has already been declared`",
-              "new": 38,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    await expect(transform(out, { loader: \"js\", format: \"esm\" })).resolves.toBeTruthy();",
-              "new": 39,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  },",
-              "new": 40,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  30000",
-              "new": 41,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": ");",
-              "new": 42,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 43,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test(\"the pre-rename `process` export still resolves to the helper\", () => {",
-              "new": 44,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  expect(core.process).toBe(core.processSchema);",
-              "new": 45,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "});",
-              "new": 46,
-              "stratum": 1,
-              "by": "18e71c7"
-            }
-          ]
-        }
-      ],
+    "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461": {
+      "id": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
+      "kind": "typeAlias",
+      "name": "JSONSchema",
+      "summary": "typeAlias in packages/zod/src/v4/core/json-schema.ts",
+      "files": [],
       "traces": [
         {
-          "relation": "2 references at head · 2 touched by this PR"
+          "relation": "126 references at head · 68 touched by this PR"
         },
         {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+          "relation": "covered by to-json-schema.test.ts",
+          "file": "packages/zod/src/v4/classic/tests/to-json-schema.test.ts"
         }
       ],
-      "refs": 2,
-      "seed": true
+      "refs": 126,
+      "seed": false
     },
-    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567": {
-      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567",
-      "kind": "const",
-      "name": "here",
-      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-      "files": [
-        {
-          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "new",
-          "lines": [
-            {
-              "kind": "add",
-              "text": "import * as path from \"node:path\";",
-              "new": 1,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { fileURLToPath } from \"node:url\";",
-              "new": 2,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { build, transform } from \"esbuild\";",
-              "new": 3,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { expect, test } from \"vitest\";",
-              "new": 4,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
-              "new": 7,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
-              "new": 8,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
-              "new": 10,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
-              "new": 11,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
-              "new": 12,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
-              "new": 14,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
-              "new": 16,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
-              "new": 17,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 18,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test.each([",
-              "new": 19,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"classic\", CLASSIC],",
-              "new": 20,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"mini\", MINI],",
-              "new": 21,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "])(",
-              "new": 22,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  \"a %s bundle reaching toJSONSchema parses beside polyfilled node globals\",",
-              "new": 23,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  async (_flavor, entrypoint) => {",
-              "new": 24,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const result = await build({",
-              "new": 25,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      stdin: { contents: ENTRY.replace(\"%ENTRY%\", entrypoint), loader: \"ts\", resolveDir: here },",
-              "new": 26,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      bundle: true,",
-              "new": 27,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      format: \"esm\",",
-              "new": 28,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      target: \"es2020\",",
-              "new": 29,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      write: false,",
-              "new": 30,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      logLevel: \"silent\",",
-              "new": 31,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      banner: { js: polyfills },",
-              "new": 32,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    });",
-              "new": 33,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const out = result.outputFiles[0]!.text;",
-              "new": 34,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 35,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    expect(out).toContain(\"https://json-schema.org/draft/2020-12/schema\");",
-              "new": 36,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 37,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    // the banner is appended after esbuild has already renamed its own symbols, so this second pass is where a duplicate surfaces: `The symbol \"process\" has already been declared`",
-              "new": 38,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    await expect(transform(out, { loader: \"js\", format: \"esm\" })).resolves.toBeTruthy();",
-              "new": 39,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  },",
-              "new": 40,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  30000",
-              "new": 41,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": ");",
-              "new": 42,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 43,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test(\"the pre-rename `process` export still resolves to the helper\", () => {",
-              "new": 44,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  expect(core.process).toBe(core.processSchema);",
-              "new": 45,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "});",
-              "new": 46,
-              "stratum": 1,
-              "by": "18e71c7"
-            }
-          ]
-        }
-      ],
-      "traces": [
-        {
-          "relation": "4 references at head · 4 touched by this PR"
-        },
-        {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
-        }
-      ],
-      "refs": 4,
-      "seed": true
-    },
-    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#CLASSIC#const#11568": {
-      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#CLASSIC#const#11568",
-      "kind": "const",
-      "name": "CLASSIC",
-      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-      "files": [
-        {
-          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "new",
-          "lines": [
-            {
-              "kind": "add",
-              "text": "import * as path from \"node:path\";",
-              "new": 1,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { fileURLToPath } from \"node:url\";",
-              "new": 2,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { build, transform } from \"esbuild\";",
-              "new": 3,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { expect, test } from \"vitest\";",
-              "new": 4,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
-              "new": 7,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
-              "new": 8,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
-              "new": 10,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
-              "new": 11,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
-              "new": 12,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
-              "new": 14,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
-              "new": 16,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
-              "new": 17,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 18,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test.each([",
-              "new": 19,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"classic\", CLASSIC],",
-              "new": 20,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"mini\", MINI],",
-              "new": 21,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "])(",
-              "new": 22,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  \"a %s bundle reaching toJSONSchema parses beside polyfilled node globals\",",
-              "new": 23,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  async (_flavor, entrypoint) => {",
-              "new": 24,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const result = await build({",
-              "new": 25,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      stdin: { contents: ENTRY.replace(\"%ENTRY%\", entrypoint), loader: \"ts\", resolveDir: here },",
-              "new": 26,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      bundle: true,",
-              "new": 27,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      format: \"esm\",",
-              "new": 28,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      target: \"es2020\",",
-              "new": 29,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      write: false,",
-              "new": 30,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      logLevel: \"silent\",",
-              "new": 31,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      banner: { js: polyfills },",
-              "new": 32,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    });",
-              "new": 33,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const out = result.outputFiles[0]!.text;",
-              "new": 34,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 35,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    expect(out).toContain(\"https://json-schema.org/draft/2020-12/schema\");",
-              "new": 36,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 37,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    // the banner is appended after esbuild has already renamed its own symbols, so this second pass is where a duplicate surfaces: `The symbol \"process\" has already been declared`",
-              "new": 38,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    await expect(transform(out, { loader: \"js\", format: \"esm\" })).resolves.toBeTruthy();",
-              "new": 39,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  },",
-              "new": 40,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  30000",
-              "new": 41,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": ");",
-              "new": 42,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 43,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test(\"the pre-rename `process` export still resolves to the helper\", () => {",
-              "new": 44,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  expect(core.process).toBe(core.processSchema);",
-              "new": 45,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "});",
-              "new": 46,
-              "stratum": 1,
-              "by": "18e71c7"
-            }
-          ]
-        }
-      ],
-      "traces": [
-        {
-          "relation": "2 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
-        }
-      ],
-      "refs": 2,
-      "seed": true
-    },
-    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#MINI#const#11569": {
-      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#MINI#const#11569",
-      "kind": "const",
-      "name": "MINI",
-      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-      "files": [
-        {
-          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "new",
-          "lines": [
-            {
-              "kind": "add",
-              "text": "import * as path from \"node:path\";",
-              "new": 1,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { fileURLToPath } from \"node:url\";",
-              "new": 2,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { build, transform } from \"esbuild\";",
-              "new": 3,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { expect, test } from \"vitest\";",
-              "new": 4,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
-              "new": 7,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
-              "new": 8,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
-              "new": 10,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
-              "new": 11,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
-              "new": 12,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
-              "new": 14,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
-              "new": 16,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
-              "new": 17,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 18,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test.each([",
-              "new": 19,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"classic\", CLASSIC],",
-              "new": 20,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"mini\", MINI],",
-              "new": 21,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "])(",
-              "new": 22,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  \"a %s bundle reaching toJSONSchema parses beside polyfilled node globals\",",
-              "new": 23,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  async (_flavor, entrypoint) => {",
-              "new": 24,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const result = await build({",
-              "new": 25,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      stdin: { contents: ENTRY.replace(\"%ENTRY%\", entrypoint), loader: \"ts\", resolveDir: here },",
-              "new": 26,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      bundle: true,",
-              "new": 27,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      format: \"esm\",",
-              "new": 28,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      target: \"es2020\",",
-              "new": 29,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      write: false,",
-              "new": 30,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      logLevel: \"silent\",",
-              "new": 31,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      banner: { js: polyfills },",
-              "new": 32,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    });",
-              "new": 33,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const out = result.outputFiles[0]!.text;",
-              "new": 34,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 35,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    expect(out).toContain(\"https://json-schema.org/draft/2020-12/schema\");",
-              "new": 36,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 37,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    // the banner is appended after esbuild has already renamed its own symbols, so this second pass is where a duplicate surfaces: `The symbol \"process\" has already been declared`",
-              "new": 38,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    await expect(transform(out, { loader: \"js\", format: \"esm\" })).resolves.toBeTruthy();",
-              "new": 39,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  },",
-              "new": 40,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  30000",
-              "new": 41,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": ");",
-              "new": 42,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 43,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test(\"the pre-rename `process` export still resolves to the helper\", () => {",
-              "new": 44,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  expect(core.process).toBe(core.processSchema);",
-              "new": 45,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "});",
-              "new": 46,
-              "stratum": 1,
-              "by": "18e71c7"
-            }
-          ]
-        }
-      ],
-      "traces": [
-        {
-          "relation": "2 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
-        }
-      ],
-      "refs": 2,
-      "seed": true
-    },
-    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#ENTRY#const#11571": {
-      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#ENTRY#const#11571",
-      "kind": "const",
-      "name": "ENTRY",
-      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-      "files": [
-        {
-          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
-          "delta": "new",
-          "lines": [
-            {
-              "kind": "add",
-              "text": "import * as path from \"node:path\";",
-              "new": 1,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { fileURLToPath } from \"node:url\";",
-              "new": 2,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { build, transform } from \"esbuild\";",
-              "new": 3,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import { expect, test } from \"vitest\";",
-              "new": 4,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "import * as core from \"zod/v4/core\";",
-              "new": 5,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 6,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
-              "new": 7,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
-              "new": 8,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 9,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
-              "new": 10,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
-              "new": 11,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
-              "new": 12,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 13,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
-              "new": 14,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 15,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
-              "new": 16,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
-              "new": 17,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 18,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test.each([",
-              "new": 19,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"classic\", CLASSIC],",
-              "new": 20,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  [\"mini\", MINI],",
-              "new": 21,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "])(",
-              "new": 22,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  \"a %s bundle reaching toJSONSchema parses beside polyfilled node globals\",",
-              "new": 23,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  async (_flavor, entrypoint) => {",
-              "new": 24,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const result = await build({",
-              "new": 25,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      stdin: { contents: ENTRY.replace(\"%ENTRY%\", entrypoint), loader: \"ts\", resolveDir: here },",
-              "new": 26,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      bundle: true,",
-              "new": 27,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      format: \"esm\",",
-              "new": 28,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      target: \"es2020\",",
-              "new": 29,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      write: false,",
-              "new": 30,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      logLevel: \"silent\",",
-              "new": 31,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "      banner: { js: polyfills },",
-              "new": 32,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    });",
-              "new": 33,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    const out = result.outputFiles[0]!.text;",
-              "new": 34,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 35,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    expect(out).toContain(\"https://json-schema.org/draft/2020-12/schema\");",
-              "new": 36,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 37,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    // the banner is appended after esbuild has already renamed its own symbols, so this second pass is where a duplicate surfaces: `The symbol \"process\" has already been declared`",
-              "new": 38,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "    await expect(transform(out, { loader: \"js\", format: \"esm\" })).resolves.toBeTruthy();",
-              "new": 39,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  },",
-              "new": 40,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  30000",
-              "new": 41,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": ");",
-              "new": 42,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 43,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "test(\"the pre-rename `process` export still resolves to the helper\", () => {",
-              "new": 44,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "  expect(core.process).toBe(core.processSchema);",
-              "new": 45,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "});",
-              "new": 46,
-              "stratum": 1,
-              "by": "18e71c7"
-            }
-          ]
-        }
-      ],
-      "traces": [
-        {
-          "relation": "2 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
-        }
-      ],
-      "refs": 2,
-      "seed": true
-    },
-    "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "kind": "function",
-      "name": "processSchema",
-      "summary": "function in packages/zod/src/v4/core/to-json-schema.ts",
+    "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647": {
+      "id": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
+      "kind": "interface",
+      "name": "ToJSONSchemaContext",
+      "summary": "interface in packages/zod/src/v4/core/to-json-schema.ts",
       "files": [
         {
           "path": "packages/zod/src/v4/core/to-json-schema.ts",
-          "delta": "+9 −5",
+          "delta": "+1 −1",
           "lines": [
             {
               "kind": "ctx",
@@ -4233,19 +2245,31 @@
               "text": "   * One case is deliberately not covered: an `override` callback that writes to",
               "old": 134,
               "new": 134
-            },
-            {
-              "kind": "ctx",
-              "text": "  return true;",
-              "old": 209,
-              "new": 209
-            },
-            {
-              "kind": "ctx",
-              "text": "}",
-              "old": 210,
-              "new": 210
-            },
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "23 references at head · 21 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 23,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674": {
+      "id": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+      "kind": "function",
+      "name": "processSchema",
+      "summary": "function in packages/zod/src/v4/core/to-json-schema.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "delta": "+3 −2",
+          "lines": [
             {
               "kind": "ctx",
               "text": "",
@@ -4352,102 +2376,1004 @@
               "text": "}",
               "old": 290,
               "new": 291
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "33 references at head · 33 touched by this PR"
+        },
+        {
+          "relation": "renamed from process()"
+        },
+        {
+          "relation": "export alias kept: process (importable under old name)"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 33,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
+      "kind": "const",
+      "name": "arrayProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+1 −1",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "  if (typeof maximum === \"number\") json.maxItems = maximum;",
+              "old": 294,
+              "new": 294
             },
             {
               "kind": "ctx",
               "text": "",
-              "old": 291,
-              "new": 292
-            },
-            {
-              "kind": "add",
-              "text": "/** @deprecated Renamed to `processSchema`. An export alias declares no binding, so it is safe to keep. */",
-              "new": 293,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "export { processSchema as process };",
-              "new": 294,
-              "stratum": 1,
-              "by": "18e71c7"
-            },
-            {
-              "kind": "add",
-              "text": "",
-              "new": 295,
-              "stratum": 1,
-              "by": "18e71c7"
+              "old": 295,
+              "new": 295
             },
             {
               "kind": "ctx",
-              "text": "// Escape a reference token for use in a JSON Pointer fragment (RFC 6901): `~` becomes `~0` and `/` becomes `~1`. The `~` replacement must run first.",
-              "old": 292,
+              "text": "  json.type = \"array\";",
+              "old": 296,
               "new": 296
             },
             {
-              "kind": "ctx",
-              "text": "function encodeJSONPointerSegment(segment: string): string {",
-              "old": 293,
-              "new": 297
+              "kind": "del",
+              "text": "  json.items = process(def.element, ctx as any, {",
+              "old": 297,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  json.items = processSchema(def.element, ctx as any, {",
+              "new": 297,
+              "stratum": 1,
+              "by": "18e71c7"
             },
             {
               "kind": "ctx",
-              "text": "  return segment.replace(/~/g, \"~0\").replace(/\\//g, \"~1\");",
-              "old": 294,
+              "text": "    ...params,",
+              "old": 298,
               "new": 298
             },
             {
               "kind": "ctx",
-              "text": "  <T extends schemas.$ZodType>(schema: T, processors: Record<string, Processor> = {}) =>",
-              "old": 832,
-              "new": 836
+              "text": "    path: [...params.path, \"items\"],",
+              "old": 299,
+              "new": 299
             },
             {
               "kind": "ctx",
-              "text": "  (params?: ToJSONSchemaParams): ZodStandardJSONSchemaPayload<T> => {",
-              "old": 833,
-              "new": 837
+              "text": "  });",
+              "old": 300,
+              "new": 300
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
+      "kind": "const",
+      "name": "objectProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+2 −2",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "    assignProp(",
+              "old": 338,
+              "new": 338
             },
             {
               "kind": "ctx",
-              "text": "    const ctx = initializeContext({ ...params, processors });",
-              "old": 834,
-              "new": 838
+              "text": "      json.properties,",
+              "old": 339,
+              "new": 339
+            },
+            {
+              "kind": "ctx",
+              "text": "      key,",
+              "old": 340,
+              "new": 340
             },
             {
               "kind": "del",
-              "text": "    process(schema, ctx);",
-              "old": 835,
+              "text": "      process(shape[key]!, ctx as any, {",
+              "old": 341,
               "stratum": 1,
               "by": "18e71c7"
             },
             {
               "kind": "add",
-              "text": "    processSchema(schema, ctx);",
-              "new": 839,
+              "text": "      processSchema(shape[key]!, ctx as any, {",
+              "new": 341,
               "stratum": 1,
               "by": "18e71c7"
             },
             {
               "kind": "ctx",
-              "text": "    extractDefs(ctx, schema);",
-              "old": 836,
-              "new": 840
+              "text": "        ...params,",
+              "old": 342,
+              "new": 342
             },
             {
               "kind": "ctx",
-              "text": "    return finalize(ctx, schema);",
-              "old": 837,
-              "new": 841
+              "text": "        path: [...params.path, \"properties\", key],",
+              "old": 343,
+              "new": 343
             },
             {
               "kind": "ctx",
-              "text": "  };",
-              "old": 838,
-              "new": 842
+              "text": "      })",
+              "old": 344,
+              "new": 344
             },
+            {
+              "kind": "ctx",
+              "text": "    // regular",
+              "old": 370,
+              "new": 370
+            },
+            {
+              "kind": "ctx",
+              "text": "    if (ctx.io === \"output\") json.additionalProperties = false;",
+              "old": 371,
+              "new": 371
+            },
+            {
+              "kind": "ctx",
+              "text": "  } else if (def.catchall) {",
+              "old": 372,
+              "new": 372
+            },
+            {
+              "kind": "del",
+              "text": "    json.additionalProperties = process(def.catchall, ctx as any, {",
+              "old": 373,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "    json.additionalProperties = processSchema(def.catchall, ctx as any, {",
+              "new": 373,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "      ...params,",
+              "old": 374,
+              "new": 374
+            },
+            {
+              "kind": "ctx",
+              "text": "      path: [...params.path, \"additionalProperties\"],",
+              "old": 375,
+              "new": 375
+            },
+            {
+              "kind": "ctx",
+              "text": "    });",
+              "old": 376,
+              "new": 376
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354",
+      "kind": "const",
+      "name": "unionProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+1 −1",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "  // Exclusive unions (inclusive === false) use oneOf (exactly one match) instead of anyOf (one or more matches). This includes both z.xor() and discriminated unions",
+              "old": 430,
+              "new": 430
+            },
+            {
+              "kind": "ctx",
+              "text": "  const isExclusive = def.inclusive === false;",
+              "old": 431,
+              "new": 431
+            },
+            {
+              "kind": "ctx",
+              "text": "  const options = def.options.map((x, i) =>",
+              "old": 432,
+              "new": 432
+            },
+            {
+              "kind": "del",
+              "text": "    process(x, ctx as any, {",
+              "old": 433,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "    processSchema(x, ctx as any, {",
+              "new": 433,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "      ...params,",
+              "old": 434,
+              "new": 434
+            },
+            {
+              "kind": "ctx",
+              "text": "      path: [...params.path, isExclusive ? \"oneOf\" : \"anyOf\", i],",
+              "old": 435,
+              "new": 435
+            },
+            {
+              "kind": "ctx",
+              "text": "    })",
+              "old": 436,
+              "new": 436
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "4 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 4,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358",
+      "kind": "const",
+      "name": "intersectionProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+2 −2",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 444,
+              "new": 444
+            },
+            {
+              "kind": "ctx",
+              "text": "export const intersectionProcessor: Processor<schemas.$ZodIntersection> = (schema, ctx, json, params) => {",
+              "old": 445,
+              "new": 445
+            },
+            {
+              "kind": "ctx",
+              "text": "  const def = schema._zod.def as schemas.$ZodIntersectionDef;",
+              "old": 446,
+              "new": 446
+            },
+            {
+              "kind": "del",
+              "text": "  const a = process(def.left, ctx as any, {",
+              "old": 447,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  const a = processSchema(def.left, ctx as any, {",
+              "new": 447,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "    ...params,",
+              "old": 448,
+              "new": 448
+            },
+            {
+              "kind": "ctx",
+              "text": "    path: [...params.path, \"allOf\", 0],",
+              "old": 449,
+              "new": 449
+            },
+            {
+              "kind": "ctx",
+              "text": "  });",
+              "old": 450,
+              "new": 450
+            },
+            {
+              "kind": "del",
+              "text": "  const b = process(def.right, ctx as any, {",
+              "old": 451,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  const b = processSchema(def.right, ctx as any, {",
+              "new": 451,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "    ...params,",
+              "old": 452,
+              "new": 452
+            },
+            {
+              "kind": "ctx",
+              "text": "    path: [...params.path, \"allOf\", 1],",
+              "old": 453,
+              "new": 453
+            },
+            {
+              "kind": "ctx",
+              "text": "  });",
+              "old": 454,
+              "new": 454
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#tupleProcessor#const#9362": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#tupleProcessor#const#9362",
+      "kind": "const",
+      "name": "tupleProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+2 −2",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "    ctx.target === \"draft-2020-12\" ? \"items\" : ctx.target === \"openapi-3.0\" ? \"items\" : \"additionalItems\";",
+              "old": 473,
+              "new": 473
+            },
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 474,
+              "new": 474
+            },
+            {
+              "kind": "ctx",
+              "text": "  const prefixItems = def.items.map((x, i) =>",
+              "old": 475,
+              "new": 475
+            },
+            {
+              "kind": "del",
+              "text": "    process(x, ctx as any, {",
+              "old": 476,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "    processSchema(x, ctx as any, {",
+              "new": 476,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "      ...params,",
+              "old": 477,
+              "new": 477
+            },
+            {
+              "kind": "ctx",
+              "text": "      path: [...params.path, prefixPath, i],",
+              "old": 478,
+              "new": 478
+            },
+            {
+              "kind": "ctx",
+              "text": "    })",
+              "old": 479,
+              "new": 479
+            },
+            {
+              "kind": "ctx",
+              "text": "  );",
+              "old": 480,
+              "new": 480
+            },
+            {
+              "kind": "ctx",
+              "text": "  const rest = def.rest",
+              "old": 481,
+              "new": 481
+            },
+            {
+              "kind": "del",
+              "text": "    ? process(def.rest, ctx as any, {",
+              "old": 482,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "    ? processSchema(def.rest, ctx as any, {",
+              "new": 482,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "        ...params,",
+              "old": 483,
+              "new": 483
+            },
+            {
+              "kind": "ctx",
+              "text": "        path: [...params.path, restPath, ...(ctx.target === \"openapi-3.0\" ? [def.items.length] : [])],",
+              "old": 484,
+              "new": 484
+            },
+            {
+              "kind": "ctx",
+              "text": "      })",
+              "old": 485,
+              "new": 485
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392",
+      "kind": "const",
+      "name": "recordProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+3 −3",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 625,
+              "new": 625
+            },
+            {
+              "kind": "ctx",
+              "text": "  if (def.mode === \"loose\" && patterns && patterns.size > 0) {",
+              "old": 626,
+              "new": 626
+            },
+            {
+              "kind": "ctx",
+              "text": "    // Use patternProperties for looseRecord with regex patterns",
+              "old": 627,
+              "new": 627
+            },
+            {
+              "kind": "del",
+              "text": "    const valueSchema = process(def.valueType, ctx as any, {",
+              "old": 628,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "    const valueSchema = processSchema(def.valueType, ctx as any, {",
+              "new": 628,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "      ...params,",
+              "old": 629,
+              "new": 629
+            },
+            {
+              "kind": "ctx",
+              "text": "      path: [...params.path, \"patternProperties\", \"*\"],",
+              "old": 630,
+              "new": 630
+            },
+            {
+              "kind": "ctx",
+              "text": "    });",
+              "old": 631,
+              "new": 631
+            },
+            {
+              "kind": "ctx",
+              "text": "  } else {",
+              "old": 636,
+              "new": 636
+            },
+            {
+              "kind": "ctx",
+              "text": "    // Default behavior: use propertyNames + additionalProperties",
+              "old": 637,
+              "new": 637
+            },
+            {
+              "kind": "ctx",
+              "text": "    if (ctx.target === \"draft-07\" || ctx.target === \"draft-2020-12\") {",
+              "old": 638,
+              "new": 638
+            },
+            {
+              "kind": "del",
+              "text": "      json.propertyNames = process(def.keyType, ctx as any, {",
+              "old": 639,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "      json.propertyNames = processSchema(def.keyType, ctx as any, {",
+              "new": 639,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "        ...params,",
+              "old": 640,
+              "new": 640
+            },
+            {
+              "kind": "ctx",
+              "text": "        path: [...params.path, \"propertyNames\"],",
+              "old": 641,
+              "new": 641
+            },
+            {
+              "kind": "ctx",
+              "text": "      });",
+              "old": 642,
+              "new": 642
+            },
+            {
+              "kind": "ctx",
+              "text": "      }",
+              "old": 648,
+              "new": 648
+            },
+            {
+              "kind": "ctx",
+              "text": "      pending.push(schema);",
+              "old": 649,
+              "new": 649
+            },
+            {
+              "kind": "ctx",
+              "text": "    }",
+              "old": 650,
+              "new": 650
+            },
+            {
+              "kind": "del",
+              "text": "    json.additionalProperties = process(def.valueType, ctx as any, {",
+              "old": 651,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "    json.additionalProperties = processSchema(def.valueType, ctx as any, {",
+              "new": 651,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "      ...params,",
+              "old": 652,
+              "new": 652
+            },
+            {
+              "kind": "ctx",
+              "text": "      path: [...params.path, \"additionalProperties\"],",
+              "old": 653,
+              "new": 653
+            },
+            {
+              "kind": "ctx",
+              "text": "    });",
+              "old": 654,
+              "new": 654
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#nullableProcessor#const#9403": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#nullableProcessor#const#9403",
+      "kind": "const",
+      "name": "nullableProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+1 −1",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 671,
+              "new": 671
+            },
+            {
+              "kind": "ctx",
+              "text": "export const nullableProcessor: Processor<schemas.$ZodNullable> = (schema, ctx, json, params) => {",
+              "old": 672,
+              "new": 672
+            },
+            {
+              "kind": "ctx",
+              "text": "  const def = schema._zod.def as schemas.$ZodNullableDef;",
+              "old": 673,
+              "new": 673
+            },
+            {
+              "kind": "del",
+              "text": "  const inner = process(def.innerType, ctx as any, params);",
+              "old": 674,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  const inner = processSchema(def.innerType, ctx as any, params);",
+              "new": 674,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "  const seen = ctx.seen.get(schema)!;",
+              "old": 675,
+              "new": 675
+            },
+            {
+              "kind": "ctx",
+              "text": "  if (ctx.target === \"openapi-3.0\") {",
+              "old": 676,
+              "new": 676
+            },
+            {
+              "kind": "ctx",
+              "text": "    seen.ref = def.innerType;",
+              "old": 677,
+              "new": 677
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#nonoptionalProcessor#const#9407": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#nonoptionalProcessor#const#9407",
+      "kind": "const",
+      "name": "nonoptionalProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+1 −1",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 683,
+              "new": 683
+            },
+            {
+              "kind": "ctx",
+              "text": "export const nonoptionalProcessor: Processor<schemas.$ZodNonOptional> = (schema, ctx, _json, params) => {",
+              "old": 684,
+              "new": 684
+            },
+            {
+              "kind": "ctx",
+              "text": "  const def = schema._zod.def as schemas.$ZodNonOptionalDef;",
+              "old": 685,
+              "new": 685
+            },
+            {
+              "kind": "del",
+              "text": "  process(def.innerType, ctx as any, params);",
+              "old": 686,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  processSchema(def.innerType, ctx as any, params);",
+              "new": 686,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "  const seen = ctx.seen.get(schema)!;",
+              "old": 687,
+              "new": 687
+            },
+            {
+              "kind": "ctx",
+              "text": "  seen.ref = def.innerType;",
+              "old": 688,
+              "new": 688
+            },
+            {
+              "kind": "ctx",
+              "text": "};",
+              "old": 689,
+              "new": 689
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#defaultProcessor#const#9414": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#defaultProcessor#const#9414",
+      "kind": "const",
+      "name": "defaultProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+1 −1",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 712,
+              "new": 712
+            },
+            {
+              "kind": "ctx",
+              "text": "export const defaultProcessor: Processor<schemas.$ZodDefault> = (schema, ctx, json, params) => {",
+              "old": 713,
+              "new": 713
+            },
+            {
+              "kind": "ctx",
+              "text": "  const def = schema._zod.def as schemas.$ZodDefaultDef;",
+              "old": 714,
+              "new": 714
+            },
+            {
+              "kind": "del",
+              "text": "  process(def.innerType, ctx as any, params);",
+              "old": 715,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  processSchema(def.innerType, ctx as any, params);",
+              "new": 715,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "  const seen = ctx.seen.get(schema)!;",
+              "old": 716,
+              "new": 716
+            },
+            {
+              "kind": "ctx",
+              "text": "  seen.ref = def.innerType;",
+              "old": 717,
+              "new": 717
+            },
+            {
+              "kind": "ctx",
+              "text": "  const value = serializeDefaultValue(def.defaultValue, schema, ctx as ToJSONSchemaContext, json, params);",
+              "old": 718,
+              "new": 718
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "3 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 3,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437": {
+      "id": "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
+      "kind": "const",
+      "name": "optionalProcessor",
+      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "delta": "+1 −1",
+          "lines": [
+            {
+              "kind": "ctx",
+              "text": "",
+              "old": 770,
+              "new": 770
+            },
+            {
+              "kind": "ctx",
+              "text": "export const optionalProcessor: Processor<schemas.$ZodOptional> = (schema, ctx, _json, params) => {",
+              "old": 771,
+              "new": 771
+            },
+            {
+              "kind": "ctx",
+              "text": "  const def = schema._zod.def as schemas.$ZodOptionalDef;",
+              "old": 772,
+              "new": 772
+            },
+            {
+              "kind": "del",
+              "text": "  process(def.innerType, ctx as any, params);",
+              "old": 773,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "  processSchema(def.innerType, ctx as any, params);",
+              "new": 773,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "ctx",
+              "text": "  const seen = ctx.seen.get(schema)!;",
+              "old": 774,
+              "new": 774
+            },
+            {
+              "kind": "ctx",
+              "text": "  seen.ref = def.innerType;",
+              "old": 775,
+              "new": 775
+            },
+            {
+              "kind": "ctx",
+              "text": "};",
+              "old": 776,
+              "new": 776
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "4 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "no direct test references"
+        }
+      ],
+      "refs": 4,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766": {
+      "id": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
+      "kind": "const",
+      "name": "createStandardJSONSchemaMethod",
+      "summary": "const in packages/zod/src/v4/core/to-json-schema.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "delta": "+1 −1",
+          "lines": [
             {
               "kind": "ctx",
               "text": "  (params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
@@ -4503,254 +3429,6 @@
       ],
       "traces": [
         {
-          "relation": "33 references at head · 33 touched by this PR"
-        },
-        {
-          "relation": "renamed from process()"
-        },
-        {
-          "relation": "export alias kept: process (importable under old name)"
-        },
-        {
-          "relation": "covered by polyfill-collision.test.ts",
-          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
-        }
-      ],
-      "refs": 33,
-      "seed": true
-    },
-    "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461": {
-      "id": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "kind": "typeAlias",
-      "name": "JSONSchema",
-      "summary": "typeAlias in packages/zod/src/v4/core/json-schema.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "126 references at head · 68 touched by this PR"
-        },
-        {
-          "relation": "covered by to-json-schema.test.ts",
-          "file": "packages/zod/src/v4/classic/tests/to-json-schema.test.ts"
-        }
-      ],
-      "refs": 126,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523": {
-      "id": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "kind": "typeAlias",
-      "name": "BaseSchema",
-      "summary": "typeAlias in packages/zod/src/v4/core/json-schema.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "44 references at head · 42 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 44,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881": {
-      "id": "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881",
-      "kind": "typeAlias",
-      "name": "$ZodTypes",
-      "summary": "typeAlias in packages/zod/src/v4/core/schemas.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "13 references at head · 6 touched by this PR"
-        },
-        {
-          "relation": "covered by assignability.test.ts",
-          "file": "packages/zod/src/v4/classic/tests/assignability.test.ts"
-        }
-      ],
-      "refs": 13,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/to-json-schema.ts#assignProps#function#11609": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#assignProps#function#11609",
-      "kind": "function",
-      "name": "assignProps",
-      "summary": "function in packages/zod/src/v4/core/to-json-schema.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "6 references at head · 6 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 6,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-      "kind": "interface",
-      "name": "ProcessParams",
-      "summary": "interface in packages/zod/src/v4/core/to-json-schema.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "10 references at head · 8 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 10,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "kind": "interface",
-      "name": "Seen",
-      "summary": "interface in packages/zod/src/v4/core/to-json-schema.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "10 references at head · 10 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 10,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-      "kind": "interface",
-      "name": "ToJSONSchemaContext",
-      "summary": "interface in packages/zod/src/v4/core/to-json-schema.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "23 references at head · 21 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 23,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290": {
-      "id": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
-      "kind": "class",
-      "name": "JSONSchemaGenerator",
-      "summary": "class in packages/zod/src/v4/core/json-schema-generator.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "5 references at head · 1 touched by this PR"
-        },
-        {
-          "relation": "covered by to-json-schema.test.ts",
-          "file": "packages/zod/src/v4/classic/tests/to-json-schema.test.ts"
-        }
-      ],
-      "refs": 5,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337": {
-      "id": "packages/zod/src/v4/core/json-schema-processors.ts#arrayProcessor#const#9337",
-      "kind": "const",
-      "name": "arrayProcessor",
-      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "3 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 3,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342": {
-      "id": "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
-      "kind": "const",
-      "name": "objectProcessor",
-      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "3 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 3,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354": {
-      "id": "packages/zod/src/v4/core/json-schema-processors.ts#unionProcessor#const#9354",
-      "kind": "const",
-      "name": "unionProcessor",
-      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "4 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 4,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358": {
-      "id": "packages/zod/src/v4/core/json-schema-processors.ts#intersectionProcessor#const#9358",
-      "kind": "const",
-      "name": "intersectionProcessor",
-      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "3 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 3,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437": {
-      "id": "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
-      "kind": "const",
-      "name": "optionalProcessor",
-      "summary": "const in packages/zod/src/v4/core/json-schema-processors.ts",
-      "files": [],
-      "traces": [
-        {
-          "relation": "4 references at head · 2 touched by this PR"
-        },
-        {
-          "relation": "no direct test references"
-        }
-      ],
-      "refs": 4,
-      "seed": false
-    },
-    "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
-      "kind": "const",
-      "name": "createStandardJSONSchemaMethod",
-      "summary": "const in packages/zod/src/v4/core/to-json-schema.ts",
-      "files": [],
-      "traces": [
-        {
           "relation": "6 references at head · 3 touched by this PR"
         },
         {
@@ -4758,27 +3436,315 @@
         }
       ],
       "refs": 6,
-      "seed": false
+      "seed": true
     },
-    "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757": {
-      "id": "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757",
-      "kind": "function",
-      "name": "isTransforming",
-      "summary": "function in packages/zod/src/v4/core/to-json-schema.ts",
+    "packages/bench/compile-matrix.ts#filter#const#163": {
+      "id": "packages/bench/compile-matrix.ts#filter#const#163",
+      "kind": "const",
+      "name": "filter",
+      "summary": "const in packages/bench/compile-matrix.ts",
       "files": [],
       "traces": [
         {
-          "relation": "18 references at head · 18 touched by this PR"
+          "relation": "82 references at head · 5 touched by this PR"
         },
         {
-          "relation": "no direct test references"
+          "relation": "covered by attw.test.ts",
+          "file": "packages/resolution/attw.test.ts"
         }
       ],
-      "refs": 18,
+      "refs": 82,
       "seed": false
+    },
+    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#INJECTED#const#11566": {
+      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#INJECTED#const#11566",
+      "kind": "const",
+      "name": "INJECTED",
+      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "delta": "+4 −0",
+          "lines": [
+            {
+              "kind": "add",
+              "text": "import * as core from \"zod/v4/core\";",
+              "new": 5,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "",
+              "new": 6,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "// Browser polyfills for node globals land as raw text in the bundle's top scope — an esbuild `banner`, a scope-unaware injector — so the bundler never sees the collision and the browser is the first thing to read both declarations. zod must therefore declare none of these names at module scope. The JSON Schema pass shipped an `export function process` for three minors before #6397 reported the white screen it caused.",
+              "new": 7,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "const INJECTED = [\"process\", \"Buffer\", \"global\", \"__dirname\", \"__filename\"];",
+              "new": 8,
+              "stratum": 1,
+              "by": "18e71c7"
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "2 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 2,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#polyfills#const#11570": {
+      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#polyfills#const#11570",
+      "kind": "const",
+      "name": "polyfills",
+      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "delta": "+2 −0",
+          "lines": [
+            {
+              "kind": "add",
+              "text": "",
+              "new": 13,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "const polyfills = INJECTED.map((name) => `const ${name} = {};`).join(\"\\n\");",
+              "new": 14,
+              "stratum": 1,
+              "by": "18e71c7"
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "2 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 2,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567": {
+      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#here#const#11567",
+      "kind": "const",
+      "name": "here",
+      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "delta": "+2 −0",
+          "lines": [
+            {
+              "kind": "add",
+              "text": "",
+              "new": 9,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "const here = path.dirname(fileURLToPath(import.meta.url));",
+              "new": 10,
+              "stratum": 1,
+              "by": "18e71c7"
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "4 references at head · 4 touched by this PR"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 4,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#CLASSIC#const#11568": {
+      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#CLASSIC#const#11568",
+      "kind": "const",
+      "name": "CLASSIC",
+      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "delta": "+1 −0",
+          "lines": [
+            {
+              "kind": "add",
+              "text": "const CLASSIC = path.resolve(here, \"../../../index.ts\");",
+              "new": 11,
+              "stratum": 1,
+              "by": "18e71c7"
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "2 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 2,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#MINI#const#11569": {
+      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#MINI#const#11569",
+      "kind": "const",
+      "name": "MINI",
+      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "delta": "+1 −0",
+          "lines": [
+            {
+              "kind": "add",
+              "text": "const MINI = path.resolve(here, \"../../../mini/index.ts\");",
+              "new": 12,
+              "stratum": 1,
+              "by": "18e71c7"
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "2 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 2,
+      "seed": true
+    },
+    "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#ENTRY#const#11571": {
+      "id": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts#ENTRY#const#11571",
+      "kind": "const",
+      "name": "ENTRY",
+      "summary": "const in packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+      "files": [
+        {
+          "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+          "delta": "+3 −0",
+          "lines": [
+            {
+              "kind": "add",
+              "text": "",
+              "new": 15,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "// toJSONSchema has to be reachable: a bundle that only parses a schema tree-shakes the offending module away and would pass no matter what it declares. `z.core.process` is the pre-rename export name, read as a namespace property so the entry itself declares no `process` binding.",
+              "new": 16,
+              "stratum": 1,
+              "by": "18e71c7"
+            },
+            {
+              "kind": "add",
+              "text": "const ENTRY = `import * as z from \"%ENTRY%\";\\nglobalThis.__out = [z.toJSONSchema(z.string()), z.core.process];`;",
+              "new": 17,
+              "stratum": 1,
+              "by": "18e71c7"
+            }
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "relation": "2 references at head · 2 touched by this PR"
+        },
+        {
+          "relation": "covered by polyfill-collision.test.ts",
+          "file": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts"
+        }
+      ],
+      "refs": 2,
+      "seed": true
     }
   },
   "edges": [
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#objectProcessor#const#9342",
+      "b": "packages/bench/compile-matrix.ts#filter#const#163",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 351,
+          "text": "[...allKeys].filter((key) => {",
+          "ctx": [
+            "  // required keys",
+            "  const allKeys = new Set(Object.keys(shape));",
+            "  const requiredKeys = new Set(",
+            "    [...allKeys].filter((key) => {",
+            "      const field = def.shape[key]!;",
+            "      if (ctx.io === \"input\") {",
+            "        return inputOptin(field) === undefined;"
+          ],
+          "ctxStart": 348
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392",
+      "b": "packages/bench/compile-matrix.ts#filter#const#163",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 662,
+          "text": "const validKeyValues = [...keyValues].filter(",
+          "ctx": [
+            "  // Every key shares one value schema, so an optional-in value makes the whole key set omittable on input. Output keeps them: the exhaustive branch assigns every key, even one whose value came back u",
+            "  const omittableOnInput = ctx.io === \"input\" && inputOptin(def.valueType as schemas.$ZodType) !== undefined;",
+            "  if (keyValues && !def.partial && !omittableOnInput) {",
+            "    const validKeyValues = [...keyValues].filter(",
+            "      (v): v is string | number => typeof v === \"string\" || typeof v === \"number\"",
+            "    );",
+            ""
+          ],
+          "ctxStart": 659
+        }
+      ]
+    },
     {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
@@ -4879,259 +3845,54 @@
       ]
     },
     {
-      "a": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#tupleProcessor#const#9362",
       "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
       "rel": "def−use",
       "refs": 1,
       "sites": [
         {
-          "file": "packages/zod/src/v4/core/json-schema.ts",
-          "line": 120,
-          "text": "export type BaseSchema = JSONSchema;",
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 467,
+          "text": "const json = _json as JSONSchema.ArraySchema;",
           "ctx": [
             "};",
             "",
-            "// for backwards compatibility",
-            "export type BaseSchema = JSONSchema;",
-            "",
-            "export interface ObjectSchema extends JSONSchema {",
-            "  type: \"object\";"
-          ],
-          "ctxStart": 117
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use",
-      "refs": 2,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 95,
-          "text": "schema: JSONSchema.BaseSchema;",
-          "ctx": [
-            "",
-            "export interface Seen {",
-            "  /** JSON Schema result for this Zod schema */",
-            "  schema: JSONSchema.BaseSchema;",
-            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
-            "  def?: JSONSchema.BaseSchema;",
-            "  defId?: string | undefined;"
-          ],
-          "ctxStart": 92
-        },
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 97,
-          "text": "def?: JSONSchema.BaseSchema;",
-          "ctx": [
-            "  /** JSON Schema result for this Zod schema */",
-            "  schema: JSONSchema.BaseSchema;",
-            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
-            "  def?: JSONSchema.BaseSchema;",
-            "  defId?: string | undefined;",
-            "  /** Number of times this schema was encountered during traversal */",
-            "  count: number;"
-          ],
-          "ctxStart": 94
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use",
-      "refs": 3,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 119,
-          "text": "jsonSchema: JSONSchema.BaseSchema;",
-          "ctx": [
-            "  override: (ctx: {",
-            "    // must be schemas.$ZodType to prevent recursive type resolution error",
-            "    zodSchema: schemas.$ZodType;",
-            "    jsonSchema: JSONSchema.BaseSchema;",
-            "    path: (string | number)[];",
-            "  }) => void;",
-            "  io: \"input\" | \"output\";"
-          ],
-          "ctxStart": 116
-        },
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 144,
-          "text": "intersections: JSONSchema.BaseSchema[][];",
-          "ctx": [
-            "  cycles: \"ref\" | \"throw\";",
-            "  reused: \"ref\" | \"inline\";",
-            "  /** The `allOf` array of each intersection encountered during traversal, innermost first. `finalize` folds every emitted object holding one; see `foldIntersection`. */",
-            "  intersections: JSONSchema.BaseSchema[][];",
-            "  /** Rewrites a processor deferred to `finalize`, where the flatten has resolved every ref and the union branches are in place. */",
-            "  deferred: (() => void)[];",
-            "  external?:"
-          ],
-          "ctxStart": 141
-        },
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 151,
-          "text": "defs: Record<string, JSONSchema.BaseSchema>;",
-          "ctx": [
-            "    | {",
-            "        registry: $ZodRegistry<{ id?: string | undefined }>;",
-            "        uri?: ((id: string) => string) | undefined;",
-            "        defs: Record<string, JSONSchema.BaseSchema>;",
-            "      }",
-            "    | undefined;",
-            "}"
-          ],
-          "ctxStart": 148
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 217,
-          "text": "): JSONSchema.BaseSchema {",
-          "ctx": [
-            "  schema: T,",
-            "  ctx: ToJSONSchemaContext,",
-            "  _params: ProcessParams = { path: [], schemaPath: [] }",
-            "): JSONSchema.BaseSchema {",
-            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
-            "",
-            "  // check for schema in seens"
-          ],
-          "ctxStart": 214
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
-      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 851,
-          "text": "(params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
-          "ctx": [
-            "type StandardJSONSchemaMethodParams = Parameters<StandardJSONSchemaV1[\"~standard\"][\"jsonSchema\"][\"input\"]>[0];",
-            "export const createStandardJSONSchemaMethod =",
-            "  <T extends schemas.$ZodType>(schema: T, io: \"input\" | \"output\", processors: Record<string, Processor> = {}) =>",
-            "  (params?: StandardJSONSchemaMethodParams): JSONSchema.BaseSchema => {",
-            "    const { libraryOptions, target } = params ?? {};",
-            "    const ctx = initializeContext({ ...(libraryOptions ?? {}), target, io, processors });",
-            "    processSchema(schema, ctx);"
-          ],
-          "ctxStart": 848
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
-      "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use",
-      "refs": 3,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
-          "line": 104,
-          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
-          "ctx": [
-            "   * Process a schema to prepare it for JSON Schema generation.",
-            "   * This must be called before emit().",
-            "   */",
-            "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
-            "    return processSchema(schema, this.ctx, _params);",
-            "  }",
+            "export const tupleProcessor: Processor<schemas.$ZodTuple> = (schema, ctx, _json, params) => {",
+            "  const json = _json as JSONSchema.ArraySchema;",
+            "  const def = schema._zod.def as schemas.$ZodTupleDef;",
+            "  json.type = \"array\";",
             ""
           ],
-          "ctxStart": 101
-        },
+          "ctxStart": 464
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392",
+      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
         {
-          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
-          "line": 112,
-          "text": "emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {",
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 617,
+          "text": "const json = _json as JSONSchema.ObjectSchema;",
           "ctx": [
-            "   * Emit the final JSON Schema after processing.",
-            "   * Must call process() first.",
-            "   */",
-            "  emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {",
-            "    // Apply emit params to the context",
-            "    if (_params) {",
-            "      if (_params.cycles) this.ctx.cycles = _params.cycles;"
-          ],
-          "ctxStart": 109
-        },
-        {
-          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
-          "line": 129,
-          "text": "return plainResult as JSONSchema.BaseSchema;",
-          "ctx": [
-            "",
-            "    // Strip ~standard property to match old implementation's return type",
-            "    const { \"~standard\": _, ...plainResult } = result as any;",
-            "    return plainResult as JSONSchema.BaseSchema;",
-            "  }",
             "}",
+            "",
+            "export const recordProcessor: Processor<schemas.$ZodRecord> = (schema, ctx, _json, params) => {",
+            "  const json = _json as JSONSchema.ObjectSchema;",
+            "  const def = schema._zod.def as schemas.$ZodRecordDef;",
+            "  json.type = \"object\";",
             ""
           ],
-          "ctxStart": 126
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
-      "rel": "def−use",
-      "refs": 2,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 95,
-          "text": "schema: JSONSchema.BaseSchema;",
-          "ctx": [
-            "",
-            "export interface Seen {",
-            "  /** JSON Schema result for this Zod schema */",
-            "  schema: JSONSchema.BaseSchema;",
-            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
-            "  def?: JSONSchema.BaseSchema;",
-            "  defId?: string | undefined;"
-          ],
-          "ctxStart": 92
-        },
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 97,
-          "text": "def?: JSONSchema.BaseSchema;",
-          "ctx": [
-            "  /** JSON Schema result for this Zod schema */",
-            "  schema: JSONSchema.BaseSchema;",
-            "  /** A cached version of the schema that doesn't get overwritten during ref resolution */",
-            "  def?: JSONSchema.BaseSchema;",
-            "  defId?: string | undefined;",
-            "  /** Number of times this schema was encountered during traversal */",
-            "  count: number;"
-          ],
-          "ctxStart": 94
+          "ctxStart": 614
         }
       ]
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-      "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
+      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
       "rel": "def−use",
       "refs": 3,
       "sites": [
@@ -5184,7 +3945,7 @@
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
+      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
       "rel": "def−use",
       "refs": 1,
       "sites": [
@@ -5207,7 +3968,7 @@
     },
     {
       "a": "packages/zod/src/v4/core/to-json-schema.ts#createStandardJSONSchemaMethod#const#11766",
-      "b": "packages/zod/src/v4/core/json-schema.ts#BaseSchema#typeAlias#9523",
+      "b": "packages/zod/src/v4/core/json-schema.ts#JSONSchema#typeAlias#9461",
       "rel": "def−use",
       "refs": 1,
       "sites": [
@@ -5225,52 +3986,6 @@
             "    processSchema(schema, ctx);"
           ],
           "ctxStart": 848
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 218,
-          "text": "const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
-          "ctx": [
-            "  ctx: ToJSONSchemaContext,",
-            "  _params: ProcessParams = { path: [], schemaPath: [] }",
-            "): JSONSchema.BaseSchema {",
-            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
-            "",
-            "  // check for schema in seens",
-            "  const seen = ctx.seen.get(schema);"
-          ],
-          "ctxStart": 215
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757",
-      "b": "packages/zod/src/v4/core/schemas.ts#$ZodTypes#typeAlias#10881",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 771,
-          "text": "const def = (_schema as schemas.$ZodTypes)._zod.def;",
-          "ctx": [
-            "  if (ctx.seen.has(_schema)) return false;",
-            "  ctx.seen.add(_schema);",
-            "",
-            "  const def = (_schema as schemas.$ZodTypes)._zod.def;",
-            "",
-            "  if (def.type === \"transform\") return true;",
-            ""
-          ],
-          "ctxStart": 768
         }
       ]
     },
@@ -5344,144 +4059,6 @@
       ]
     },
     {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#assignProps#function#11609",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 275,
-          "text": "if (meta) assignProps(result.schema, meta);",
-          "ctx": [
-            "",
-            "  // metadata",
-            "  const meta = ctx.metadataRegistry.get(schema);",
-            "  if (meta) assignProps(result.schema, meta);",
-            "",
-            "  if (ctx.io === \"input\" && isTransforming(schema)) {",
-            "    // examples/defaults only apply to output type of pipe"
-          ],
-          "ctxStart": 272
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
-          "line": 104,
-          "text": "process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
-          "ctx": [
-            "   * Process a schema to prepare it for JSON Schema generation.",
-            "   * This must be called before emit().",
-            "   */",
-            "  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {",
-            "    return processSchema(schema, this.ctx, _params);",
-            "  }",
-            ""
-          ],
-          "ctxStart": 101
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#ProcessParams#interface#11635",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 216,
-          "text": "_params: ProcessParams = { path: [], schemaPath: [] }",
-          "ctx": [
-            "export function processSchema<T extends schemas.$ZodType>(",
-            "  schema: T,",
-            "  ctx: ToJSONSchemaContext,",
-            "  _params: ProcessParams = { path: [], schemaPath: [] }",
-            "): JSONSchema.BaseSchema {",
-            "  const def = schema._zod.def as schemas.$ZodTypes[\"_zod\"][\"def\"];",
-            ""
-          ],
-          "ctxStart": 213
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/json-schema-generator.ts",
-          "line": 80,
-          "text": "get seen(): Map<schemas.$ZodType, Seen> {",
-          "ctx": [
-            "    this.ctx.counter = value;",
-            "  }",
-            "  /** @deprecated Access via ctx instead */",
-            "  get seen(): Map<schemas.$ZodType, Seen> {",
-            "    return this.ctx.seen;",
-            "  }",
-            ""
-          ],
-          "ctxStart": 77
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 124,
-          "text": "seen: Map<schemas.$ZodType, Seen>;",
-          "ctx": [
-            "  }) => void;",
-            "  io: \"input\" | \"output\";",
-            "  counter: number;",
-            "  seen: Map<schemas.$ZodType, Seen>;",
-            "  /** Registry conversions share one `seen` map across every emitted schema. These hold the",
-            "   * `external` the whole-map passes below last ran for, so the passes are not repeated once per",
-            "   * schema — and still re-run if the map grows or `external` is swapped. `sharedEmitDoneFor`"
-          ],
-          "ctxStart": 121
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#Seen#interface#11638",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 236,
-          "text": "const result: Seen = { schema: {}, count: 1, cycle: undefined, path: _params.path };",
-          "ctx": [
-            "  }",
-            "",
-            "  // initialize",
-            "  const result: Seen = { schema: {}, count: 1, cycle: undefined, path: _params.path };",
-            "  ctx.seen.set(schema, result);",
-            "  ctx.sharedDefsExtractedFor = undefined;",
-            "  ctx.sharedEmitDoneFor = undefined;"
-          ],
-          "ctxStart": 233
-        }
-      ]
-    },
-    {
       "a": "packages/zod/src/v4/core/json-schema-generator.ts#JSONSchemaGenerator#class#9290",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
       "rel": "def−use",
@@ -5531,6 +4108,29 @@
             ""
           ],
           "ctxStart": 83
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#defaultProcessor#const#9414",
+      "b": "packages/zod/src/v4/core/to-json-schema.ts#ToJSONSchemaContext#interface#11647",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 718,
+          "text": "const value = serializeDefaultValue(def.defaultValue, schema, ctx as ToJSONSchemaContext, json, params);",
+          "ctx": [
+            "  processSchema(def.innerType, ctx as any, params);",
+            "  const seen = ctx.seen.get(schema)!;",
+            "  seen.ref = def.innerType;",
+            "  const value = serializeDefaultValue(def.defaultValue, schema, ctx as ToJSONSchemaContext, json, params);",
+            "  if (value !== UNREPRESENTABLE_DEFAULT) json.default = value;",
+            "};",
+            ""
+          ],
+          "ctxStart": 715
         }
       ]
     },
@@ -5703,6 +4303,166 @@
       ]
     },
     {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#tupleProcessor#const#9362",
+      "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+      "rel": "def−use",
+      "refs": 2,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 476,
+          "text": "processSchema(x, ctx as any, {",
+          "ctx": [
+            "    ctx.target === \"draft-2020-12\" ? \"items\" : ctx.target === \"openapi-3.0\" ? \"items\" : \"additionalItems\";",
+            "",
+            "  const prefixItems = def.items.map((x, i) =>",
+            "    processSchema(x, ctx as any, {",
+            "      ...params,",
+            "      path: [...params.path, prefixPath, i],",
+            "    })"
+          ],
+          "ctxStart": 473
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 482,
+          "text": "? processSchema(def.rest, ctx as any, {",
+          "ctx": [
+            "    })",
+            "  );",
+            "  const rest = def.rest",
+            "    ? processSchema(def.rest, ctx as any, {",
+            "        ...params,",
+            "        path: [...params.path, restPath, ...(ctx.target === \"openapi-3.0\" ? [def.items.length] : [])],",
+            "      })"
+          ],
+          "ctxStart": 479
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#recordProcessor#const#9392",
+      "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+      "rel": "def−use",
+      "refs": 3,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 628,
+          "text": "const valueSchema = processSchema(def.valueType, ctx as any, {",
+          "ctx": [
+            "",
+            "  if (def.mode === \"loose\" && patterns && patterns.size > 0) {",
+            "    // Use patternProperties for looseRecord with regex patterns",
+            "    const valueSchema = processSchema(def.valueType, ctx as any, {",
+            "      ...params,",
+            "      path: [...params.path, \"patternProperties\", \"*\"],",
+            "    });"
+          ],
+          "ctxStart": 625
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 639,
+          "text": "json.propertyNames = processSchema(def.keyType, ctx as any, {",
+          "ctx": [
+            "  } else {",
+            "    // Default behavior: use propertyNames + additionalProperties",
+            "    if (ctx.target === \"draft-07\" || ctx.target === \"draft-2020-12\") {",
+            "      json.propertyNames = processSchema(def.keyType, ctx as any, {",
+            "        ...params,",
+            "        path: [...params.path, \"propertyNames\"],",
+            "      });"
+          ],
+          "ctxStart": 636
+        },
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 651,
+          "text": "json.additionalProperties = processSchema(def.valueType, ctx as any, {",
+          "ctx": [
+            "      }",
+            "      pending.push(schema);",
+            "    }",
+            "    json.additionalProperties = processSchema(def.valueType, ctx as any, {",
+            "      ...params,",
+            "      path: [...params.path, \"additionalProperties\"],",
+            "    });"
+          ],
+          "ctxStart": 648
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#nullableProcessor#const#9403",
+      "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 674,
+          "text": "const inner = processSchema(def.innerType, ctx as any, params);",
+          "ctx": [
+            "",
+            "export const nullableProcessor: Processor<schemas.$ZodNullable> = (schema, ctx, json, params) => {",
+            "  const def = schema._zod.def as schemas.$ZodNullableDef;",
+            "  const inner = processSchema(def.innerType, ctx as any, params);",
+            "  const seen = ctx.seen.get(schema)!;",
+            "  if (ctx.target === \"openapi-3.0\") {",
+            "    seen.ref = def.innerType;"
+          ],
+          "ctxStart": 671
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#nonoptionalProcessor#const#9407",
+      "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 686,
+          "text": "processSchema(def.innerType, ctx as any, params);",
+          "ctx": [
+            "",
+            "export const nonoptionalProcessor: Processor<schemas.$ZodNonOptional> = (schema, ctx, _json, params) => {",
+            "  const def = schema._zod.def as schemas.$ZodNonOptionalDef;",
+            "  processSchema(def.innerType, ctx as any, params);",
+            "  const seen = ctx.seen.get(schema)!;",
+            "  seen.ref = def.innerType;",
+            "};"
+          ],
+          "ctxStart": 683
+        }
+      ]
+    },
+    {
+      "a": "packages/zod/src/v4/core/json-schema-processors.ts#defaultProcessor#const#9414",
+      "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
+      "rel": "def−use",
+      "refs": 1,
+      "sites": [
+        {
+          "file": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "line": 715,
+          "text": "processSchema(def.innerType, ctx as any, params);",
+          "ctx": [
+            "",
+            "export const defaultProcessor: Processor<schemas.$ZodDefault> = (schema, ctx, json, params) => {",
+            "  const def = schema._zod.def as schemas.$ZodDefaultDef;",
+            "  processSchema(def.innerType, ctx as any, params);",
+            "  const seen = ctx.seen.get(schema)!;",
+            "  seen.ref = def.innerType;",
+            "  const value = serializeDefaultValue(def.defaultValue, schema, ctx as ToJSONSchemaContext, json, params);"
+          ],
+          "ctxStart": 712
+        }
+      ]
+    },
+    {
       "a": "packages/zod/src/v4/core/json-schema-processors.ts#optionalProcessor#const#9437",
       "b": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
       "rel": "def−use",
@@ -5745,29 +4505,6 @@
             "  };"
           ],
           "ctxStart": 851
-        }
-      ]
-    },
-    {
-      "a": "packages/zod/src/v4/core/to-json-schema.ts#processSchema#function#11674",
-      "b": "packages/zod/src/v4/core/to-json-schema.ts#isTransforming#function#11757",
-      "rel": "def−use",
-      "refs": 1,
-      "sites": [
-        {
-          "file": "packages/zod/src/v4/core/to-json-schema.ts",
-          "line": 277,
-          "text": "if (ctx.io === \"input\" && isTransforming(schema)) {",
-          "ctx": [
-            "  const meta = ctx.metadataRegistry.get(schema);",
-            "  if (meta) assignProps(result.schema, meta);",
-            "",
-            "  if (ctx.io === \"input\" && isTransforming(schema)) {",
-            "    // examples/defaults only apply to output type of pipe",
-            "    delete result.schema.examples;",
-            "    delete result.schema.default;"
-          ],
-          "ctxStart": 274
         }
       ]
     }

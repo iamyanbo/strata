@@ -9,6 +9,7 @@ import type { RawPR, RawCommit, RawFileDiff } from "./git.js";
 import { sweepBands, isStaleWriter } from "./sweeps.js";
 import type { Index, Def } from "./index.js";
 import type { FlowResult } from "./flow.js";
+import { defRange } from "./flow.js";
 
 export function emit(
   pr: RawPR,
@@ -232,24 +233,35 @@ export function emit(
     files: c.files.map((f) => stampOwn(f, bandOfSha.get(c.sha) ?? 1, c.sha.slice(0, 7)))
   }));
 
-  // map commit touches: entry whose def file intersects commit paths
-  for (const commit of commits) {
-    const raw = pr.commits.find((c) => c.sha.startsWith(commit.sha));
-    if (!raw) continue;
-    for (const [id, e] of entries) {
-      const def = index.byId.get(id);
-      if (def && raw.paths.has(def.file)) commit.touches.push(id);
-    }
-  }
+  // map commit touches — filled in below, once every entry knows which lines
+  // are actually its own; a commit touches an object when it wrote or removed
+  // one of THAT object's lines, not merely a line somewhere in its file.
 
   // attach real diff files to entries — seeds only. Fill-only neighbors keep
   // "no diff": their file wasn't changed by this PR (they're unchanged context).
+  //
+  // The slice matters: an object gets the lines inside ITS OWN span, not the
+  // whole file's diff. Six symbols declared in one edited file used to render
+  // six copies of the same +145 -3, with the same threads and the same
+  // introducing commit on each.
+  const ranges = new Map<string, { start: number; end: number }>();
   for (const [id, e] of entries) {
     if (!e.seed) continue;
     const def = index.byId.get(id);
     if (!def) continue;
     const fileDiff = pr.files.find((f) => fileNameMap.get(f.path) === def.file);
-    if (fileDiff) e.files = [toDiffLines(fileDiff)];
+    if (!fileDiff) continue;
+    const r = defRange(index, def);
+    ranges.set(id, r);
+    const slice = sliceToRange(fileDiff, r.start, r.end);
+    e.files = slice.lines.length ? [slice] : [];
+    if (!e.files.length) e.seed = false; // nothing of this object actually changed
+  }
+
+  for (const [id, e] of entries) {
+    const shas = new Set<string>();
+    for (const f of e.files) for (const l of f.lines) if (l.by) shas.add(l.by);
+    for (const commit of commits) if (shas.has(commit.sha)) commit.touches.push(id);
   }
 
   // thread + attach review comments to the entries whose file they discuss
@@ -309,11 +321,36 @@ export function emit(
       if (parent && parent !== node) parent.replies.push(node);
       else roots.push(node);
     });
-    for (const [, e] of entries) {
+    // a thread belongs to the object whose span contains its line; one that
+    // falls between objects goes to the nearest one in the same file, so no
+    // thread is lost and none is shown on six cards at once
+    const claimed = new Set<Comment & { path: string }>();
+    for (const [id, e] of entries) {
       const p = e.files[0]?.path;
-      if (!p) continue;
-      const mine = roots.filter((r) => r.path === p);
+      const r = ranges.get(id);
+      if (!p || !r) continue;
+      const mine = roots.filter((c) => {
+        const line = (c as { line?: number | null }).line;
+        return c.path === p && line != null && line >= r.start && line <= r.end;
+      });
+      for (const c of mine) claimed.add(c);
       if (mine.length) e.comments = mine.map(({ path, ...rest }) => rest);
+    }
+    for (const c of roots) {
+      if (claimed.has(c)) continue;
+      const line = (c as { line?: number | null }).line ?? 0;
+      let best: string | undefined;
+      let bestGap = Infinity;
+      for (const [id, e] of entries) {
+        const r = ranges.get(id);
+        if (!r || e.files[0]?.path !== c.path) continue;
+        const gap = line < r.start ? r.start - line : line - r.end;
+        if (gap < bestGap) { bestGap = gap; best = id; }
+      }
+      if (!best) continue;
+      const e = entries.get(best)!;
+      const { path, ...rest } = c;
+      e.comments = [...(e.comments ?? []), rest];
     }
   }
 
@@ -364,6 +401,23 @@ export function emit(
   fs.writeFileSync(outPath, JSON.stringify(page, null, 2));
   console.log(`wrote ${outPath}`);
   console.log(`components: ${components.map((c) => `${c.name} [${c.entryIds.length}]`).join(" \u00b7 ")}`);
+}
+
+/** the part of a file's diff that lies inside one object's head line span */
+function sliceToRange(f: RawFileDiff, start: number, end: number): ReturnType<typeof toDiffLines> {
+  const lines = [];
+  let lastNew = 0;
+  let add = 0;
+  let del = 0;
+  for (const l of f.lines) {
+    if (l.new !== undefined) lastNew = l.new;
+    const at = l.new ?? lastNew;
+    if (at < start || at > end) continue;
+    lines.push({ ...l });
+    if (l.kind === "add") add++;
+    else if (l.kind === "del") del++;
+  }
+  return { path: f.path, delta: `+${add} −${del}`, lines };
 }
 
 /** the whole-PR diff, per-line strata already attached by blame */

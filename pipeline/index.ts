@@ -14,6 +14,8 @@ export interface Def {
   kind: string;          // function | class | method | interface | typeAlias | const | property | enum | enumMember
   file: string;          // head-relative posix path
   start: number;
+  /** start including leading trivia — the doc comment belongs to the symbol */
+  full: number;
   end: number;
   /** module-scope declaration (graph node); locals attach to enclosing */
   topLevel: boolean;
@@ -165,7 +167,7 @@ function scan(root: string, prefer?: Set<string>): {
           defs.push({
             id: `${rel}#${name}#${kind}#${defs.length}`,
             name, kind, file: rel,
-            start: node.getStart(sf), end: node.getEnd(),
+            start: node.getStart(sf), full: node.getFullStart(), end: node.getEnd(),
             topLevel,
             uses: []
           });

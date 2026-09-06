@@ -46,6 +46,16 @@ def−use graph; what they reach becomes a component you read top to bottom.
 The dependency graph panel shows the local shape, and a replay walks the PR
 commit by commit.
 
+**One object, one diff.** An object shows the lines inside its own span — its
+declaration, its body, its doc comment — not the whole file it happens to live
+in. Six symbols declared in one edited file used to render six copies of the
+same file-wide diff, with the same threads and the same introducing commit on
+each. Review threads land on the object whose span contains them, and a commit
+"touches" an object only when it wrote or removed one of that object's lines.
+Whatever belongs to no symbol — imports, top-level statements, the bodies of
+test callbacks — is collected at the end of the component so the diff stays
+complete.
+
 **A graph that says why.** Edges are directed — arrows point caller → callee —
 and colored by where the PR's changes sit on them: both ends changed, changed
 code reaching into stable code, or an **unchanged caller depending on changed

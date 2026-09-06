@@ -67,6 +67,22 @@ try {
   console.log(`[keys] j -> ${count2}, k -> ${count3}`);
   if (count2 === count1 || count3 !== count1) { console.log("KEYBOARD NAV BROKEN"); process.exit(1); }
 
+  // -- per-object diffs: no two objects show the same file-wide diff ----------
+  const deltas = [...document.querySelectorAll(".entry .delta-chip")].map((d) => d.textContent);
+  const dupes = deltas.filter((d, i) => deltas.indexOf(d) !== i && d !== "").length;
+  const leftovers = document.querySelector(".entry.leftovers");
+  console.log(`[slices] object deltas: ${[...new Set(deltas)].slice(0, 6).join(" ")}${deltas.length > 6 ? " …" : ""}`);
+  console.log(`[slices] leftovers row: ${leftovers ? leftovers.querySelector(".row-meta").textContent : "MISSING"}`);
+  if (!leftovers) { console.log("LEFTOVERS BROKEN"); process.exit(1); }
+  // the open object's diff must be smaller than its whole file's diff
+  {
+    const openFile = document.querySelector(".entry.open .file .diff");
+    const rows = openFile ? openFile.querySelectorAll(".ln").length : 0;
+    const whole = page.files.find((f) => f.path.endsWith("to-json-schema.ts"));
+    console.log(`[slices] open object shows ${rows} rows of a ${whole.lines.length}-row file diff`);
+    if (!rows || rows >= whole.lines.length) { console.log("SLICING BROKEN"); process.exit(1); }
+  }
+
   // -- directed edges: arrowheads, state classes, hoverable hit lines ---------
   const arrows = document.querySelectorAll(".gp-edge[marker-end], .gp-edge[marker-start]").length;
   const kinds = ["co", "risk", "out", "quiet"].map((k) => `${k}:${document.querySelectorAll(`.gp-edge.k-${k}`).length}`);

@@ -3,7 +3,7 @@
 
 import type { RawPR, RawFileDiff } from "./git.js";
 import * as fs from "node:fs";
-import type { Index } from "./index.js";
+import type { Index, Def } from "./index.js";
 
 export interface Component {
   id: string;
@@ -53,25 +53,66 @@ const MAX_HOPS = 3;
 const CTX_SPAN = 3; // head lines kept either side of a reference
 const SITE_CAP = 3; // reference sites kept per edge — enough to explain it, not a dump
 
-/** seeds: top-level defs intersecting changed lines, whose name appears in the diff text */
+// The span a top-level def occupies, including its leading trivia, so a change
+// to a symbol's doc comment — or the removal of its old signature, which sits
+// just above the new one — counts as a change to that symbol. Spans are clamped
+// against the previous def in the file so no line belongs to two objects.
+const rangeCache = new Map<string, Map<string, { start: number; end: number }>>();
+
+function fileRanges(index: Index, file: string): Map<string, { start: number; end: number }> {
+  let map = rangeCache.get(file);
+  if (map) return map;
+  map = new Map();
+  const defs = index.defs
+    .filter((d) => d.file === file && d.topLevel)
+    .sort((a, b) => a.start - b.start);
+  let prevEnd = 0;
+  for (const d of defs) {
+    const end = offsetToLine(d.file, d.end, index);
+    const start = Math.max(offsetToLine(d.file, d.full, index), prevEnd + 1);
+    map.set(d.id, { start: Math.min(start, end), end });
+    prevEnd = Math.max(prevEnd, end);
+  }
+  rangeCache.set(file, map);
+  return map;
+}
+
+/** the head line span a top-level def occupies — the object's own territory */
+export function defRange(index: Index, d: Def): { start: number; end: number } {
+  return fileRanges(index, d.file).get(d.id)
+    ?? { start: offsetToLine(d.file, d.start, index), end: offsetToLine(d.file, d.end, index) };
+}
+
+/** head line numbers a file's diff touched: an added line is its own head line,
+    a deleted line is attributed to the head line it sits against */
+export function changedHeadLines(f: RawFileDiff): Set<number> {
+  const out = new Set<number>();
+  let lastNew = 0;
+  for (const l of f.lines) {
+    if (l.new !== undefined) lastNew = l.new;
+    if (l.kind === "ctx") continue;
+    out.add(l.new ?? Math.max(1, lastNew));
+  }
+  return out;
+}
+
+/** seeds: top-level defs with a changed line inside their OWN span.
+    Testing against the whole file's changed range (as this once did) makes
+    every symbol in a heavily edited file look changed, and then every one of
+    them ends up showing the same file-wide diff. */
 export function findSeeds(pr: RawPR, index: Index, fileNameMap: Map<string, string>): Set<string> {
   const seeds = new Set<string>();
   for (const f of pr.files) {
     const headPath = fileNameMap.get(f.path);
     if (!headPath) continue;
-    const changed = f.lines.filter((l) => l.kind !== "ctx");
-    if (!changed.length) continue;
-    const diffText = changed.map((l) => l.text).join("\n");
-    const spans = changed.map((l) => (l.new !== undefined ? l.new : -1)).filter((n) => n > 0);
-    const min = Math.min(...spans);
-    const max = Math.max(...spans);
-
+    const touched = changedHeadLines(f);
+    if (!touched.size) continue;
     for (const d of index.defs) {
       if (d.file !== headPath || !d.topLevel) continue;
-      const line = offsetToLine(d.file, d.start, index);
-      const intersects = line >= min && line <= max;
-      const namedInDiff = diffText.includes(d.name);
-      if (intersects && namedInDiff) seeds.add(d.id);
+      const r = defRange(index, d);
+      for (const n of touched) {
+        if (n >= r.start && n <= r.end) { seeds.add(d.id); break; }
+      }
     }
   }
   return seeds;
@@ -263,7 +304,13 @@ export function floodFill(
     components.push({
       id: cid,
       name,
-      origin: `derived from changed symbols ${gseeds.map((s) => index.byId.get(s)?.name ?? s).join(", ")} \u00b7 def\u2212use edges \u00b7 3-hop reach`,
+      origin: (() => {
+        // a rename can seed twenty symbols; name a handful and count the rest
+        const all = gseeds.map((s) => index.byId.get(s)?.name ?? s);
+        const shown = all.slice(0, 6).join(", ");
+        const more = all.length > 6 ? ` and ${all.length - 6} more` : "";
+        return `derived from changed symbols ${shown}${more} · def−use edges · 3-hop reach`;
+      })(),
       entryIds: entryList
     });
     for (const s of gseeds) seedMap.set(s, cid);

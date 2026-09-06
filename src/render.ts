@@ -1011,20 +1011,96 @@ function renderObjectBar(): HTMLElement {
   return bar;
 }
 
+// ---- what no object owns -----------------------------------------------------
+// Each object shows the lines inside its own span, which leaves the rest of a
+// changed file — imports, top-level statements, the bodies of test callbacks —
+// belonging to nothing. Those lines are still part of the PR, so the component
+// ends with them rather than quietly dropping them.
+
+function lineKey(l: DiffLine): string {
+  return `${l.kind}|${l.old ?? ""}|${l.new ?? ""}`;
+}
+
+/** the changed lines in this component's files that no object claimed */
+function unclaimedFiles(comp: ComponentDoc): FileDiff[] {
+  const claimed = new Map<string, Set<string>>();
+  const paths = new Set<string>();
+  for (const id of comp.entryIds) {
+    for (const f of entry(id)?.files ?? []) {
+      paths.add(f.path);
+      if (!claimed.has(f.path)) claimed.set(f.path, new Set());
+      for (const l of f.lines) claimed.get(f.path)!.add(lineKey(l));
+    }
+  }
+  const out: FileDiff[] = [];
+  for (const f of page.files ?? []) {
+    if (!paths.has(f.path)) continue;
+    const mine = claimed.get(f.path) ?? new Set<string>();
+    const changed = f.lines
+      .map((l, i) => ({ l, i }))
+      .filter(({ l }) => l.kind !== "ctx" && !mine.has(lineKey(l)));
+    if (!changed.length) continue;
+    // keep two lines of context around each surviving change so it reads
+    const keep = new Set<number>();
+    for (const { i } of changed) for (let k = i - 2; k <= i + 2; k++) keep.add(k);
+    const lines = f.lines.filter((_, i) => keep.has(i));
+    const add = lines.filter((l) => l.kind === "add").length;
+    const del = lines.filter((l) => l.kind === "del").length;
+    out.push({ path: f.path, delta: `+${add} −${del}`, lines });
+  }
+  return out;
+}
+
+function renderLeftovers(comp: ComponentDoc): HTMLElement | null {
+  const files = unclaimedFiles(comp);
+  if (!files.length) return null;
+  const n = files.reduce((s, f) => s + f.lines.filter((l) => l.kind !== "ctx").length, 0);
+
+  const art = el("article", "entry compact leftovers");
+  const head = el("header", "entry-head");
+  const title = el("div", "entry-title");
+  const nameRow = el("div", "name-row");
+  nameRow.append(
+    el("span", "row-chev", "›"),
+    el("code", "name", "outside any object"),
+    el("i", "row-leader"),
+    el("span", "kind", `${files.length} file${files.length === 1 ? "" : "s"}`),
+    el("span", "row-meta", `${n} changed line${n === 1 ? "" : "s"}`)
+  );
+  title.append(nameRow);
+  head.appendChild(title);
+  art.appendChild(head);
+
+  let open = false;
+  head.addEventListener("click", () => {
+    open = !open;
+    art.classList.toggle("compact", !open);
+    art.classList.toggle("open", open);
+    const body = art.querySelector(".entry-body");
+    if (body) { body.remove(); return; }
+    const wrap = el("div", "entry-body");
+    const sec = el("section", "sec");
+    sec.appendChild(el("h4", "sec-h", "Changed, but part of no symbol"));
+    sec.appendChild(el("p", "conn-sum",
+      "imports, top-level statements and the bodies of test callbacks are not objects the graph can reach — they are shown here so the component's diff is complete"));
+    for (const f of files) sec.appendChild(renderFile(f));
+    wrap.appendChild(sec);
+    art.appendChild(wrap);
+  });
+  return art;
+}
+
 function renderComponentDoc(): HTMLElement {
   const comp = component(currentComponent) ?? page.components[0];
   ensureCurrent(comp);
   const main = el("main", "doc");
   main.id = "doc";
 
-  // component totals: +/− over the unique files its objects changed
-  const compFiles = new Map<string, FileDiff>();
-  for (const id of comp.entryIds) {
-    for (const f of entry(id)?.files ?? []) {
-      if (!compFiles.has(f.path)) compFiles.set(f.path, f);
-    }
-  }
-  const d = deltaOf([...compFiles.values()]);
+  // component totals: +/− over the WHOLE of each file its objects touch, since
+  // the document shows the objects' own slices plus everything left over
+  const paths = new Set<string>();
+  for (const id of comp.entryIds) for (const f of entry(id)?.files ?? []) paths.add(f.path);
+  const d = deltaOf((page.files ?? []).filter((f) => paths.has(f.path)));
 
   const head = el("header", "doc-head");
   const meta = el("p", "doc-meta");
@@ -1045,6 +1121,8 @@ function renderComponentDoc(): HTMLElement {
     const e = entry(id);
     if (e) list.appendChild(renderEntry(e));
   }
+  const rest = renderLeftovers(comp);
+  if (rest) list.appendChild(rest);
   main.appendChild(list);
   return main;
 }
