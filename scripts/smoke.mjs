@@ -14,6 +14,7 @@ globalThis.SVGSVGElement = dom.window.SVGSVGElement;
 globalThis.getComputedStyle = dom.window.getComputedStyle;
 globalThis.localStorage = dom.window.localStorage;
 Element.prototype.scrollIntoView = () => {}; // jsdom gap, real browsers have it
+dom.window.scrollTo = () => {};                // ditto — the bar measures, jsdom cannot scroll
 
 const { render } = await import("../dist/src/render.js");
 const page = JSON.parse(readFileSync(new URL("../data/sample.json", import.meta.url), "utf8"));

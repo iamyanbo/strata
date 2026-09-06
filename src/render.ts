@@ -178,6 +178,20 @@ function setMode(m: "commits" | "components" | "files"): void {
   refresh();
 }
 
+/** scroll so `node` sits just below the sticky bar rather than under it.
+    scrollIntoView({block:"start"}) puts the element's top at the viewport top,
+    which is exactly where the bar is — that is what hid a file's heading when
+    stepping between files. */
+function scrollUnderBar(node: Element | null): void {
+  if (!node) return;
+  const slot = document.querySelector(".objbar-slot") as HTMLElement | null;
+  const pad = (slot?.offsetHeight ?? 0) + 14;
+  const top = node.getBoundingClientRect().top + window.scrollY - pad;
+  // instant, not smooth: switching lens or file should land, not glide, and a
+  // smooth scroll can be left half-finished when the next step arrives
+  window.scrollTo(0, Math.max(0, top));
+}
+
 function selectComponent(id: string, targetEntry?: string): void {
   mode = "components";
   currentComponent = id;
@@ -190,7 +204,7 @@ function selectComponent(id: string, targetEntry?: string): void {
   if (targetEntry) {
     const node = document.getElementById(`entry-${targetEntry}`);
     if (node) {
-      node.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollUnderBar(node);
       node.classList.add("flash");
       window.setTimeout(() => node.classList.remove("flash"), 1400);
     }
@@ -201,7 +215,7 @@ function selectCommit(id: string): void {
   mode = "commits";
   currentCommit = id;
   refresh();
-  document.getElementById("doc")?.scrollIntoView({ block: "start" });
+  scrollUnderBar(document.getElementById("doc"));
 }
 
 function fillExport(): void {
@@ -222,8 +236,76 @@ function fillObjBar(): void {
   const slot = document.querySelector(".objbar-slot");
   if (!slot) return;
   slot.innerHTML = "";
-  if (mode === "components" && page.components.length) slot.appendChild(renderObjectBar());
-  else if (mode === "files" && changedFiles().length) slot.appendChild(renderFileBar());
+  const bar =
+    mode === "components" && page.components.length ? renderObjectBar()
+    : mode === "files" && changedFiles().length ? renderFileBar()
+    : mode === "commits" ? renderCommitBar()
+    : el("div", "objbar");
+  // the lens switch leads: it is the outermost question the bar answers
+  bar.insertBefore(el("div", "ob-sep"), bar.firstChild);
+  bar.insertBefore(renderToggle(), bar.firstChild);
+  slot.appendChild(bar);
+  measureSticky();
+}
+
+/** the bar knows when it is pinned, so it can lift off the page under it */
+function wireStuck(): void {
+  const sentinel = document.querySelector(".sticky-sentinel");
+  const slot = document.querySelector(".objbar-slot");
+  if (!sentinel || !slot || typeof IntersectionObserver === "undefined") return;
+  new IntersectionObserver(
+    ([e]) => slot.classList.toggle("stuck", !e.isIntersecting)
+  ).observe(sentinel);
+}
+
+/** the sticky bar's real height, so scrolling never hides a heading under it */
+function measureSticky(): void {
+  const slot = document.querySelector(".objbar-slot") as HTMLElement | null;
+  const h = slot?.offsetHeight ?? 0;
+  if (h) document.documentElement.style.setProperty("--stickyH", `${h + 12}px`);
+}
+
+/** by commit: the same walk, over commits */
+function renderCommitBar(): HTMLElement {
+  const bar = el("div", "objbar");
+  const commits = page.commits.filter((c) => !isMergeCommit(c));
+  if (!commits.length) return bar;
+  if (!commits.some((c) => c.id === currentCommit)) currentCommit = commits[0].id;
+  const at = Math.max(0, commits.findIndex((c) => c.id === currentCommit));
+  const cur = commits[at];
+  bar.appendChild(menuButton(
+    "comp",
+    () => {
+      const lab = el("span", "menu-lab");
+      lab.append(
+        el("b", undefined, cur.message.length > 34 ? cur.message.slice(0, 33) + "…" : cur.message),
+        el("span", "menu-sub", cur.sha)
+      );
+      return lab;
+    },
+    commits.map((c) => ({
+      id: c.id,
+      label: c.message,
+      mark: c.id === currentCommit ? "•" : "",
+      current: c.id === currentCommit,
+      detail: () => el("span", "menu-kind", `${c.day} ${c.time}`)
+    })),
+    (id) => selectCommit(id)
+  ));
+  bar.appendChild(el("div", "ob-sep"));
+  const nav = el("div", "ob-nav");
+  const prev = el("button", "ob-step", "◂");
+  prev.title = "newer commit";
+  prev.disabled = at <= 0;
+  prev.addEventListener("click", () => selectCommit(commits[at - 1].id));
+  const next = el("button", "ob-step", "▸");
+  next.title = "older commit";
+  next.disabled = at >= commits.length - 1;
+  next.addEventListener("click", () => selectCommit(commits[at + 1].id));
+  nav.append(prev, el("span", "ob-count", `${at + 1} / ${commits.length}`), next);
+  bar.appendChild(nav);
+  bar.appendChild(el("span", "ob-keys", `${cur.author} · band ${cur.stratum}/4`));
+  return bar;
 }
 
 function fillStrip(): void {
@@ -250,10 +332,6 @@ function refresh(): void {
   layout.appendChild(renderRail());
   layout.appendChild(docForMode());
   layout.appendChild(renderGraphPanel());
-  const toggle = document.querySelector(".mode-toggle");
-  toggle?.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("active", b.getAttribute("data-mode") === mode);
-  });
 }
 
 // ---- time helpers -----------------------------------------------------------------
@@ -881,9 +959,7 @@ function openEntry(id: string, scroll = true): void {
 }
 
 function scrollToEntry(id: string): void {
-  const node = document.getElementById(`entry-${id}`);
-  // scroll-margin-top on .entry keeps the card clear of the sticky bar
-  node?.scrollIntoView({ behavior: "smooth", block: "start" });
+  scrollUnderBar(document.getElementById(`entry-${id}`));
 }
 
 function closeEntry(): void {
@@ -1200,7 +1276,9 @@ function selectFile(path: string): void {
   mode = "files";
   currentFile = path;
   refresh();
-  document.getElementById("doc")?.scrollIntoView({ block: "start" });
+  // the file's heading, its totals and the "no object covers this" note are the
+  // point of arriving — park them under the bar, not above the fold
+  scrollUnderBar(document.getElementById("doc"));
 }
 
 /** line key → the entry whose span claimed it, for every object in the PR */
@@ -3118,7 +3196,6 @@ function renderTopbar(): HTMLElement {
 }
 
 function renderToggle(): HTMLElement {
-  const wrap = el("div", "toggle-row");
   const t = el("div", "mode-toggle");
   const byCommit = el("button", undefined, "By commit");
   byCommit.setAttribute("data-mode", "commits");
@@ -3130,8 +3207,10 @@ function renderToggle(): HTMLElement {
   byComp.addEventListener("click", () => setMode("components"));
   byFile.addEventListener("click", () => setMode("files"));
   t.append(byCommit, byComp, byFile);
-  wrap.appendChild(t);
-  return wrap;
+  for (const b of [byCommit, byComp, byFile]) {
+    b.classList.toggle("active", b.getAttribute("data-mode") === mode);
+  }
+  return t;
 }
 
 // ---- home ----------------------------------------------------------------------------
@@ -3201,10 +3280,10 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
 
   document.body.textContent = "";
   document.body.appendChild(renderTopbar());
-  document.body.appendChild(renderToggle());
   const bannerText = bannerOverride ?? p.banner;
   document.body.appendChild(el("div", `banner${bannerText.startsWith("\u26a0") ? " warn" : ""}`, bannerText));
   document.body.appendChild(el("div", "strip-slot"));
+  document.body.appendChild(el("div", "sticky-sentinel"));
   document.body.appendChild(el("div", "objbar-slot"));
 
   const layout = el("div", "layout");
@@ -3216,4 +3295,5 @@ export function render(p: PageData, prName?: string, bannerOverride?: string): v
   fillObjBar();
   fillExport();
   wireKeys();
+  wireStuck();
 }
