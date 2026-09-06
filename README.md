@@ -89,9 +89,11 @@ pulled it in.
 the diff already on screen. A sticky bar carries the component, the object, a
 `3 / 16` counter with prev/next, a jump menu and the read tick, so none of that
 scrolls away while you read. `j` / `k` walk the component, `n` jumps to the next
-unread object, `Esc` collapses. Objects the PR did not change collapse to
-one-line rows — a component of sixteen objects with one change costs one screen,
-not sixteen.
+unread object, `Esc` collapses. Objects the PR did not change are not mixed in
+with the ones it did: they wait at the end of the component behind one collapsed
+row, *referenced, not changed*, and each says by name which changed objects reach
+it. A component of sixteen objects with one change costs one screen, not
+sixteen.
 
 **Review checkpoints.** Mark reviewed once; on the next push only what
 changed since renders at full attention — everything you already read dims.

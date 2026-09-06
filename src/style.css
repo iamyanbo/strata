@@ -1575,3 +1575,22 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 .comp-stats { display: inline-flex; align-items: center; gap: 7px; }
 .ob-file-meta { display: inline-flex; align-items: center; }
 .sticky-sentinel { height: 1px; margin-top: 10px; }
+
+/* ---- context group: what the PR references but does not change ---- */
+.entry.context-group { border-top: 1px dashed var(--hairline); }
+.entry.context-group .name { color: var(--faint); font-style: italic; }
+.entry.context-group.open {
+  background: none;
+  border: 1px dashed var(--hairline);
+  box-shadow: none;
+}
+.entry.context-group.open .name { color: var(--muted); }
+.context-body { gap: 0; padding-top: 0; }
+.context-body > .conn-sum { padding: 0 8px 6px; margin: 0; }
+/* inside the group the rows are the group's content, not layers of the page */
+.context-body .entry { margin: 0; border-top: 1px solid var(--hairline); }
+.context-body .entry.open { background: color-mix(in srgb, var(--ink) 3%, transparent); border-radius: 0; border: none; border-top: 1px solid var(--hairline); box-shadow: none; }
+.context-body .entry::before, .context-body .entry::after { display: none; }
+.why-name { color: var(--ink); font-weight: 600; }
+/* the group's heading already says these are unchanged — no per-row stub */
+.context-body .entry-tab { display: none; }

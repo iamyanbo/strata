@@ -927,8 +927,12 @@ function renderRail(): HTMLElement {
 
 let currentEntry = "";
 
+/** the component's objects in reading order: what changed, then what is only
+    referenced. The sticky bar walks this same order, so `4 / 16` always means
+    the fourth thing down the page. */
 function objectsOf(comp: ComponentDoc): string[] {
-  return comp.entryIds.filter((id) => entry(id));
+  const live = comp.entryIds.filter((id) => entry(id));
+  return [...live.filter((id) => entry(id)!.seed), ...live.filter((id) => !entry(id)!.seed)];
 }
 
 /** which component we have already opened an object for — landing on a
@@ -1214,6 +1218,47 @@ function unclaimedFiles(comp: ComponentDoc): FileDiff[] {
   return out;
 }
 
+/** Objects this PR does not change, kept out of the stream of changes and
+    behind one click. They are here because changed code reaches them, and the
+    reviewer asks for them deliberately rather than scrolling past them. */
+function renderContextGroup(ids: string[]): HTMLElement | null {
+  if (!ids.length) return null;
+  const open = ids.some((id) => expanded.has(id));
+
+  const art = el("article", `entry context-group${open ? " open" : " compact"}`);
+  const head = el("header", "entry-head");
+  const title = el("div", "entry-title");
+  const nameRow = el("div", "name-row");
+  const files = new Set(ids.map((id) => nodeFile(id).split("/").pop() ?? ""));
+  nameRow.append(
+    el("span", "row-chev", "›"),
+    el("code", "name", "referenced, not changed"),
+    el("i", "row-leader"),
+    el("span", "kind", `${ids.length} object${ids.length === 1 ? "" : "s"}`),
+    el("span", "row-meta", [...files].slice(0, 3).join(", ") + (files.size > 3 ? `, +${files.size - 3}` : ""))
+  );
+  title.append(nameRow);
+  head.appendChild(title);
+  art.appendChild(head);
+
+  const fill = (): void => {
+    const body = el("div", "entry-body context-body");
+    body.appendChild(el("p", "conn-sum",
+      "this PR changes none of these. They are in the component because changed code reaches them, so their diffs are empty and their Connections explain the link."));
+    for (const id of ids) body.appendChild(renderEntry(entry(id)!));
+    art.appendChild(body);
+  };
+  if (open) fill();
+  head.addEventListener("click", () => {
+    const nowOpen = art.classList.toggle("open");
+    art.classList.toggle("compact", !nowOpen);
+    const body = art.querySelector(".context-body");
+    if (body) body.remove();
+    else fill();
+  });
+  return art;
+}
+
 function renderLeftovers(comp: ComponentDoc): HTMLElement | null {
   const files = unclaimedFiles(comp);
   if (!files.length) return null;
@@ -1482,10 +1527,12 @@ function renderComponentDoc(): HTMLElement {
   main.appendChild(head);
 
   const list = el("div", "entries");
-  for (const id of comp.entryIds) {
-    const e = entry(id);
-    if (e) list.appendChild(renderEntry(e));
-  }
+  const ordered = objectsOf(comp);
+  const changed = ordered.filter((id) => entry(id)!.seed);
+  const context = ordered.filter((id) => !entry(id)!.seed);
+  for (const id of changed) list.appendChild(renderEntry(entry(id)!));
+  const ctx = renderContextGroup(context);
+  if (ctx) list.appendChild(ctx);
   const rest = renderLeftovers(comp);
   if (rest) list.appendChild(rest);
   main.appendChild(list);
@@ -1727,14 +1774,27 @@ function renderEntry(e: Entry): HTMLElement {
     chg.appendChild(el("h4", "sec-h", "Changes"));
     for (const f of e.files) chg.appendChild(renderFile(f, e.comments));
     if (!e.files.length) {
-      // an object the PR never touched: no diff by definition. Say why it is
-      // in the document at all and point at the wires that dragged it in.
+      // an object the PR never touched has no diff by definition. Say who
+      // reaches it, by name — a count answers nothing a reviewer can act on.
       const why = el("p", "no-diff");
-      const callers = edgesOf(e.id).in.filter((x) => nodeSeed(x.a)).length;
-      why.textContent = callers
-        ? `not changed by this PR — it is here because ${callers} changed object${callers === 1 ? "" : "s"} reference${callers === 1 ? "s" : ""} it`
-        : "not changed by this PR — pulled in by the fill from changed code";
-      why.appendChild(el("span", "no-diff-hint", "see Connections below for the call sites"));
+      const callers = edgesOf(e.id).in.filter((x) => nodeSeed(x.a));
+      if (callers.length) {
+        const names = callers.slice(0, 2).map((x) => entry(x.a)?.name ?? x.a);
+        const more = callers.length - names.length;
+        why.appendChild(document.createTextNode("This PR does not change it. It is here because "));
+        names.forEach((n, i) => {
+          if (i) why.appendChild(document.createTextNode(more ? ", " : " and "));
+          why.appendChild(el("code", "why-name", n));
+        });
+        why.appendChild(document.createTextNode(
+          more
+            ? ` and ${more} other changed object${more === 1 ? "" : "s"} reach it.`
+            : ` reach${callers.length === 1 ? "es" : ""} it.`
+        ));
+      } else {
+        why.textContent = "This PR does not change it. The fill pulled it in from changed code nearby.";
+      }
+      why.appendChild(el("span", "no-diff-hint", "its call sites are under Connections"));
       chg.appendChild(why);
     }
     const written = commitsOf(e.id);

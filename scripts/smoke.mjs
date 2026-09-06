@@ -68,6 +68,18 @@ try {
   console.log(`[keys] j -> ${count2}, k -> ${count3}`);
   if (count2 === count1 || count3 !== count1) { console.log("KEYBOARD NAV BROKEN"); process.exit(1); }
 
+  // -- context objects live in one collapsed group, not between the changes --
+  const group = document.querySelector(".entry.context-group");
+  const unchangedInStream = [...document.querySelectorAll(".entries > .entry")]
+    .filter((n) => n.classList.contains("fill") && !n.classList.contains("context-group")).length;
+  console.log(`[context] group: ${group ? group.querySelector(".kind").textContent : "MISSING"}, collapsed: ${group?.classList.contains("compact")}, unchanged loose in the stream: ${unchangedInStream}`);
+  if (!group || !group.classList.contains("compact") || unchangedInStream) { console.log("CONTEXT GROUPING BROKEN"); process.exit(1); }
+  group.querySelector(".entry-head").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const revealed = document.querySelectorAll(".context-body > .entry").length;
+  console.log(`[context] expanding reveals ${revealed} referenced object(s)`);
+  if (!revealed) { console.log("CONTEXT GROUP EMPTY"); process.exit(1); }
+  group.querySelector(".entry-head").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+
   // -- per-object diffs: no two objects show the same file-wide diff ----------
   const deltas = [...document.querySelectorAll(".entry .delta-chip")].map((d) => d.textContent);
   const dupes = deltas.filter((d, i) => deltas.indexOf(d) !== i && d !== "").length;
