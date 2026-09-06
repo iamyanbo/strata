@@ -68,6 +68,26 @@ try {
   console.log(`[keys] j -> ${count2}, k -> ${count3}`);
   if (count2 === count1 || count3 !== count1) { console.log("KEYBOARD NAV BROKEN"); process.exit(1); }
 
+  // -- mark reviewed: a checkpoint AND every changed object ticked off -------
+  {
+    const changed = Object.values(page.entries).filter((e) => e.seed).length;
+    document.querySelector(".review-strip .strip-btn").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    const state = JSON.parse(dom.window.localStorage.getItem(`strata-review:${page.pr.repo}${page.pr.number}`) ?? "{}");
+    const strip = document.querySelector(".review-strip").textContent;
+    const ticks = document.querySelectorAll(".read-tick.on").length;
+    const nextUnread = document.querySelector(".ob-next");
+    console.log(`[reviewed] read: ${state.read.length}/${changed} changed objects, strip: ${JSON.stringify(strip.trim().slice(0, 46))}`);
+    console.log(`[reviewed] ticked cards on screen: ${ticks}, next-unread button: ${nextUnread ? nextUnread.textContent : "gone"}`);
+    if (state.read.length !== changed || !ticks || nextUnread) { console.log("MARK REVIEWED BROKEN"); process.exit(1); }
+
+    // reset puts it back to untouched
+    document.querySelector(".review-strip .strip-btn.ghost").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    const after = dom.window.localStorage.getItem(`strata-review:${page.pr.repo}${page.pr.number}`);
+    const ticksAfter = document.querySelectorAll(".read-tick.on").length;
+    console.log(`[reviewed] after reset: stored ${after === null ? "nothing" : "something"}, ticked cards ${ticksAfter}`);
+    if (after !== null || ticksAfter) { console.log("RESET BROKEN"); process.exit(1); }
+  }
+
   // -- context objects live in one collapsed group, not between the changes --
   const group = document.querySelector(".entry.context-group");
   const unchangedInStream = [...document.querySelectorAll(".entries > .entry")]
@@ -220,6 +240,24 @@ try {
   const lines = page.files.reduce((n, f) => n + f.lines.filter((l) => l.kind !== "ctx").length, 0);
   console.log(`[files] walking j reached ${covered}/${page.files.length} files (${lines} changed lines, all reachable)`);
   if (covered !== page.files.length) { console.log("FILE WALK BROKEN"); process.exit(1); }
+
+  // -- read state ages with the code: a push un-reads only what it touched ---
+  {
+    document.querySelector('[data-mode="components"]').dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    document.querySelector(".review-strip .strip-btn").dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    const key = `strata-review:${page.pr.repo}${page.pr.number}`;
+    const state = JSON.parse(dom.window.localStorage.getItem(key));
+    const dropped = state.seenCommits.shift(); // pretend the newest commit just landed
+    dom.window.localStorage.setItem(key, JSON.stringify(state));
+    render(page, "sample");
+    const touched = Object.entries(page.entries).filter(([, e]) =>
+      e.seed && (e.files ?? []).some((f) => f.lines.some((l) => l.kind !== "ctx" && l.by === dropped))).length;
+    const stillRead = document.querySelectorAll(".read-tick.on").length;
+    const shown = document.querySelectorAll(".entries > .entry:not(.compact) .read-tick").length;
+    console.log(`[aging] commit ${dropped} unseen → ${touched} object(s) it touched go back to unread; ${stillRead}/${shown} on screen still read`);
+    if (touched && stillRead === shown) { console.log("READ STATE DOES NOT AGE"); process.exit(1); }
+    dom.window.localStorage.clear();
+  }
 
   console.log("SMOKE OK");
 } catch (err) {

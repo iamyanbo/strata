@@ -100,10 +100,12 @@ counter, and `j`/`k` step past them — you cannot review what the PR did not
 change. A component of sixteen objects with one change costs one screen, not
 sixteen.
 
-**Review checkpoints.** Mark reviewed once; on the next push only what
-changed since renders at full attention — everything you already read dims.
-Checkmarks per object track what you personally read. Force-pushes are
-detected and handled.
+**Review checkpoints.** *Mark reviewed* does what it says: it drops a
+checkpoint at today's commits **and** ticks off every changed object. On the
+next push, only the objects those commits touched come back to unread — the
+rest stay read, so `11/11` becomes `5/11` and the strip tells you which commits
+did it. Individual ticks still work for reviewing in passes, *reset* forgets the
+checkpoint and every tick, and force-pushes are detected and handled.
 
 **Threads that age with the code.** Comments survive force-pushes via line
 anchors, and when a commented line is rewritten *after* the comment, the

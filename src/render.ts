@@ -67,13 +67,41 @@ function saveReview(): void {
   try { localStorage.setItem(reviewKey, JSON.stringify(review)); } catch { /* storage unavailable */ }
 }
 
+/** "I have reviewed this PR" means both halves: a checkpoint at today's
+    commits, AND every changed object ticked off. Setting only the checkpoint
+    made the rail switch from "14 changed" to "0/14 read", which reads like it
+    threw your progress away. */
 function markReviewed(): void {
   review = {
     seenCommits: page.commits.filter((c) => !isMergeCommit(c)).map((c) => c.sha),
     reviewedAt: Date.now(),
-    read: review?.read ?? []
+    read: Object.entries(page.entries).filter(([, e]) => e.seed).map(([id]) => id)
   };
   saveReview();
+}
+
+/** lines in this object written or removed by a commit that did not exist at
+    your last checkpoint */
+function newSinceCheckpoint(id: string): number {
+  // reviewedAt, not seenCommits.length: a force-push can leave a real
+  // checkpoint with none of its commits still on the branch, and that is
+  // exactly when everything should come back for another look
+  if (!review?.reviewedAt) return 0;
+  let n = 0;
+  for (const f of entry(id)?.files ?? []) {
+    for (const l of f.lines) {
+      if (l.kind !== "ctx" && l.by && !review.seenCommits.includes(l.by)) n++;
+    }
+  }
+  return n;
+}
+
+/** Read state ages with the code: a tick holds until a commit you have not
+    seen touches that object, and then only that object goes back to unread. */
+function isRead(id: string): boolean {
+  if (!review?.read.includes(id)) return false;
+  if (!review.reviewedAt) return true; // ticked by hand, never checkpointed
+  return newSinceCheckpoint(id) === 0;
 }
 
 function clearReview(): void {
@@ -110,10 +138,16 @@ function renderReviewStrip(): HTMLElement | null {
   const mark = el("button", "strip-btn", "mark reviewed");
   mark.addEventListener("click", () => { markReviewed(); refresh(); });
   const reset = el("button", "strip-btn ghost", "reset");
+  reset.title = "forget the checkpoint and every read mark";
   reset.addEventListener("click", () => { clearReview(); refresh(); });
 
+  const changedIds = Object.entries(page.entries).filter(([, e]) => e.seed).map(([id]) => id);
+  const unread = changedIds.filter((id) => !isRead(id)).length;
+
   if (!review) {
-    s.appendChild(el("span", undefined, `not yet reviewed · ${real.length} commit${real.length === 1 ? "" : "s"}`));
+    s.appendChild(el("span", undefined,
+      `not yet reviewed · ${real.length} commit${real.length === 1 ? "" : "s"} · ${changedIds.length} changed object${changedIds.length === 1 ? "" : "s"}`));
+    mark.title = "checkpoint at today's commits and tick off every changed object";
     s.appendChild(mark);
     return s;
   }
@@ -131,12 +165,23 @@ function renderReviewStrip(): HTMLElement | null {
   const when = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
   const fresh = real.filter((c) => !review!.seenCommits.includes(c.sha));
   if (!fresh.length) {
-    s.appendChild(el("span", undefined, `reviewed ${when} · up to date`));
-    s.appendChild(reset);
+    s.appendChild(el("span", undefined, unread
+      ? `reviewed ${when} · ${unread} object${unread === 1 ? "" : "s"} still unread`
+      : `reviewed ${when} · all ${changedIds.length} object${changedIds.length === 1 ? "" : "s"} read`));
+    if (unread) {
+      mark.textContent = "mark all read";
+      s.append(mark, reset);
+    } else {
+      s.appendChild(reset);
+    }
   } else {
     s.classList.add("has-new");
+    // a push un-reads exactly the objects it touched, so say how many came back
+    const back = changedIds.filter((id) => newSinceCheckpoint(id) > 0).length;
     s.appendChild(el("span", undefined,
-      `reviewed ${when} · ${fresh.length} commit${fresh.length === 1 ? "" : "s"} · ${newLineCount()} new lines since`));
+      `reviewed ${when} · ${fresh.length} commit${fresh.length === 1 ? "" : "s"} since · ${newLineCount()} new line${newLineCount() === 1 ? "" : "s"} in ${back} object${back === 1 ? "" : "s"}`));
+    mark.textContent = "reviewed again";
+    mark.title = "move the checkpoint to these commits and tick everything off";
     s.append(mark, reset);
   }
   return s;
@@ -887,7 +932,7 @@ function renderRail(): HTMLElement {
       const btn = el("button", `comp${c.id === currentComponent ? " active" : ""}`);
       const changed = objectsOf(c);
       const ctx = contextOf(c).length;
-      const read = changed.filter((id) => review?.read.includes(id)).length;
+      const read = changed.filter((id) => isRead(id)).length;
       const stats = review && changed.length
         ? `${read}/${changed.length} read${ctx ? ` · ${ctx} referenced` : ""}`
         : `${changed.length} changed${ctx ? ` · ${ctx} referenced` : ""}`;
@@ -999,7 +1044,7 @@ function stepEntry(delta: number): void {
 function nextUnread(): void {
   const comp = component(currentComponent) ?? page.components[0];
   const list = objectsOf(comp).filter((id) => entry(id)!.seed);
-  const read = new Set(review?.read ?? []);
+  const read = new Set(list.filter((id) => isRead(id)));
   const at = list.indexOf(currentEntry);
   const rotated = [...list.slice(at + 1), ...list.slice(0, at + 1)];
   const next = rotated.find((id) => !read.has(id));
@@ -1164,7 +1209,7 @@ function renderObjectBar(): HTMLElement {
       return {
         id,
         label: e.name,
-        mark: review?.read.includes(id) ? "✓" : e.seed ? "●" : "",
+        mark: isRead(id) ? "✓" : newSinceCheckpoint(id) ? "↻" : "●",
         current: id === currentEntry,
         detail: () => deltaDetail(e)
       };
@@ -1177,12 +1222,12 @@ function renderObjectBar(): HTMLElement {
 
   const cur = entry(currentEntry);
   if (cur) {
-    const isRead = review?.read.includes(cur.id) ?? false;
-    const tick = el("button", `ob-tick${isRead ? " on" : ""}`, isRead ? "✓ read" : "mark read");
+    const read = isRead(cur.id);
+    const tick = el("button", `ob-tick${read ? " on" : ""}`, read ? "✓ read" : "mark read");
     tick.title = "mark this object as read";
     tick.addEventListener("click", () => { toggleRead(cur.id); refresh(); });
     bar.appendChild(tick);
-    const unread = objectsOf(comp).filter((id) => entry(id)!.seed && !(review?.read ?? []).includes(id)).length;
+    const unread = objectsOf(comp).filter((id) => !isRead(id)).length;
     if (unread) {
       const nb = el("button", "ob-next", `next unread · ${unread}`);
       nb.title = "jump to the next changed object you have not read (n)";
@@ -1701,11 +1746,11 @@ function renderEntry(e: Entry): HTMLElement {
   const title = el("div", "entry-title");
   const nameRow = el("div", "name-row");
   // the reviewer's read checkmark — independent of the time checkpoint
-  const isRead = review?.read.includes(e.id) ?? false;
+  const read = isRead(e.id);
   // only what changed can be reviewed, so only what changed carries the tick
   if (e.seed) {
-    const tick = el("button", `read-tick${isRead ? " on" : ""}`);
-    tick.title = isRead ? "marked as read — click to unmark" : "mark as read";
+    const tick = el("button", `read-tick${read ? " on" : ""}`);
+    tick.title = read ? "marked as read — click to unmark" : "mark as read";
     tick.addEventListener("click", (ev) => {
       ev.stopPropagation();
       toggleRead(e.id);
@@ -1748,7 +1793,7 @@ function renderEntry(e: Entry): HTMLElement {
         if (l.kind === "add" && l.by && !review.seenCommits.includes(l.by)) newLines++;
       }
     }
-    if (newLines && !isRead) {
+    if (newLines && !read) {
       const nc = el("span", "new-chip", `+${newLines} new`);
       nc.title = "written since your last checkpoint";
       nameRow.append(nc);
@@ -1845,7 +1890,7 @@ function renderEntry(e: Entry): HTMLElement {
     }
     // footer: mark the whole object as read without collapsing back to the top
     const foot = el("div", "entry-foot");
-    const readNow = review?.read.includes(e.id) ?? false;
+    const readNow = isRead(e.id);
     if (!e.seed) foot.classList.add("hidden");
     const rb = el("button", `foot-read${readNow ? " read" : ""}`,
       readNow ? "\u2713 marked as read — unmark" : "\u2713 mark as read");
