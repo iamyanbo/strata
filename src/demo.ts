@@ -7,6 +7,7 @@
 
 import { el, svgEl } from "./dom.js";
 import { showHoverCard, hideHoverCard } from "./hovercard.js";
+import { deltaChip } from "./format.js";
 
 type Lens = "commits" | "components" | "files";
 
@@ -110,10 +111,10 @@ function diffRow(r: Row, i: number): HTMLElement {
   return row;
 }
 
-function diffBlock(path: string, delta: string, rows: Row[]): HTMLElement {
+function diffBlock(path: string, add: number, del: number, rows: Row[]): HTMLElement {
   const box = el("div", "shot-file");
   const head = el("div", "shot-file-head");
-  head.append(el("span", "shot-path", path), el("span", "shot-delta", delta));
+  head.append(el("span", "shot-path", path), deltaChip(add, del));
   box.appendChild(head);
   rows.forEach((r, i) => box.appendChild(diffRow(r, i)));
   return box;
@@ -209,10 +210,10 @@ function componentsView(): HTMLElement {
     el("span", "shot-tick"),
     el("span", "shot-name", "processSchema"),
     el("span", "shot-kind", "FUNCTION"),
-    el("span", "shot-delta", "+3 −2"),
+    deltaChip(3, 2),
     el("span", "shot-refs", "7 refs")
   );
-  doc.append(head, diffBlock("packages/zod/src/v4/core/to-json-schema.ts", "+3 −2", OBJECT_ROWS));
+  doc.append(head, diffBlock("packages/zod/src/v4/core/to-json-schema.ts", 3, 2, OBJECT_ROWS));
   doc.appendChild(el("p", "shot-foot", "hover a tick for the commit that wrote the line · hover the graph for the call site"));
   body.append(doc, miniGraph());
   return body;
@@ -223,7 +224,7 @@ function commitsView(): HTMLElement {
   const doc = el("div", "shot-doc");
   const head = el("div", "shot-head");
   head.append(el("span", "shot-name", "Rename the JSON Schema `process` helper"), el("span", "shot-kind", "18E71C7"));
-  doc.append(head, diffBlock("packages/zod/src/v4/core/json-schema-generator.ts", "+1 −1", COMMIT_ROWS));
+  doc.append(head, diffBlock("packages/zod/src/v4/core/json-schema-generator.ts", 1, 1, COMMIT_ROWS));
   doc.appendChild(el("p", "shot-foot", "one commit at a time, in the order they landed"));
 
   const side = el("div", "shot-side");
@@ -251,7 +252,7 @@ function filesView(): HTMLElement {
   const body = el("div", "shot-body");
   const doc = el("div", "shot-doc");
   const head = el("div", "shot-head");
-  head.append(el("span", "shot-name", "to-json-schema.ts"), el("span", "shot-delta", "+9 −5"));
+  head.append(el("span", "shot-name", "to-json-schema.ts"), deltaChip(9, 5));
   doc.appendChild(head);
 
   const box = el("div", "shot-file");
@@ -269,15 +270,15 @@ function filesView(): HTMLElement {
   const side = el("div", "shot-side");
   side.appendChild(el("div", "shot-side-h", "FILES · 4"));
   const files = [
-    { name: "to-json-schema.ts", d: "+9 −5", on: true, obj: true },
-    { name: "json-schema-processors.ts", d: "+25 −25", on: false, obj: true },
-    { name: "polyfill-collision.test.ts", d: "+46", on: false, obj: false },
-    { name: "coverage.svg", d: "+1 −1", on: false, obj: false }
+    { name: "to-json-schema.ts", add: 9, del: 5, on: true, obj: true },
+    { name: "json-schema-processors.ts", add: 25, del: 25, on: false, obj: true },
+    { name: "polyfill-collision.test.ts", add: 46, del: 0, on: false, obj: false },
+    { name: "coverage.svg", add: 1, del: 1, on: false, obj: false }
   ];
   files.forEach((f, i) => {
     const row = el("div", `shot-filerow${f.on ? " on" : ""}`);
     row.style.setProperty("--i", String(i));
-    row.append(el("span", "shot-fname", f.name), el("span", "shot-fdelta", f.d));
+    row.append(el("span", "shot-fname", f.name), deltaChip(f.add, f.del));
     if (!f.obj) row.appendChild(el("span", "shot-noobj", "no object"));
     side.appendChild(row);
   });

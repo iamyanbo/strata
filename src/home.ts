@@ -26,36 +26,42 @@ const IC = {
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`
 };
 
-interface Feature { icon: string; title: string; body: string }
+interface Feature { icon: string; title: string; body: string; band: 1 | 2 | 3 | 4 }
 
 const FEATURES: Feature[] = [
   {
     icon: IC.lens,
+    band: 1,
     title: "Three lenses, one diff",
     body: "Read the PR by commit, by component, or by file. The lenses annotate each other — a file names the object that owns each run of lines, an object links back to the file — and every changed line is reachable in at least one of them."
   },
   {
     icon: IC.ribbon,
+    band: 2,
     title: "Every line carries its commit",
     body: "A tick beside each line is colored by the sweep of work that wrote it. Hover for the author, the timestamp and the message. Deletions carry it too: blame cannot see a removed line, so the commit that removed it is matched from its own diff."
   },
   {
     icon: IC.fill,
+    band: 3,
     title: "Components, not folders",
     body: "Changed symbols seed a flood fill over a TypeScript def−use index built from both trees. What the fill reaches becomes a unit you read top to bottom, and each object shows only the lines inside its own span."
   },
   {
     icon: IC.graph,
+    band: 4,
     title: "A graph that says why",
     body: "Arrows point caller → callee, colored by where the change falls on them. Unchanged callers of changed code are counted and filterable in one click, and every edge opens the source lines that put it there."
   },
   {
     icon: IC.note,
+    band: 2,
     title: "Notes that leave as a review",
     body: "Comment on any line — including a removed one, which anchors to the old file where GitHub still has it — and push your notes and the PR's existing threads as a single review."
   },
   {
     icon: IC.check,
+    band: 1,
     title: "Checkpoints that age",
     body: "Mark reviewed once. When the next push lands, only the objects those commits touched come back to unread; everything else stays where you left it."
   }
@@ -105,11 +111,17 @@ export function renderHome(recents: HomeRecent[]): void {
   const feats = el("section", "home-sec");
   feats.appendChild(el("h2", "home-h2", "What it does"));
   const grid = el("div", "feat-grid");
-  for (const f of FEATURES) {
-    const card = el("article", "feat");
-    card.append(svgIcon(f.icon, "feat-ic"), el("h3", "feat-h", f.title), el("p", "feat-b", f.body));
+  FEATURES.forEach((f, i) => {
+    const card = el("article", "feat reveal");
+    // each card carries one of the four time bands, so the palette that means
+    // something in the app is the palette that decorates the page
+    card.style.setProperty("--band", `var(--s${f.band})`);
+    card.style.setProperty("--i", String(i % 3));
+    const tile = el("div", "feat-tile");
+    tile.appendChild(svgIcon(f.icon, "feat-ic"));
+    card.append(tile, el("h3", "feat-h", f.title), el("p", "feat-b", f.body));
     grid.appendChild(card);
-  }
+  });
   feats.appendChild(grid);
   main.appendChild(feats);
 
@@ -117,11 +129,14 @@ export function renderHome(recents: HomeRecent[]): void {
   const how = el("section", "home-sec");
   how.appendChild(el("h2", "home-h2", "How it works"));
   const steps = el("div", "step-row");
-  for (const s of STEPS) {
-    const st = el("div", "step");
-    st.append(el("span", "step-n", s.n), el("b", "step-name", s.name), el("span", "step-b", s.body));
+  STEPS.forEach((s, i) => {
+    const st = el("div", "step reveal");
+    st.style.setProperty("--i", String(i));
+    const top = el("div", "step-top");
+    top.append(el("span", "step-n", s.n), el("i", "step-line"));
+    st.append(top, el("b", "step-name", s.name), el("span", "step-b", s.body));
     steps.appendChild(st);
-  }
+  });
   how.appendChild(steps);
   how.appendChild(el("p", "home-note",
     "Everything is derived, never guessed: components come from the AST, ribbons from git blame and per-commit diffs, and any claim on screen can be traced to the line that produced it."));
@@ -134,8 +149,9 @@ export function renderHome(recents: HomeRecent[]): void {
   if (!recents.length) {
     list.appendChild(el("p", "home-empty", "paste a PR url above, or open the bundled example"));
   }
-  for (const r of recents) {
-    const row = el("button", "home-row");
+  recents.forEach((r, i) => {
+    const row = el("button", "home-row reveal");
+    row.style.setProperty("--i", String(Math.min(i, 6)));
     const bands = el("span", "home-bands");
     for (const b of r.bands ?? []) bands.appendChild(el("i", `ft-band s${b}`));
     const d = new Date(r.mtime);
@@ -146,7 +162,7 @@ export function renderHome(recents: HomeRecent[]): void {
       `${r.commits} commit${r.commits === 1 ? "" : "s"} · ${MONTHS[d.getMonth()]} ${d.getDate()}`));
     row.addEventListener("click", () => { location.href = `/?pr=${r.name}`; });
     list.appendChild(row);
-  }
+  });
   rec.appendChild(list);
   main.appendChild(rec);
 
@@ -159,4 +175,43 @@ export function renderHome(recents: HomeRecent[]): void {
   main.appendChild(foot);
 
   document.body.appendChild(main);
+
+  for (const h of Array.from(main.querySelectorAll(".home-h2, .home-note, .home-empty, .shot"))) {
+    h.classList.add("reveal");
+  }
+  revealOnScroll(Array.from(main.querySelectorAll(".reveal")));
+}
+
+/** Sections arrive as you reach them rather than all at once.
+    Deliberately a scroll listener rather than an IntersectionObserver: the
+    consequence of a missed callback here is content stuck at opacity 0, and a
+    rect test on scroll cannot miss. Anyone who asked for less motion, or has no
+    JS timing at all, simply gets the page. */
+function revealOnScroll(nodes: Element[]): void {
+  const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (still) {
+    for (const n of nodes) n.classList.add("seen");
+    return;
+  }
+  // no rAF throttle: a handful of rect reads is cheaper than a dropped frame
+  // callback, and the list shrinks to nothing as the page is read
+  let left = [...nodes];
+  const check = (): void => {
+    const edge = window.innerHeight * 0.92;
+    left = left.filter((n) => {
+      if (n.getBoundingClientRect().top >= edge) return true;
+      n.classList.add("seen");
+      return false;
+    });
+    if (!left.length) {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    }
+  };
+  window.addEventListener("scroll", check, { passive: true });
+  window.addEventListener("resize", check);
+  check();
+  // a few re-checks catch anything the first pass measured before the fonts
+  // and the demo settled; scrolling handles the rest
+  for (const t of [120, 500, 1500]) window.setTimeout(check, t);
 }
