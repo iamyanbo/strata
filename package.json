@@ -5,6 +5,9 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.22.2"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",

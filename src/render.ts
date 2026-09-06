@@ -1549,10 +1549,12 @@ function renderComponentDoc(): HTMLElement {
   for (const id of objectsOf(comp)) {
     if (!isRest(id)) list.appendChild(renderEntry(entry(id)!));
   }
-  const ctx = renderContextGroup(contextOf(comp));
-  if (ctx) list.appendChild(ctx);
+  // the loose changes are still changes, so they sit with them; what the PR did
+  // not touch goes last, below everything it did
   const rest = renderLeftovers(comp);
   if (rest) list.appendChild(rest);
+  const ctx = renderContextGroup(contextOf(comp));
+  if (ctx) list.appendChild(ctx);
   main.appendChild(list);
   return main;
 }
