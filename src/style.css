@@ -878,12 +878,6 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
 
 /* ---- commit nav ---- */
 
-.commit-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 30px;
-}
 
 /* ---- traces ---- */
 

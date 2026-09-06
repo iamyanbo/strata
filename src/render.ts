@@ -2099,21 +2099,8 @@ function renderCommitDoc(): HTMLElement {
 
   for (const f of c.files) main.appendChild(renderFile(f));
 
-  // sibling commits nav (skip merge commits)
-  const seq = page.commits.filter((x) => !isMergeCommit(x));
-  const idx = seq.findIndex((x) => x.id === c.id);
-  const nav = el("div", "commit-nav");
-  if (idx > 0) {
-    const prev = el("button", "t-jump", `\u2190 ${seq[idx - 1].message}`);
-    prev.addEventListener("click", () => selectCommit(seq[idx - 1].id));
-    nav.appendChild(prev);
-  }
-  if (idx < seq.length - 1 && idx >= 0) {
-    const next = el("button", "t-jump", `${seq[idx + 1].message} \u2192`);
-    next.addEventListener("click", () => selectCommit(seq[idx + 1].id));
-    nav.appendChild(next);
-  }
-  if (nav.children.length) main.appendChild(nav);
+  // no sibling nav down here: the sticky bar walks commits from the top, and
+  // a second pair of arrows at the bottom only competes with it
 
   return main;
 }
