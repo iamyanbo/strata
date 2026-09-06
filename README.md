@@ -117,6 +117,10 @@ thread flags "rewritten since" with an expandable before/after of what
 changed. Facts like "covered by X.test.ts" jump straight to the covering
 test's diff, and "untested" is stated plainly on the object header.
 
+**Reply in the thread.** A thread that came back from GitHub carries a *reply*
+button; your answer waits with your other notes and posts into that thread —
+GitHub's reply endpoint, not a new review comment floating beside it.
+
 **Write the review here.** Hover any diff line and the `+` opens a composer:
 notes anchor to that line, render inline where a GitHub thread would, and are
 kept per PR in your browser until you push them. A note on a removed line

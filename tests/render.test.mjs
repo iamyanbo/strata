@@ -122,6 +122,18 @@ test("notes reach the export card as yours", () => {
   document.querySelector(".overlay").remove();
 });
 
+test("a thread from GitHub is listed but cannot be re-posted", () => {
+  // the dataset's own threads have nowhere to go: they came from there
+  click(document.querySelector(".theme-toggle"));
+  const rows = all(".exp-row");
+  const fromGithub = rows.filter((r) => r.querySelector(".note-chip")?.textContent === "from github");
+  for (const r of fromGithub) {
+    assert.equal(r.querySelector("input").disabled, true, "not selectable");
+    assert.equal(r.querySelector("input").checked, false, "not checked");
+  }
+  document.querySelector(".overlay")?.remove();
+});
+
 test("mark reviewed checkpoints AND ticks everything off", () => {
   click(document.querySelector(".review-strip .strip-btn"));
   const state = JSON.parse(localStorage.getItem(`strata-review:${page.pr.repo}${page.pr.number}`));

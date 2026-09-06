@@ -97,10 +97,27 @@ const server = http.createServer(async (req, res) => {
         const m = String(rv.body ?? "").match(/strata-threads:([^\n>]*)/);
         if (m) for (const id of m[1].split(",")) if (id.trim()) exported.add(id.trim());
       }
-      const fresh = comments.filter((c) => !exported.has(String(c.id)));
+      const unsent = comments.filter((c) => !exported.has(String(c.id)));
+      // two different GitHub endpoints: a new comment joins one review, while an
+      // answer goes to the thread it answers
+      const replies = unsent.filter((c) => c.replyTo);
+      const fresh = unsent.filter((c) => !c.replyTo);
+      let replied = 0;
+      for (const r of replies) {
+        const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${num}/comments/${r.replyTo}/replies`;
+        const out = await fetch(url, {
+          method: "POST",
+          headers: { ...gh, "Content-Type": "application/json" },
+          body: JSON.stringify({ body: r.body })
+        }).then((x) => x.json());
+        if (out.id) replied++;
+        else throw new Error(`GitHub: reply rejected (${out.message ?? "unknown"})`);
+      }
       if (!fresh.length) {
         res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ exported: 0, message: "all selected threads were already exported" }));
+        res.end(JSON.stringify(replied
+          ? { exported: replied, message: `posted ${replied} repl${replied === 1 ? "y" : "ies"}` }
+          : { exported: 0, message: "all selected threads were already exported" }));
         return;
       }
 
@@ -111,8 +128,11 @@ const server = http.createServer(async (req, res) => {
         body: JSON.stringify({
           commit_id: head || undefined,
           event,
-          // the marker stays lowercase: it is an identifier this code greps for
-          body: `Review notes from Strata — ${fresh.length} comment${fresh.length === 1 ? "" : "s"}\n<!-- strata-threads: ${fresh.map((c) => c.id).join(",")} -->`,
+          // the marker stays lowercase: it is an identifier this code greps for.
+      // It stamps every id sent in this call, replies included, so a re-export
+      // skips them; a call carrying only replies leaves no review to stamp, and
+      // the client's own exportedAt is what stops those going twice.
+          body: `Review notes from Strata — ${fresh.length} comment${fresh.length === 1 ? "" : "s"}\n<!-- strata-threads: ${unsent.map((c) => c.id).join(",")} -->`,
           // side follows the line: a note on a removed line anchors LEFT, where
           // `line` is the number in the file BEFORE the change
           comments: fresh.map((c) => ({
@@ -127,7 +147,7 @@ const server = http.createServer(async (req, res) => {
         throw new Error(`GitHub: ${out.message ?? "review rejected"}${out.errors ? ` (${JSON.stringify(out.errors[0])})` : ""}`);
       }
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ exported: fresh.length }));
+      res.end(JSON.stringify({ exported: fresh.length + replied }));
     } catch (e) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: String(e?.message ?? e) }));

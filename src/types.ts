@@ -38,6 +38,11 @@ export interface DraftComment {
   body: string;
   created: string;
   author: string;
+  /** the GitHub review comment this answers — a reply goes to the thread's own
+      endpoint rather than into a new review */
+  replyTo?: string;
+  /** who wrote the comment being answered, for the draft's header */
+  replyToAuthor?: string;
   /** ISO time it was pushed to GitHub; unset means still local */
   exportedAt?: string;
 }
