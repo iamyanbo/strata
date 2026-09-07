@@ -11,8 +11,11 @@ by deterministic code. No LLM writes a word of what you see.
 
 ## Quickstart
 
+Node 22.22.2 or newer, and `git` on your PATH. Nothing else — no database, no
+account, no API key for reading public PRs.
+
 ```sh
-git clone <this repo>
+git clone https://github.com/iamyanbo/strata
 cd strata
 npm install
 npx tsc                # compile the viewer + pipeline to dist/
@@ -99,6 +102,11 @@ counter, and `j`/`k` step past them — you cannot review what the PR did not
 change. A component of sixteen objects with one change costs one screen, not
 sixteen.
 
+**Checks, stamped.** The lineage line carries CI on the head commit as it stood
+when the PR was analyzed — passing, failing with the names of what failed, or
+still running — linked to the checks tab. It says *read <time>* on hover,
+because a dataset is a photograph and CI keeps running after the shutter.
+
 **Review checkpoints.** *Mark reviewed* does what it says: it drops a
 checkpoint at today's commits **and** ticks off every changed object. On the
 next push, only the objects those commits touched come back to unread — the
@@ -112,30 +120,37 @@ thread flags "rewritten since" with an expandable before/after of what
 changed. Facts like "covered by X.test.ts" jump straight to the covering
 test's diff, and "untested" is stated plainly on the object header.
 
+**Reply in the thread.** A thread that came back from GitHub carries a *reply*
+button; your answer waits with your other notes and posts into that thread —
+GitHub's reply endpoint, not a new review comment floating beside it.
+
 **Write the review here.** Hover any diff line and the `+` opens a composer:
 notes anchor to that line, render inline where a GitHub thread would, and are
 kept per PR in your browser until you push them. A note on a removed line
 anchors to the old file, so it lands on the left side of the GitHub diff where
 the line still exists.
 
-**Export.** Your notes and the threads that came back from GitHub leave together
-as a single review (needs `GITHUB_TOKEN`); re-exports skip anything already
-pushed, and pushed notes are marked *on github* instead of *not sent yet*.
+**Export.** Your notes leave as a single review, and your replies go to the
+threads they answer (needs `GITHUB_TOKEN`). The PR's own threads are listed for
+context and never re-sent — they are already on GitHub. Re-exports skip anything
+already pushed, and a pushed note is marked *on github* instead of *not sent
+yet*.
 
 ## How it works
 
 ```
-scripts/analyze.mjs   shallow-fetch the PR's merge commit + window
+scripts/analyze.mjs   shallow-fetch the PR's merge commit + window, comments, checks
 pipeline/git.ts       parse the PR shape: commits, per-commit diffs, whole-PR diff
 pipeline/index.ts     TypeScript AST over base and head trees; def−use resolution
 pipeline/flow.ts      flood fill from changed symbols → components
-pipeline/emit.ts      sweeps, per-line blame attribution, staleness pairs → data/<pr>.json
+pipeline/sweeps.ts    commit bursts → the four time bands
+pipeline/emit.ts      per-line attribution, per-object slices, threads → data/<pr>.json
 src/                  the viewer: DOM rendering, no framework
 ```
 
-Two lenses over the same data at all times: **By component** (what changed,
-grouped by how the code relates) and **By commit** (when it changed, with a
-contributions map of who wrote what where).
+The pipeline runs once and writes one file; the viewer reads only that file. A
+dataset is a photograph of the PR at the moment you analyzed it — re-paste the
+URL to take a new one, and your notes and read marks survive it.
 
 ## Honest limitations
 

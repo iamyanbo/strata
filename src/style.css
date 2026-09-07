@@ -175,6 +175,19 @@ input.pr-url.busy { opacity: 0.5; }
 .lin-dot { padding: 0 3px; }
 .lin-out { color: var(--link-fg); text-decoration: none; font-size: 10.5px; }
 .lin-out:hover { text-decoration: underline; }
+/* checks: a fetched fact, so it reads as a stamp rather than a live light */
+.lin-checks {
+  display: inline-flex; align-items: center; gap: 5px;
+  font: 500 9px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
+  border-radius: 999px; padding: 4px 9px; text-decoration: none;
+  border: 1px solid transparent;
+}
+.lin-checks::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.lin-checks.passing { color: var(--ok); background: color-mix(in srgb, var(--ok) 13%, transparent); }
+.lin-checks.failing { color: var(--gap); background: color-mix(in srgb, var(--gap) 15%, transparent); }
+.lin-checks.running { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.lin-checks:hover { border-color: currentColor; }
+
 .lin-info {
   font: 400 11px/1 var(--mono); color: var(--faint);
   background: none; border: none; padding: 0 2px; cursor: help;
@@ -1897,3 +1910,15 @@ body.dragging, body.dragging * { user-select: none !important; -webkit-user-sele
   .hero { padding-top: 56px; }
   .hero-h1 { font-size: 34px; }
 }
+
+/* replying to a thread that came back from GitHub */
+.it-reply {
+  align-self: flex-start;
+  margin: 6px 0 2px 30px;
+  font: 500 10px/1 var(--mono); color: var(--muted);
+  background: var(--elev); border: 1px solid var(--hairline);
+  border-radius: 6px; padding: 5px 10px; cursor: pointer;
+}
+.it-reply:hover { color: var(--ink); border-color: var(--strong); }
+.it-body .note { margin: 6px 0 2px 30px; }
+.it-body .composer { margin: 6px 0 2px 30px; }

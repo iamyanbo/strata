@@ -12,7 +12,7 @@ import { loadPR } from "./git.js";
 import { buildIndex, resolveUses, checkout } from "./index.js";
 import { findSeeds, buildAdjacency, floodFill } from "./flow.js";
 import { emit } from "./emit.js";
-import type { RawComment } from "../src/types.js";
+import type { RawComment, ChecksSnapshot } from "../src/types.js";
 
 const [repoDirRaw, mergeCommit, outJson, metaJson] = process.argv.slice(2);
 if (!repoDirRaw || !mergeCommit || !outJson) {
@@ -28,6 +28,7 @@ let meta: {
   baseRef?: string;
   headRef?: string;
   headLabel?: string;
+  checks?: ChecksSnapshot;
   commentsPath?: string;
 } = {};
 try { meta = JSON.parse(metaJson ?? "{}"); } catch {
@@ -85,5 +86,6 @@ emit(pr, index, baseIndex, flow, fileNameMap, outJson, {
   baseRef: meta.baseRef,
   headRef: meta.headRef,
   headLabel: meta.headLabel,
+  checks: meta.checks,
   comments
 });

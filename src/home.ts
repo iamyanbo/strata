@@ -23,7 +23,10 @@ const IC = {
   graph: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="7" r="2.4"/><circle cx="12" cy="18" r="2.6"/><path d="M7.4 8 10.8 15.6M16.6 9 13.2 15.4"/></svg>`,
   fill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h7M4 12h4M4 17h9"/><circle cx="17" cy="9" r="3"/><path d="M17 12v6"/></svg>`,
   note: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>`,
-  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+  ci: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8.4 12.2 11 14.8l4.6-5"/></svg>`,
+  reply: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8 4.5 12 9 16"/><path d="M4.5 12h9a6 6 0 0 1 6 6v1"/></svg>`,
+  quiet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.2"/><circle cx="17" cy="16" r="3.2" stroke-dasharray="2.6 2.4"/><path d="M10.4 10.2 14.6 13.9"/></svg>`
 };
 
 interface Feature { icon: string; title: string; body: string; band: 1 | 2 | 3 | 4 }
@@ -64,6 +67,24 @@ const FEATURES: Feature[] = [
     band: 1,
     title: "Checkpoints that age",
     body: "Mark reviewed once. When the next push lands, only the objects those commits touched come back to unread; everything else stays where you left it."
+  },
+  {
+    icon: IC.reply,
+    band: 3,
+    title: "Answer in the thread",
+    body: "The PR's existing conversations come back with it, and a reply you write here posts into the thread it answers — GitHub's reply endpoint, not a new comment floating beside it."
+  },
+  {
+    icon: IC.ci,
+    band: 4,
+    title: "CI, with a timestamp on it",
+    body: "The head commit's checks sit in the title line — passing, or failing with the names of what failed. A dataset is a photograph, so the chip says when it was read rather than pretending to be live."
+  },
+  {
+    icon: IC.quiet,
+    band: 2,
+    title: "Unchanged code stays context",
+    body: "Objects the PR only touches by reference wait at the end behind one collapsed row, each saying what reached it. No read tick, no place in the counter, skipped by the keyboard walk: you cannot review what the PR did not change."
   }
 ];
 

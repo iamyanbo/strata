@@ -122,6 +122,18 @@ test("notes reach the export card as yours", () => {
   document.querySelector(".overlay").remove();
 });
 
+test("a thread from GitHub is listed but cannot be re-posted", () => {
+  // the dataset's own threads have nowhere to go: they came from there
+  click(document.querySelector(".theme-toggle"));
+  const rows = all(".exp-row");
+  const fromGithub = rows.filter((r) => r.querySelector(".note-chip")?.textContent === "from github");
+  for (const r of fromGithub) {
+    assert.equal(r.querySelector("input").disabled, true, "not selectable");
+    assert.equal(r.querySelector("input").checked, false, "not checked");
+  }
+  document.querySelector(".overlay")?.remove();
+});
+
 test("mark reviewed checkpoints AND ticks everything off", () => {
   click(document.querySelector(".review-strip .strip-btn"));
   const state = JSON.parse(localStorage.getItem(`strata-review:${page.pr.repo}${page.pr.number}`));
@@ -150,6 +162,16 @@ test("reset forgets the checkpoint and every tick", () => {
   click(document.querySelector(".review-strip .strip-btn.ghost"));
   assert.equal(localStorage.getItem(`strata-review:${page.pr.repo}${page.pr.number}`), null);
   assert.equal(all(".read-tick.on").length, 0);
+});
+
+test("the untested chip stays off types, which no test can exercise", () => {
+  click(document.querySelector('[data-mode="components"]'));
+  for (const card of all(".entries > .entry")) {
+    const kind = card.querySelector(".kind")?.textContent ?? "";
+    if (kind === "TYPEALIAS" || kind === "INTERFACE") {
+      assert.equal(card.querySelector(".untested-chip"), null, `${kind} should not claim to be untested`);
+    }
+  }
 });
 
 test("the commit lens renders history and a commit's diff", () => {

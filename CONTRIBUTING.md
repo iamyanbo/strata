@@ -13,6 +13,8 @@ new signal, document the exact rule it follows.
 
 ## Getting started
 
+Node 22.22.2 or newer (jsdom 30, which the render tests use, requires it).
+
 ```sh
 git clone <your fork>
 cd strata

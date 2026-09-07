@@ -38,6 +38,11 @@ export interface DraftComment {
   body: string;
   created: string;
   author: string;
+  /** the GitHub review comment this answers — a reply goes to the thread's own
+      endpoint rather than into a new review */
+  replyTo?: string;
+  /** who wrote the comment being answered, for the draft's header */
+  replyToAuthor?: string;
   /** ISO time it was pushed to GitHub; unset means still local */
   exportedAt?: string;
 }
@@ -87,7 +92,19 @@ export interface TraceLink {
   negative?: boolean;
 }
 
-export type EntryKind = "function" | "type" | "route" | "config" | "block";
+/** The kinds the indexer actually emits (pipeline/index.ts, defKind). The old
+    union — "type" | "route" | "config" | "block" — described nothing the
+    pipeline produces, and emit.ts cast around it. */
+export type EntryKind =
+  | "function"
+  | "class"
+  | "interface"
+  | "typeAlias"
+  | "enum"
+  | "enumMember"
+  | "method"
+  | "property"
+  | "const";
 
 /** One changed object. May appear in several components (things correlate). */
 export interface Entry {
@@ -167,6 +184,20 @@ export interface GraphEdge {
   sites?: CallSite[];
 }
 
+/** A snapshot of the PR's checks. Time-stamped on purpose: it is read once,
+    during analysis, and CI keeps running afterwards. */
+export interface ChecksSnapshot {
+  total: number;
+  failing: number;
+  running: number;
+  state: "passing" | "failing" | "running";
+  /** the first few failing check names */
+  names: string[];
+  url: string;
+  /** ISO time the snapshot was taken */
+  at: string;
+}
+
 export interface PageData {
   pr: PRInfo;
   /** full sha of the PR head — commit_id for review exports */
@@ -178,6 +209,8 @@ export interface PageData {
   banner: string;
   /** how the analysis was built — shown behind the lineage line's ⓘ */
   method?: string[];
+  /** CI on the head commit, as it stood when the PR was analyzed */
+  checks?: ChecksSnapshot;
   initialComponent: string;
   components: ComponentDoc[];
   commits: Commit[];

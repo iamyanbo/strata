@@ -556,11 +556,29 @@ function commentThread(c: ReviewComment, state?: "stale" | "gone"): HTMLElement 
     }
     head.appendChild(chip);
   }
-  if (n > 1) head.appendChild(el("span", "it-count", `${n} messages`));
+  const pending = c.id ? repliesTo(String(c.id)) : [];
+  if (n + pending.length > 1) {
+    head.appendChild(el("span", "it-count", `${n + pending.length} messages`));
+  }
   const bodyWrap = el("div", "it-body");
   bodyWrap.appendChild(renderComment(c.author, c.body, c.anchor, c.resolved));
   for (const r of c.replies ?? []) {
     bodyWrap.appendChild(renderComment(r.author, r.body, r.anchor, r.resolved, true));
+  }
+  // your unsent answers sit at the end of the thread, where they will land
+  for (const d of pending) bodyWrap.appendChild(renderDraft(d));
+
+  // answering a thread posts to that thread, not into a new review, so the
+  // affordance belongs here rather than on the line
+  if (c.id) {
+    const line = Number(c.anchor?.match(/:(\d+)\s*$/)?.[1] ?? 0);
+    const path = (c.anchor ?? "").replace(/:\d+\s*$/, "");
+    const reply = el("button", "it-reply", "reply");
+    reply.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openComposer(reply, path, line, "RIGHT", undefined, { to: String(c.id), author: c.author });
+    });
+    bodyWrap.appendChild(reply);
   }
   head.addEventListener("click", () => {
     const open = wrap.classList.toggle("open");
@@ -596,7 +614,12 @@ function saveDrafts(): void {
 
 function draftsAt(path: string, line: number | undefined, side: "RIGHT" | "LEFT"): DraftComment[] {
   if (line === undefined) return [];
-  return drafts.filter((d) => d.path === path && d.line === line && d.side === side);
+  return drafts.filter((d) => !d.replyTo && d.path === path && d.line === line && d.side === side);
+}
+
+/** unsent answers to one GitHub thread */
+function repliesTo(threadId: string): DraftComment[] {
+  return drafts.filter((d) => d.replyTo === threadId);
 }
 
 /** unsent notes are what the export button counts */
@@ -604,12 +627,20 @@ function unsentDrafts(): DraftComment[] {
   return drafts.filter((d) => !d.exportedAt);
 }
 
-function addDraft(path: string, line: number, side: "RIGHT" | "LEFT", body: string): void {
+function addDraft(
+  path: string,
+  line: number,
+  side: "RIGHT" | "LEFT",
+  body: string,
+  reply?: { to: string; author: string }
+): void {
   drafts.push({
     id: `d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     path, line, side, body,
     created: new Date().toISOString(),
-    author: "you"
+    author: "you",
+    replyTo: reply?.to,
+    replyToAuthor: reply?.author
   });
   saveDrafts();
 }
@@ -620,17 +651,26 @@ function removeDraft(id: string): void {
 }
 
 /** the composer: a textarea under the line, Cmd/Ctrl+Enter to save */
-function openComposer(after: HTMLElement, path: string, line: number, side: "RIGHT" | "LEFT", existing?: DraftComment): void {
+function openComposer(
+  after: HTMLElement,
+  path: string,
+  line: number,
+  side: "RIGHT" | "LEFT",
+  existing?: DraftComment,
+  reply?: { to: string; author: string }
+): void {
   after.parentElement?.querySelector(".composer")?.remove();
   const box = el("div", "composer");
   const ta = el("textarea", "composer-in") as HTMLTextAreaElement;
-  ta.placeholder = `note on ${path.split("/").pop()}:${line}${side === "LEFT" ? " (removed line)" : ""}`;
+  ta.placeholder = reply
+    ? `reply to ${reply.author}`
+    : `note on ${path.split("/").pop()}:${line}${side === "LEFT" ? " (removed line)" : ""}`;
   ta.value = existing?.body ?? "";
   ta.rows = 3;
   const actions = el("div", "composer-actions");
   const hint = el("span", "composer-hint", "⌘/Ctrl + Enter to save");
   const cancel = el("button", "strip-btn ghost", "cancel");
-  const save = el("button", "strip-btn", existing ? "update note" : "add note");
+  const save = el("button", "strip-btn", existing ? "update note" : reply ? "add reply" : "add note");
   const commit = (): void => {
     const body = ta.value.trim();
     if (!body) return;
@@ -638,7 +678,7 @@ function openComposer(after: HTMLElement, path: string, line: number, side: "RIG
       existing.body = body;
       saveDrafts();
     } else {
-      addDraft(path, line, side, body);
+      addDraft(path, line, side, body, reply);
     }
     refresh();
   };
@@ -661,12 +701,15 @@ function renderDraft(d: DraftComment): HTMLElement {
   head.append(
     el("span", `hist-av sm ${authorColor(d.author)}`, d.author.slice(0, 1).toUpperCase()),
     el("b", undefined, d.author),
-    el("span", "note-anchor", `${d.path.split("/").pop()}:${d.line}${d.side === "LEFT" ? " · removed" : ""}`),
+    el("span", "note-anchor", d.replyTo
+      ? `replying to ${d.replyToAuthor ?? "the thread"}`
+      : `${d.path.split("/").pop()}:${d.line}${d.side === "LEFT" ? " · removed" : ""}`),
     el("span", `note-chip${d.exportedAt ? " sent" : ""}`, d.exportedAt ? "on github" : "not sent yet")
   );
   const tools = el("div", "note-tools");
   const edit = el("button", "note-tool", "edit");
-  edit.addEventListener("click", () => openComposer(wrap, d.path, d.line, d.side, d));
+  edit.addEventListener("click", () => openComposer(wrap, d.path, d.line, d.side, d,
+    d.replyTo ? { to: d.replyTo, author: d.replyToAuthor ?? "" } : undefined));
   const del = el("button", "note-tool", "delete");
   del.addEventListener("click", () => { removeDraft(d.id); refresh(); });
   tools.append(edit, del);
@@ -1549,10 +1592,12 @@ function renderComponentDoc(): HTMLElement {
   for (const id of objectsOf(comp)) {
     if (!isRest(id)) list.appendChild(renderEntry(entry(id)!));
   }
-  const ctx = renderContextGroup(contextOf(comp));
-  if (ctx) list.appendChild(ctx);
+  // the loose changes are still changes, so they sit with them; what the PR did
+  // not touch goes last, below everything it did
   const rest = renderLeftovers(comp);
   if (rest) list.appendChild(rest);
+  const ctx = renderContextGroup(contextOf(comp));
+  if (ctx) list.appendChild(ctx);
   main.appendChild(list);
   return main;
 }
@@ -1765,8 +1810,11 @@ function renderEntry(e: Entry): HTMLElement {
     badge.title = `${e.refs} reference${e.refs === 1 ? "" : "s"} at head`;
     head.appendChild(badge);
   }
-  // promoted fact: nothing reaches this symbol from any test file
-  if (e.seed && e.traces.some((t) => t.relation === "no direct test references")) {
+  // promoted fact: nothing reaches this symbol from any test file.
+  // Types cannot be exercised by a test on their own, so the chip would fire on
+  // every interface and alias in the PR and mean nothing.
+  const testable = e.kind !== "typeAlias" && e.kind !== "interface";
+  if (e.seed && testable && e.traces.some((t) => t.relation === "no direct test references")) {
     const uc = el("span", "untested-chip", "untested");
     uc.addEventListener("mouseenter", () => showHoverCard(uc, (card) => {
       card.appendChild(el("div", "hc-msg", "no test file references this symbol"));
@@ -2199,6 +2247,8 @@ interface ExportItem {
   anchor: string;
   /** written here rather than fetched from GitHub */
   mine: boolean;
+  /** answers an existing thread: posted to that thread, not into a review */
+  replyTo?: string;
   sent: boolean;
   replies?: ReviewComment[];
 }
@@ -2214,7 +2264,10 @@ function collectThreads(): ExportItem[] {
       side: d.side,
       body: d.body,
       author: d.author,
-      anchor: `${d.path}:${d.line}${d.side === "LEFT" ? " (removed)" : ""}`,
+      anchor: d.replyTo
+        ? `reply to ${d.replyToAuthor ?? "thread"} · ${d.path.split("/").pop()}:${d.line}`
+        : `${d.path}:${d.line}${d.side === "LEFT" ? " (removed)" : ""}`,
+      replyTo: d.replyTo,
       mine: true,
       sent: !!d.exportedAt
     });
@@ -2231,7 +2284,7 @@ function collectThreads(): ExportItem[] {
         author: c.author,
         anchor,
         mine: false,
-        sent: false,
+        sent: true, // already on GitHub: listed for context, never re-posted
         replies: c.replies
       });
     }
@@ -2270,7 +2323,8 @@ function openExportCard(): void {
     const row = el("label", `exp-row${c.mine ? " mine" : ""}`);
     const box = document.createElement("input");
     box.type = "checkbox";
-    box.checked = !c.sent; // already on GitHub: listed, but not sent again
+    box.checked = c.mine && !c.sent;
+    box.disabled = !c.mine; // a GitHub thread has nowhere to go
     checks.push(box);
     row.appendChild(box);
     const txt = el("span", "exp-txt");
@@ -2278,7 +2332,8 @@ function openExportCard(): void {
       el("b", undefined, c.anchor || "(no anchor)"),
       document.createTextNode(` — ${c.author}: ${c.body.length > 90 ? c.body.slice(0, 89) + "…" : c.body}`)
     );
-    if (c.mine) txt.appendChild(el("span", `note-chip${c.sent ? " sent" : ""}`, c.sent ? "on github" : "yours"));
+    txt.appendChild(el("span", `note-chip${c.mine && !c.sent ? "" : " sent"}`,
+      !c.mine ? "from github" : c.sent ? "on github" : "yours"));
     row.appendChild(txt);
     card.appendChild(row);
   }
@@ -2292,7 +2347,8 @@ function openExportCard(): void {
   });
   const submit = el("button", "strip-btn", "submit to github");
   submit.addEventListener("click", () => {
-    const picked = threads.filter((_, i) => checks[i].checked);
+    // only your own unsent notes and replies travel; the rest are already there
+    const picked = threads.filter((_, i) => checks[i].checked && threads[i].mine && !threads[i].sent);
     if (!picked.length || !dataName) return;
     submit.textContent = "sending…";
     submit.setAttribute("disabled", "true");
@@ -2307,7 +2363,8 @@ function openExportCard(): void {
           path: c.path,
           line: c.line,
           side: c.side,
-          body: c.body
+          body: c.body,
+          replyTo: c.replyTo
         }))
       })
     })
@@ -2414,6 +2471,22 @@ function renderLineage(bannerText: string): HTMLElement {
   const num = page.pr.number.replace("#", "");
   if (num && ghBase()) {
     wrap.appendChild(ghLink("lin-out", `PR ${page.pr.number} ↗`, `${ghBase()}/pull/${num}`, "open the pull request"));
+  }
+
+  // CI, as it stood when this PR was analyzed. A snapshot, and it says so:
+  // showing a stale "passing" would be worse than showing nothing.
+  const ck = page.checks;
+  if (ck) {
+    const chip = ghLink(`lin-checks ${ck.state}`,
+      ck.state === "failing" ? `${ck.failing} check${ck.failing === 1 ? "" : "s"} failing`
+      : ck.state === "running" ? `${ck.running} check${ck.running === 1 ? "" : "s"} running`
+      : `${ck.total} check${ck.total === 1 ? "" : "s"} passing`,
+      ck.url, "");
+    const when = new Date(ck.at);
+    const stamp = `read ${MONTHS[when.getMonth()]} ${when.getDate()} ${String(when.getHours()).padStart(2, "0")}:${String(when.getMinutes()).padStart(2, "0")} — re-analyze to refresh`;
+    chip.title = ck.names.length ? `${ck.names.join(", ")}
+${stamp}` : stamp;
+    wrap.appendChild(chip);
   }
 
   // the method, kept but demoted: hover to read how this page was built

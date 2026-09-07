@@ -125,6 +125,38 @@ export async function analyzePR(url, onProgress) {
   } catch { /* comments are best-effort */ }
 
   say("analyzing: git + TypeScript AST + def-use graph");
+  // CI on the PR head: a fact about the change a reviewer needs before reading
+  // it. Snapshot only — it is stamped with the time it was read, because a
+  // dataset is a photograph and checks keep running after the shutter.
+  say("reading checks");
+  let checks;
+  try {
+    const headSha = meta.head?.sha;
+    if (headSha) {
+      const r = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/commits/${headSha}/check-runs?per_page=100`,
+        { headers: { ...ghHeaders(), Accept: "application/vnd.github+json" } }
+      );
+      if (r.ok) {
+        const runs = (await r.json()).check_runs ?? [];
+        if (runs.length) {
+          const done = runs.filter((c) => c.status === "completed");
+          const failing = done.filter((c) => c.conclusion !== "success" && c.conclusion !== "neutral" && c.conclusion !== "skipped");
+          checks = {
+            total: runs.length,
+            failing: failing.length,
+            running: runs.length - done.length,
+            state: failing.length ? "failing" : runs.length > done.length ? "running" : "passing",
+            names: failing.slice(0, 3).map((c) => c.name),
+            url: `https://github.com/${owner}/${repo}/pull/${num}/checks`,
+            at: new Date().toISOString()
+          };
+          console.log(`[strata] checks: ${checks.state} (${checks.failing}/${checks.total} failing)`);
+        }
+      }
+    }
+  } catch { /* checks are best-effort */ }
+
   const metaJson = JSON.stringify({
     title: meta.title ?? "",
     number: String(meta.number ?? ""),
@@ -132,6 +164,7 @@ export async function analyzePR(url, onProgress) {
     baseRef: meta.base?.ref,
     headRef: meta.head?.ref,
     headLabel: meta.head?.label,
+    checks,
     commentsPath
   });
   await runPipeline([repoDir, sha, outJson, metaJson], onProgress);

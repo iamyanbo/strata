@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22   # jsdom 30 needs >= 22.22.2; the render tests use it
           cache: npm
       - run: npm ci
       - run: npx tsc
