@@ -1,193 +1,144 @@
 # Strata
 
-A local code-review workspace for GitHub pull requests. Paste a PR URL and
-Strata rebuilds the change as it actually happened: every written line
-stamped with the commit that produced it, related changes grouped into
-components by how the code references itself, and review threads that age
-with the code instead of against it.
+**Read a pull request the way it was written.** Paste a GitHub PR url and Strata
+rebuilds the change from its commits: who wrote each line and when, which symbols
+actually changed, and what still depends on them. It runs on your machine.
 
-Everything on screen is computed — from git history and the TypeScript AST,
-by deterministic code. No LLM writes a word of what you see.
+![Strata reviewing a pull request](docs/images/component-lens.png)
 
-## Quickstart
+Everything on screen is computed from git history and the TypeScript AST by
+deterministic code. No LLM writes a word of what you see.
 
-Node 22.22.2 or newer, and `git` on your PATH. Nothing else — no database, no
-account, no API key for reading public PRs.
+## Setup
+
+You need **Node 22.22.2+** and **git**. Nothing else — no database, no account,
+and no API key for reading public PRs.
 
 ```sh
 git clone https://github.com/iamyanbo/strata
 cd strata
 npm install
-npx tsc                # compile the viewer + pipeline to dist/
+npx tsc                # build the viewer + pipeline into dist/
 node scripts/serve.mjs # → http://localhost:4517
 ```
 
-The app opens on its home page — everything you've analyzed, newest first,
-plus the bundled sample PR. To review your own, paste any merged GitHub PR
-URL into the top bar:
+Then paste any **merged** PR url into the bar at the top — or from a terminal:
 
 ```sh
 node scripts/analyze.mjs https://github.com/owner/repo/pull/123
-# (same thing as pasting the URL into the app)
 ```
 
-The first analysis shallow-fetches the PR's repository into `repos/` — only
-the commits around the PR, not the full history. Everything stays local.
+The first analysis of a repo shallow-fetches just the commits around that PR
+into `repos/`, then writes one file, `data/pr-owner-repo-123.json`. The viewer
+reads only that file. Re-paste the url any time to take a fresh snapshot; your
+notes and read marks survive it.
 
-## What you get
+To push review comments back to GitHub, export needs write access:
 
-**Time ribbons.** Every line the PR wrote carries a tick colored by the
-*sweep* that wrote it — a burst of commit activity separated by a calendar
-day or a 2-hour gap. Blue = the careful first draft; red = the pass bolted on
-an hour before opening. Hovering a tick gives the exact commit, author and
-timestamp. Content that appears during a merge commit (hand-resolved
-conflicts) gets its own hatched marker — it's the code nobody wrote
-deliberately.
-
-**Components, not files.** Changed symbols seed a flood fill over the
-def−use graph; what they reach becomes a component you read top to bottom.
-The dependency graph panel shows the local shape, and a replay walks the PR
-commit by commit.
-
-**Three lenses over one PR.** *By commit* walks the history, *by component*
-follows the def−use fill, and *by file* is the completeness backstop: the
-component lens is a lens, and on a real PR it reaches only about half the changed
-lines — docs, untyped sources and files whose changes fall outside every
-top-level symbol never appear in it. The file lens lists every changed file, and
-shows each one in line order with each run of lines labeled by the object that
-owns it (click through to that object), or marked as belonging to none. Review
-threads on files no object covers finally have a home there.
-
-**One object, one diff.** An object shows the lines inside its own span — its
-declaration, its body, and the doc comment *attached* to it (a `////////` rule or
-a comment separated by a blank line belongs to no symbol, so an added blank line
-above one is not a change to the interface below it) — not the whole file it
-happens to live in. A change made only of blank lines or separator rules is not
-a change: the symbol stays context, and the line falls to the file view. Six symbols declared in one edited file used to render six copies of the
-same file-wide diff, with the same threads and the same introducing commit on
-each. Review threads land on the object whose span contains them, and a commit
-"touches" an object only when it wrote or removed one of that object's lines.
-Whatever belongs to no symbol — imports, top-level statements, the bodies of
-test callbacks — is collected into a card at the end of the component: real
-changed lines, so it reads like any other change and is ticked off like one.
-
-**A graph that says why.** Edges are directed — arrows point caller → callee —
-and colored by where the PR's changes sit on them: both ends changed, changed
-code reaching into stable code, or an **unchanged caller depending on changed
-code**, which is the shape most breakage takes. That last one is counted under
-the graph and filterable in one click. Hovering an edge shows the actual source
-lines that put it there.
-
-**Connections on every object.** Each card lists its callers and its calls,
-riskiest first, each with the call site verbatim (`file.ts:297 json.items =
-processSchema(...)`) and a jump to the other object — so the reason the graph
-has that shape is readable in the document, not just inferable from the picture.
-Hovering a row lights the matching wire in the graph, and vice versa.
-
-Most callers of a changed function were not themselves changed, so they have no
-diff to show — and the document only ever shows what the PR changed. Instead,
-every call site opens in place: a few lines of head source with the call line
-marked, labeled *not changed by this PR*. The reason an unchanged object is in
-the document at all is stated on its card, with a pointer to the call sites that
-pulled it in.
-
-**One object at a time.** A component opens on its first changed object with
-the diff already on screen. A sticky bar carries the component, the object, a
-`3 / 16` counter with prev/next, a jump menu and the read tick, so none of that
-scrolls away while you read. `j` / `k` walk the component, `n` jumps to the next
-unread object, `Esc` collapses. Objects the PR did not change are not mixed in
-with the ones it did: they wait at the end of the component behind one collapsed
-row, *unchanged references*, and each says by name what reaches it. They take no part in reviewing either: no read checkmark, no place in the
-counter, and `j`/`k` step past them — you cannot review what the PR did not
-change. A component of sixteen objects with one change costs one screen, not
-sixteen.
-
-**Checks, stamped.** The lineage line carries CI on the head commit as it stood
-when the PR was analyzed — passing, failing with the names of what failed, or
-still running — linked to the checks tab. It says *read <time>* on hover,
-because a dataset is a photograph and CI keeps running after the shutter.
-
-**Review checkpoints.** *Mark reviewed* does what it says: it drops a
-checkpoint at today's commits **and** ticks off every changed object. On the
-next push, only the objects those commits touched come back to unread — the
-rest stay read, so `11/11` becomes `5/11` and the strip tells you which commits
-did it. Individual ticks still work for reviewing in passes, *reset* forgets the
-checkpoint and every tick, and force-pushes are detected and handled.
-
-**Threads that age with the code.** Comments survive force-pushes via line
-anchors, and when a commented line is rewritten *after* the comment, the
-thread flags "rewritten since" with an expandable before/after of what
-changed. Facts like "covered by X.test.ts" jump straight to the covering
-test's diff, and "untested" is stated plainly on the object header.
-
-**Reply in the thread.** A thread that came back from GitHub carries a *reply*
-button; your answer waits with your other notes and posts into that thread —
-GitHub's reply endpoint, not a new review comment floating beside it.
-
-**Write the review here.** Hover any diff line and the `+` opens a composer:
-notes anchor to that line, render inline where a GitHub thread would, and are
-kept per PR in your browser until you push them. A note on a removed line
-anchors to the old file, so it lands on the left side of the GitHub diff where
-the line still exists.
-
-**Export.** Your notes leave as a single review, and your replies go to the
-threads they answer (needs `GITHUB_TOKEN`). The PR's own threads are listed for
-context and never re-sent — they are already on GitHub. Re-exports skip anything
-already pushed, and a pushed note is marked *on github* instead of *not sent
-yet*.
-
-## How it works
-
-```
-scripts/analyze.mjs   shallow-fetch the PR's merge commit + window, comments, checks
-pipeline/git.ts       parse the PR shape: commits, per-commit diffs, whole-PR diff
-pipeline/index.ts     TypeScript AST over base and head trees; def−use resolution
-pipeline/flow.ts      flood fill from changed symbols → components
-pipeline/sweeps.ts    commit bursts → the four time bands
-pipeline/emit.ts      per-line attribution, per-object slices, threads → data/<pr>.json
-src/                  the viewer: DOM rendering, no framework
+```sh
+GITHUB_TOKEN=$(gh auth token) node scripts/serve.mjs
 ```
 
-The pipeline runs once and writes one file; the viewer reads only that file. A
-dataset is a photograph of the PR at the moment you analyzed it — re-paste the
-URL to take a new one, and your notes and read marks survive it.
+The token stays in the local server process. Reading works without one (GitHub
+allows 60 requests an hour unauthenticated; a token raises that).
 
-## Honest limitations
+## Three lenses over one PR
 
-- The indexer reads **TypeScript/JavaScript** only; PRs touching other
-  languages still load, but their symbols aren't analyzed.
-- Analyzes **merged** PRs (it needs a merge/squash commit to define the window).
-- Sweep detection uses a 2-hour gap heuristic; blame attribution needs the
-  writing commit inside the shallow-fetch window (PR commits always are).
-- One local user: checkpoints and read marks live in your browser's
-  localStorage. This is a review *workbench*, not a hosted review system.
+Same data, three ways in. The switch is in the sticky bar, and `j` / `k` walk
+whichever lens you are in.
 
-## Secrets
+### By component — what changed, and what it touches
 
-Export reads `GITHUB_TOKEN` (or a `github.token` file in the repo root).
-Analysis reads public API endpoints without a token (60 req/hr — set
-`GITHUB_TOKEN` to raise it). The token never leaves the local server process.
+Changed symbols seed a flood fill over a def−use index built from both trees;
+what the fill reaches becomes a unit you read top to bottom. Each object shows
+only the lines inside its own span, so six symbols in one edited file give you
+six different diffs rather than six copies of the file.
 
-The landing page carries a working miniature of the viewer: the lens switch
-drives it, ribbons and edges answer hover with the same cards the app uses, and
-it cycles through the three lenses until you touch it.
+The graph beside it is directed — arrows point caller → callee — and colored by
+where the change sits: both ends changed, changed code reaching into stable
+code, or an **unchanged caller depending on changed code**, which is the shape
+most breakage takes. That last one is counted and filterable in one click.
+
+### By commit — when it changed, and by whom
+
+![The commit lens](docs/images/commit-lens.png)
+
+Every line carries a tick colored by the *sweep* that wrote it — a burst of work
+separated by a calendar day or a two-hour gap. Blue is the careful first draft;
+red is the pass bolted on an hour before opening. Deletions carry it too: blame
+cannot see a removed line, so the commit that removed it is matched from that
+commit's own diff.
+
+### By file — the completeness backstop
+
+![The file lens](docs/images/file-lens.png)
+
+The component lens is a lens: on a real PR it reaches about half the changed
+lines, because docs, config and untyped sources declare no symbols. The file
+lens lists every changed file in line order, labels each run of lines with the
+object that owns it, and says plainly when nothing does.
+
+## Reviewing
+
+![A review thread with replies](docs/images/threads.png)
+
+- **Write notes here.** Hover any diff line and `+` opens a composer. Notes are
+  kept per PR in your browser until you push them. A note on a *removed* line
+  anchors to the old file, so it lands on the left side of the GitHub diff.
+- **Reply in the thread.** The PR's existing conversations come back with it,
+  and your reply posts into the thread it answers — GitHub's reply endpoint, not
+  a new comment floating beside it.
+- **Export once.** Your notes leave as a single review. Anything already pushed
+  is skipped on re-export, and the PR's own threads are shown for context but
+  never re-sent.
+- **Checkpoints that age.** *Mark reviewed* drops a checkpoint and ticks off
+  every changed object. On the next push, only the objects those commits touched
+  come back to unread — `11/11` becomes `5/11`, and the strip says which commits
+  did it. Force-pushes are detected and handled.
+- **Threads age too.** A comment survives a force-push via its line anchor, and
+  if its line was rewritten afterwards the thread flags "rewritten since" with a
+  before/after of what changed.
+
+Objects the PR did not change are not mixed in with the ones it did: they wait
+at the end behind one collapsed row, *unchanged references*, each saying what
+reached it. They take no read tick and no place in the counter — you cannot
+review what the PR did not change.
+
+## Details worth knowing
+
+- **A dataset is a photograph.** The head commit's CI is shown in the title
+  line, stamped with the time it was read rather than pretended to be live.
+- **A symbol owns only its own lines** — declaration, body, and the doc comment
+  *attached* to it. A `////////` rule, or a comment separated by a blank line,
+  belongs to no symbol. Changes made only of blank lines are not changes.
+- **Whatever belongs to no symbol** — imports, top-level statements, test
+  bodies — is collected into one card at the end of the component and reviewed
+  like any other change.
+- **Every call site is quotable.** Each object lists its callers and its calls
+  with the source line verbatim, and unchanged callers open in place, labeled as
+  unchanged, rather than being dressed up as part of the diff.
+
+## Limits
+
+- The indexer reads **TypeScript/JavaScript** only. PRs touching other languages
+  still load; their symbols are not analyzed.
+- Analyzes **merged** PRs — it needs a merge commit to define the window.
+- Sweep detection uses a two-hour gap heuristic (`STRATA_SWEEP_GAP_HOURS`), and
+  blame needs the writing commit inside the shallow-fetch window
+  (`STRATA_FETCH_DEPTH` widens it).
+- One local user: checkpoints and notes live in your browser's localStorage.
+  This is a review *workbench*, not a hosted review system.
 
 ## Development
 
 ```sh
-npx tsc              # build
 npx tsc --watch      # rebuild on change
-npm test             # pipeline units, dataset invariants, and the viewer in jsdom
+npm test             # pipeline units, dataset invariants, the viewer in jsdom
 npm run check        # type-check, then the tests
 ```
 
-[ARCHITECTURE.md](ARCHITECTURE.md) walks the four pipeline stages and the
-viewer's modules.
+[ARCHITECTURE.md](ARCHITECTURE.md) walks the pipeline stages and the viewer's
+modules. [CONTRIBUTING.md](CONTRIBUTING.md) has the ground rules — the main one
+being that every signal on screen must be computable and traceable to a commit.
 
-Knobs: `STRATA_SWEEP_GAP_HOURS` (default 2) controls when a burst of commits
-becomes a new sweep; `STRATA_FETCH_DEPTH` overrides the shallow-fetch depth
-when a PR window needs more ancestors.
-
-PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the ground rules,
-the main one being: every signal on screen must be computable and traceable
-to a commit. MIT licensed.
+MIT licensed.
